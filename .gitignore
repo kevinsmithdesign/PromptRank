@@ -23,6 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-*.config/firebase.js
-*.firebase.js
+config/firebase.js
+
 
