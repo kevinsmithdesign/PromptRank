@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 import { Button } from "@mui/material";
 import { Auth } from "./components/Auth";
@@ -12,6 +13,9 @@ import {
   getDoc,
   updateDoc,
 } from "firebase/firestore";
+import LandingPage from "./pages/LandingPage";
+import LoginPage from "./pages/LoginPage";
+import SignUpPage from "./pages/SignUpPage";
 
 function App() {
   const [promptList, setPromptList] = useState([]);
@@ -242,7 +246,7 @@ function App() {
 
   return (
     <>
-      <Auth />
+      {/* <Auth />
       <br />
       <br />
       <div>
@@ -347,7 +351,14 @@ function App() {
             )}
           </div>
         ))}
-      </div>
+      </div> */}
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+        </Routes>
+      </Router>
     </>
   );
 }
