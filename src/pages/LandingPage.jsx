@@ -37,11 +37,44 @@ export default function LandingPage() {
             </Button>
             <Button
               variant="outlined"
-              onClick={() => handleNavigation("/dashboard")}
+              onClick={() => handleNavigation("/main/prompts")}
             >
               Try Now
             </Button>
           </Stack>
+        </Grid>
+        <Grid size={6}>
+          <Box
+            sx={{
+              background: "#eee",
+              height: "400px",
+              width: "100%",
+              borderRadius: 4,
+            }}
+          ></Box>
+        </Grid>
+      </Grid>
+      <Grid container spacing={2} mt={4}>
+        <Grid
+          size={6}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+          }}
+        >
+          <Typography variant="h4" fontWeight="bold" mb={4}>
+            Maybe?!?
+          </Typography>
+          <Typography variant="body1" mb={4}>
+            Add Prompts
+          </Typography>
+          <Typography variant="body1" mb={4}>
+            Rank Prompts
+          </Typography>
+          <Typography variant="body1" mb={4}>
+            Learn AI Tools
+          </Typography>
         </Grid>
         <Grid size={6}>
           <Box

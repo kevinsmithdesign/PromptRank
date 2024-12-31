@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import "./App.css";
 import { Button } from "@mui/material";
 import { Auth } from "./components/Auth";
@@ -16,6 +17,14 @@ import {
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
+import MainPage from "./pages/MainPage";
+// import PromptsPage from "./pages/PromptsPage";
+// import AiToolsPage from "./pages/AiToolsPage";
+const PromptsPage = lazy(() => import("./pages/PromptsPage"));
+const AiToolsPage = lazy(() => import("./pages/AiToolsPage"));
+import PromptDetail from "./pages/PromptDetails";
+import ProfilePage from "./pages/ProfilePage";
+import SettingsPage from "./pages/SettingsPage";
 
 function App() {
   const [promptList, setPromptList] = useState([]);
@@ -246,117 +255,34 @@ function App() {
 
   return (
     <>
-      {/* <Auth />
-      <br />
-      <br />
-      <div>
-        <input
-          placeholder="Category"
-          value={newCategory}
-          onChange={(e) => setNewCategory(e.target.value)}
-        />
-        <input
-          placeholder="Prompt Title"
-          value={newPromptTitle}
-          onChange={(e) => setNewPromptTitle(e.target.value)}
-        />
-        <input
-          placeholder="Prompt Description"
-          value={newPromptDescription}
-          onChange={(e) => setNewPromptDescription(e.target.value)}
-        />
-        <input
-          type="checkbox"
-          checked={newVisibilityModel}
-          onChange={(e) => setNewVisibilityModel(e.target.checked)}
-        />
-        <label>Public</label>
-        <button onClick={onSubmitAddPrompt} disabled={loading}>
-          {loading ? "Adding..." : "Add Prompt"}
-        </button>
-      </div>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {deleteError && <p style={{ color: "red" }}>{deleteError}</p>}
-      {editError && <p style={{ color: "red" }}>{editError}</p>}
-
-      <div>
-        {promptList?.map((prompt) => (
-          <div key={prompt?.id || "fallback-key"}>
-            {editingId === prompt.id ? (
-              // Edit form
-              <div>
-                <input
-                  placeholder="Title"
-                  value={editForm.title}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({ ...prev, title: e.target.value }))
-                  }
-                />
-                <input
-                  placeholder="Description"
-                  value={editForm.description}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                />
-                <input
-                  placeholder="Category"
-                  value={editForm.category}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({
-                      ...prev,
-                      category: e.target.value,
-                    }))
-                  }
-                />
-                <input
-                  type="checkbox"
-                  checked={editForm.isVisible}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({
-                      ...prev,
-                      isVisible: e.target.checked,
-                    }))
-                  }
-                />
-                <label>Public</label>
-                <button
-                  onClick={() => handleEditSubmit(prompt.id)}
-                  disabled={editLoading}
-                >
-                  {editLoading ? "Saving..." : "Save"}
-                </button>
-                <button onClick={cancelEditing} disabled={editLoading}>
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              // Display mode
-              <>
-                <h3>{prompt?.title}</h3>
-                <p>{prompt?.description}</p>
-                {prompt.category && <p>Category: {prompt.category}</p>}
-                <button onClick={() => startEditing(prompt)}>Edit</button>
-                <button
-                  onClick={() => deletePrompt(prompt.id)}
-                  disabled={deleteLoading[prompt.id]}
-                >
-                  {deleteLoading[prompt.id] ? "Deleting..." : "Delete Prompt"}
-                </button>
-              </>
-            )}
-          </div>
-        ))}
-      </div> */}
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/main" element={<MainPage />}>
+            {/* <Route path="prompts" element={<PromptsPage />} /> */}
+            <Route
+              path="prompts"
+              element={
+                <Suspense fallback={<div>Loading...</div>}>
+                  <PromptsPage />
+                </Suspense>
+              }
+            />
+            <Route path="prompts/:id" element={<PromptDetail />} />
+            {/* <Route path="ai-tools" element={<AiToolsPage />} /> */}
+            <Route
+              path="ai-tools"
+              element={
+                <Suspense fallback={<div>Loading...</div>}>
+                  <AiToolsPage />
+                </Suspense>
+              }
+            />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
         </Routes>
       </Router>
     </>

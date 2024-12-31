@@ -1,23 +1,32 @@
-import * as React from "react";
-import { Container, Box, Typography, Button, Stack } from "@mui/material";
+// import React from "react";
 
+// const SignUpPage = () => {
+//   return <>Sign Up Page</>;
+// };
+
+// export default SignUpPage;
+
+// src/pages/SignUpPage.js
+import React from "react";
+import { Container, Box } from "@mui/material";
+import { SignUp } from "../components/SignUp";
 import Grid from "@mui/material/Grid2";
 
 export default function SignUpPage() {
   return (
     <Container>
-      <Grid container spacing={2} mt={4}>
+      <Grid container spacing={12} mt={4}>
         <Grid
-          size={6}
+          size={5}
           sx={{
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
           }}
         >
-          Sign Up Form
+          <SignUp />
         </Grid>
-        <Grid size={6}>
+        <Grid size={7}>
           <Box
             sx={{
               background: "#eee",
@@ -25,7 +34,7 @@ export default function SignUpPage() {
               width: "100%",
               borderRadius: 4,
             }}
-          ></Box>
+          />
         </Grid>
       </Grid>
     </Container>
