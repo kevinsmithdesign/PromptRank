@@ -19,8 +19,19 @@ import {
   Menu,
   MenuItem,
   useTheme,
+  IconButton,
+  OutlinedInput,
+  InputLabel,
+  InputAdornment,
+  FormControl,
 } from "@mui/material";
+
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+
 import { Add as AddIcon } from "@mui/icons-material";
+import SaveToCollectionDialog from "../components/SaveToCollectionDialog";
+
 import Grid from "@mui/material/Grid2";
 import StarIcon from "@mui/icons-material/Star";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -29,6 +40,8 @@ import EditIcon from "../icons/EditIcon";
 import DeleteIcon from "../icons/DeleteIcon";
 import SaveIcon from "../icons/SaveIcon";
 import EyeIcon from "../icons/EyeIcon";
+import SearchIcon from "../icons/SearchIcon";
+import SendMsgIcon from "../icons/SendMsgIcon";
 // import StarIcon from "../icons/StarIcon";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 
@@ -41,6 +54,9 @@ import {
   doc,
   getDoc,
   updateDoc,
+  increment, // Add this
+  query, // Add this
+  orderBy, // Add this
 } from "firebase/firestore";
 
 function PromptPage() {
@@ -74,6 +90,7 @@ function PromptPage() {
   const [newPromptDescription, setNewPromptDescription] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [newVisibilityModel, setNewVisibilityModel] = useState(false);
+  const [saveToCollectionOpen, setSaveToCollectionOpen] = useState(false);
 
   // Create a reference to the prompts collection at component level
   const promptsCollectionRef = collection(db, "prompts");
@@ -130,34 +147,35 @@ function PromptPage() {
   };
 
   const handleSavePrompt = async (promptId) => {
-    try {
-      setSaveLoading((prev) => ({ ...prev, [promptId]: true }));
-      setSaveError(null);
+    setSelectedPromptId(promptId);
+    setSaveToCollectionOpen(true);
+    handleMenuClose();
 
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        throw new Error("You must be logged in to save prompts");
-      }
-
-      // Add a reference to this prompt in user's saved prompts collection
-      const savedPromptsRef = collection(
-        db,
-        "users",
-        currentUser.uid,
-        "savedPrompts"
-      );
-      await addDoc(savedPromptsRef, {
-        promptId: promptId,
-        savedAt: new Date().toISOString(),
-      });
-
-      handleMenuClose();
-    } catch (err) {
-      console.error("Error saving prompt:", err);
-      setSaveError(err.message || "Failed to save prompt");
-    } finally {
-      setSaveLoading((prev) => ({ ...prev, [promptId]: false }));
-    }
+    // try {
+    //   setSaveLoading((prev) => ({ ...prev, [promptId]: true }));
+    //   setSaveError(null);
+    //   const currentUser = auth.currentUser;
+    //   if (!currentUser) {
+    //     throw new Error("You must be logged in to save prompts");
+    //   }
+    //   // Add a reference to this prompt in user's saved prompts collection
+    //   const savedPromptsRef = collection(
+    //     db,
+    //     "users",
+    //     currentUser.uid,
+    //     "savedPrompts"
+    //   );
+    //   await addDoc(savedPromptsRef, {
+    //     promptId: promptId,
+    //     savedAt: new Date().toISOString(),
+    //   });
+    //   handleMenuClose();
+    // } catch (err) {
+    //   console.error("Error saving prompt:", err);
+    //   setSaveError(err.message || "Failed to save prompt");
+    // } finally {
+    //   setSaveLoading((prev) => ({ ...prev, [promptId]: false }));
+    // }
   };
 
   const onSubmitAddPrompt = async () => {
@@ -311,8 +329,92 @@ function PromptPage() {
     }
   };
 
+  const handleCollectionSave = (collectionId) => {
+    // Optional: Show a success message using a Snackbar or other feedback
+    console.log(`Saved prompt to collection ${collectionId}`);
+  };
+
+  const popularCategories = [
+    { text: "UI/UX Design", path: "/UIUXDesign" },
+    { text: "Web Development", path: "/UIUXDesign" },
+    { text: "Side Hustle", path: "/UIUXDesign" },
+    { text: "Content Creation", path: "/UIUXDesign" },
+    { text: "Trading Strategies", path: "/UIUXDesign" },
+    { text: "Resume Builder", path: "/UIUXDesign" },
+    { text: "marketing Strategies", path: "/UIUXDesign" },
+  ];
+
   return (
     <>
+      <Grid container mb={3}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <TextField
+            fullWidth
+            placeholder="Search Prompts and Prompt Categories"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <IconButton edge="start" disabled>
+                    <SearchIcon />
+                  </IconButton>
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    edge="end"
+                    sx={{
+                      background: theme.palette.primary.main,
+                      "&:hover": { background: "#115293" },
+                      mr: 0.1,
+                    }}
+                  >
+                    <SendMsgIcon />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              ".MuiOutlinedInput-root input": {
+                paddingLeft: 0,
+              },
+              "& .MuiInputBase-input": {
+                paddingLeft: 0,
+              },
+              "& .MuiInputAdornment-positionStart": {
+                marginRight: 0, // Remove default right margin
+              },
+            }}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Stack flexDirection="row" justifyContent="flex-end">
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenDialog(true)}
+            >
+              Add Prompt
+            </Button>
+          </Stack>
+        </Grid>
+      </Grid>
+      <Stack flexDirection="row" gap={1} mb={6}>
+        {popularCategories.map(({ text, path }) => (
+          <Button
+            key={path} // Unique key for each Button
+            sx={{
+              background: "#222",
+              padding: "16px 24px",
+              borderRadius: "32px",
+              color: "white",
+              fontWeight: "bold",
+            }}
+          >
+            {text}
+          </Button>
+        ))}
+      </Stack>
       <Box
         sx={{
           mb: 2,
@@ -322,15 +424,8 @@ function PromptPage() {
         }}
       >
         <Typography variant="h4" fontWeight="bold">
-          Prompts
+          Popular Prompts
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setOpenDialog(true)}
-        >
-          Add Prompt
-        </Button>
       </Box>
 
       {/* Error Alerts */}
@@ -357,199 +452,206 @@ function PromptPage() {
 
       {/* Add Prompt Dialog */}
       <Dialog
+        fullScreen
         open={openDialog}
         onClose={handleCloseDialog}
-        maxWidth="sm"
         sx={{
           "& .MuiDialog-paper": {
             backgroundColor: "#111",
             color: "#fff",
-            padding: "20px",
-            borderRadius: "16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           },
         }}
-        fullWidth
       >
-        <DialogTitle>Add New Prompt</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <Box>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                Select a category or enter your own:
-              </Typography>
-              <TextField
-                select
-                label="Category"
-                fullWidth
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-              >
-                {[
-                  "Side Hustle",
-                  "App Development",
-                  "Web Design",
-                  "Marketing",
-                  "Freelancing",
-                  "Content Creation",
-                  "Personal Finance",
-                  "Fitness",
-                  "E-commerce",
-                  "Productivity",
-                ].map((option) => (
-                  <MenuItem
-                    key={option}
-                    value={option}
-                    sx={{ background: "#222" }}
-                  >
-                    {option}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <Typography
-                variant="body1"
-                sx={{ textAlign: "center", mt: 1, mb: 1 }}
-              >
-                OR
-              </Typography>
-              <TextField
-                label="Custom Category"
-                fullWidth
-                placeholder="Enter your own category"
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-              />
-            </Box>
-            <TextField
-              label="Prompt Title"
-              fullWidth
-              required
-              value={newPromptTitle}
-              onChange={(e) => setNewPromptTitle(e.target.value)}
-            />
-            <TextField
-              label="Prompt Description"
-              fullWidth
-              required
-              multiline
-              rows={4}
-              value={newPromptDescription}
-              onChange={(e) => setNewPromptDescription(e.target.value)}
-            />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={newVisibilityModel}
-                  onChange={(e) => setNewVisibilityModel(e.target.checked)}
+        <Box sx={{ maxWidth: "600px", width: "100%", mx: "auto" }}>
+          <DialogContent>
+            <Typography variant="h5" fontWeight="bold" mb={1}>
+              Add New Prompt
+            </Typography>
+            <Stack spacing={2}>
+              <Box>
+                <TextField
+                  fullWidth
+                  placeholder="Enter Category"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
                 />
-              }
-              label="Public"
-            />
-          </Stack>
-        </DialogContent>
+              </Box>
+              <TextField
+                placeholder="Add Prompt Title"
+                fullWidth
+                required
+                value={newPromptTitle}
+                onChange={(e) => setNewPromptTitle(e.target.value)}
+              />
+              <TextField
+                placeholder="Add Prompt Description"
+                label=""
+                fullWidth
+                required
+                multiline
+                rows={8}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "0.5rem",
+                    background: "#222",
+                    height: "auto",
+                    minHeight: "120px",
+                  },
+                }}
+                value={newPromptDescription}
+                onChange={(e) => setNewPromptDescription(e.target.value)}
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={newVisibilityModel}
+                    onChange={(e) => setNewVisibilityModel(e.target.checked)}
+                  />
+                }
+                label="Public"
+              />
+            </Stack>
 
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
-            onClick={onSubmitAddPrompt}
-            disabled={loading}
-            variant="contained"
-          >
-            {loading ? "Adding..." : "Add Prompt"}
-          </Button>
-        </DialogActions>
+            {/* <DialogActions> */}
+            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+              <Stack flexDirection="row" gap={2}>
+                <Button variant="outlined" onClick={handleCloseDialog}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={onSubmitAddPrompt}
+                  disabled={loading}
+                  variant="contained"
+                >
+                  {loading ? "Adding..." : "Add Prompt"}
+                </Button>
+              </Stack>
+              {/* </DialogActions> */}
+            </Box>
+          </DialogContent>
+        </Box>
       </Dialog>
 
       {/* Edit Prompt Dialog */}
       <Dialog
+        fullScreen
         open={editDialogOpen}
         onClose={cancelEditing}
-        maxWidth="sm"
         sx={{
           "& .MuiDialog-paper": {
             backgroundColor: "#111",
             color: "#fff",
-            padding: "20px",
-            borderRadius: "16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            // padding: "20px",
+            // borderRadius: "16px",
           },
         }}
-        fullWidth
       >
-        <DialogTitle>Edit Prompt</DialogTitle>
-        <DialogContent>
-          {editError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {editError}
-            </Alert>
-          )}
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label="Category"
-              fullWidth
-              value={editForm.category}
-              onChange={(e) =>
-                setEditForm((prev) => ({
-                  ...prev,
-                  category: e.target.value,
-                }))
-              }
-            />
-            <TextField
-              label="Title"
-              fullWidth
-              required
-              value={editForm.title}
-              onChange={(e) =>
-                setEditForm((prev) => ({
-                  ...prev,
-                  title: e.target.value,
-                }))
-              }
-            />
-            <TextField
-              label="Description"
-              fullWidth
-              required
-              multiline
-              rows={4}
-              value={editForm.description}
-              onChange={(e) =>
-                setEditForm((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
-            />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={editForm.isVisible}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({
-                      ...prev,
-                      isVisible: e.target.checked,
-                    }))
-                  }
-                />
-              }
-              label="Public"
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={cancelEditing} disabled={editLoading}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => handleEditSubmit(editingId)}
-            disabled={editLoading}
-          >
-            {editLoading ? "Saving..." : "Save Changes"}
-          </Button>
-        </DialogActions>
+        <Box sx={{ maxWidth: "600px", width: "100%", mx: "auto" }}>
+          <DialogContent>
+            <Typography variant="h5" fontWeight="bold" mb={1}>
+              Edit Prompt
+            </Typography>
+
+            {editError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {editError}
+              </Alert>
+            )}
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <TextField
+                placeholder="Enter Category"
+                fullWidth
+                value={editForm.category}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    category: e.target.value,
+                  }))
+                }
+              />
+              <TextField
+                // label="Title"
+                placeholder="Prompt Title"
+                fullWidth
+                required
+                value={editForm.title}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    title: e.target.value,
+                  }))
+                }
+              />
+              <TextField
+                // label="Description"
+                placeholder="Prompt Description"
+                fullWidth
+                required
+                multiline
+                rows={8}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "0.5rem",
+                    background: "#222",
+                    height: "auto",
+                    minHeight: "120px",
+                  },
+                }}
+                value={editForm.description}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={editForm.isVisible}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({
+                        ...prev,
+                        isVisible: e.target.checked,
+                      }))
+                    }
+                  />
+                }
+                label="Public"
+              />
+            </Stack>
+            {/* <DialogActions> */}
+            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+              <Stack flexDirection="row" gap={2}>
+                <Button
+                  variant="outlined"
+                  onClick={cancelEditing}
+                  disabled={editLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => handleEditSubmit(editingId)}
+                  disabled={editLoading}
+                >
+                  {editLoading ? "Saving..." : "Save Changes"}
+                </Button>
+              </Stack>
+            </Box>
+            {/* </DialogActions> */}
+          </DialogContent>
+        </Box>
       </Dialog>
 
       {/* Prompts List */}
+
       <Grid container spacing={3}>
         {promptList?.map((prompt) => (
           <Grid size={{ xs: 12, md: 6 }} key={prompt?.id || "fallback-key"}>
@@ -774,6 +876,12 @@ function PromptPage() {
           </>
         )}
       </Menu>
+      <SaveToCollectionDialog
+        open={saveToCollectionOpen}
+        onClose={() => setSaveToCollectionOpen(false)}
+        promptId={selectedPromptId}
+        onSave={handleCollectionSave}
+      />
     </>
   );
 }

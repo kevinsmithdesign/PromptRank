@@ -56,8 +56,8 @@ export default function LoginPage() {
         <Grid size={7}>
           <Box
             sx={{
-              background: "#eee",
-              height: "400px",
+              background: "#333",
+              height: "600px",
               width: "100%",
               borderRadius: 4,
             }}

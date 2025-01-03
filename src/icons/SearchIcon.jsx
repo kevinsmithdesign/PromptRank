@@ -1,6 +1,6 @@
 import React from "react";
 
-const BackIcon = ({
+const SearchIcon = ({
   width = 24,
   height = 24,
   stroke = "#fff",
@@ -9,7 +9,7 @@ const BackIcon = ({
 }) => {
   return (
     <svg
-      id="Arrow - Left"
+      id="Search"
       width="24px"
       height="24px"
       viewBox="0 0 24 24"
@@ -18,9 +18,9 @@ const BackIcon = ({
       xmlns:xlink="http://www.w3.org/1999/xlink"
       {...props}
     >
-      <title>Iconly/Light/Arrow - Left</title>
+      <title>Iconly/Light/Search</title>
       <g
-        id="Iconly/Light/Arrow---Left"
+        id="Iconly/Light/Search"
         stroke="none"
         stroke-width="1.5"
         fill="none"
@@ -29,26 +29,28 @@ const BackIcon = ({
         stroke-linejoin="round"
       >
         <g
-          id="Arrow---Left"
-          transform="translate(12.000000, 12.000000) rotate(-270.000000) translate(-12.000000, -12.000000) translate(5.500000, 4.000000)"
+          id="Search"
+          transform="translate(2.000000, 2.000000)"
           stroke={stroke}
           stroke-width="1.5"
         >
+          <circle
+            id="Ellipse_739"
+            cx="9.76659044"
+            cy="9.76659044"
+            r="8.9885584"
+          ></circle>
           <line
-            x1="6.7743"
-            y1="15.75"
-            x2="6.7743"
-            y2="0.75"
-            id="Stroke-1"
+            x1="16.0183067"
+            y1="16.4851259"
+            x2="19.5423342"
+            y2="20.0000001"
+            id="Line_181"
           ></line>
-          <polyline
-            id="Stroke-3"
-            points="12.7987 9.7002 6.7747 15.7502 0.7497 9.7002"
-          ></polyline>
         </g>
       </g>
     </svg>
   );
 };
 
-export default BackIcon;
+export default SearchIcon;

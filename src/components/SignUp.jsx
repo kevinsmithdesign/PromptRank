@@ -1,7 +1,7 @@
 // src/components/SignUp.js
 import React, { useState } from "react";
-import { auth } from "../../config/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, googleProvider } from "../../config/firebase";
+import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import {
   Box,
   Button,
@@ -39,9 +39,22 @@ export const SignUp = () => {
     setLoading(false);
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      setError("");
+      setLoading(true);
+      await signInWithPopup(auth, googleProvider);
+      navigate("/main/prompts");
+    } catch (err) {
+      setError("Failed to sign in with Google.");
+      console.error(err);
+    }
+    setLoading(false);
+  };
+
   return (
     <Box component="form" onSubmit={handleSignUp}>
-      <Typography variant="h5" gutterBottom>
+      <Typography variant="h4" fontWeight="bold" mb={4}>
         Sign Up
       </Typography>
       {error && (
@@ -49,33 +62,72 @@ export const SignUp = () => {
           {error}
         </Alert>
       )}
-      <Stack spacing={3}>
-        <TextField
-          label="Email"
+
+      <Stack mb={3}>
+        <Button
           variant="outlined"
+          color="secondary"
+          onClick={handleGoogleSignIn}
           fullWidth
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <TextField
-          label="Password"
-          type="password"
-          variant="outlined"
-          fullWidth
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <TextField
-          label="Confirm Password"
-          type="password"
-          variant="outlined"
-          fullWidth
-          required
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
+          disabled={loading}
+        >
+          Sign Up with Google
+        </Button>
+      </Stack>
+      <Stack display="flex" flexDirection="row" alignItems="center" mb={3}>
+        <Stack
+          flexGrow={1}
+          sx={{ width: "100&", background: "#fff", height: "1px", mr: 2 }}
+        ></Stack>
+        <Stack>OR</Stack>
+        <Stack
+          flexGrow={1}
+          sx={{ width: "100&", background: "#fff", height: "1px", ml: 2 }}
+        ></Stack>
+      </Stack>
+      <Stack>
+        <Stack mb={3}>
+          <Typography fontWeight="bold" mb={1}>
+            Email*
+          </Typography>
+          <TextField
+            variant="outlined"
+            placeholder="Email*"
+            fullWidth
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </Stack>
+        <Stack mb={3}>
+          <Typography fontWeight="bold" mb={1}>
+            Password*
+          </Typography>
+          <TextField
+            type="password"
+            variant="outlined"
+            placeholder="Password*"
+            fullWidth
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </Stack>
+        <Stack mb={6}>
+          <Typography fontWeight="bold" mb={1}>
+            Confirm Password*
+          </Typography>
+          <TextField
+            placeholder="Confirm Password*"
+            type="password"
+            variant="outlined"
+            fullWidth
+            required
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+        </Stack>
+
         <Button
           variant="contained"
           color="primary"
@@ -85,6 +137,7 @@ export const SignUp = () => {
         >
           Sign Up
         </Button>
+
         <Typography variant="body2" textAlign="center">
           Already have an account?
           <Button

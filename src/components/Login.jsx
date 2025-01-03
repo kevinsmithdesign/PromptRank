@@ -48,7 +48,7 @@ export const Login = () => {
 
   return (
     <Box component="form" onSubmit={handleLogin}>
-      <Typography variant="h5" gutterBottom>
+      <Typography variant="h4" fontWeight="bold" mb={4}>
         Log In
       </Typography>
       {error && (
@@ -56,33 +56,16 @@ export const Login = () => {
           {error}
         </Alert>
       )}
-      <Stack spacing={3}>
-        <TextField
-          label="Email"
+      <Stack mb={3}>
+        {/* <Button
           variant="outlined"
-          fullWidth
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <TextField
-          label="Password"
-          type="password"
-          variant="outlined"
-          fullWidth
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          type="submit"
+          color="secondary"
+          //   onClick={handleGoogleSignIn}
           fullWidth
           disabled={loading}
         >
-          Log In
-        </Button>
+          Log In with Google
+        </Button> */}
         <Button
           variant="outlined"
           color="secondary"
@@ -90,8 +73,70 @@ export const Login = () => {
           fullWidth
           disabled={loading}
         >
-          Sign In with Google
+          Log In with Google
         </Button>
+      </Stack>
+      <Stack display="flex" flexDirection="row" alignItems="center" mb={3}>
+        <Stack
+          flexGrow={1}
+          sx={{ width: "100&", background: "#fff", height: "1px", mr: 2 }}
+        ></Stack>
+        <Stack>OR</Stack>
+        <Stack
+          flexGrow={1}
+          sx={{ width: "100&", background: "#fff", height: "1px", ml: 2 }}
+        ></Stack>
+      </Stack>
+      <Stack></Stack>
+      <Stack>
+        <Stack mb={3}>
+          <Typography fontWeight="bold" mb={1}>
+            Email*
+          </Typography>
+          <TextField
+            variant="outlined"
+            placeholder="Email*"
+            fullWidth
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </Stack>
+        <Stack mb={6}>
+          <Typography fontWeight="bold" mb={1}>
+            Password*
+          </Typography>
+          <TextField
+            placeholder="Password*"
+            type="password"
+            variant="outlined"
+            fullWidth
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </Stack>
+
+        <Stack spacing={2}>
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            fullWidth
+            disabled={loading}
+          >
+            Log In
+          </Button>
+          {/* <Button
+            variant="outlined"
+            color="secondary"
+            onClick={handleGoogleSignIn}
+            fullWidth
+            disabled={loading}
+          >
+            Sign In with Google
+          </Button> */}
+        </Stack>
         <Typography variant="body2" textAlign="center">
           Don't have an account?
           <Button

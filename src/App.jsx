@@ -25,6 +25,7 @@ const AiToolsPage = lazy(() => import("./pages/AiToolsPage"));
 import PromptDetail from "./pages/PromptDetails";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
+// import AddPromptPage from "./pages/AddPromptPage";
 
 function App() {
   const [promptList, setPromptList] = useState([]);
@@ -54,29 +55,23 @@ function App() {
   const promptsCollectionRef = collection(db, "prompts");
 
   useEffect(() => {
-    console.log("Effect running");
-
     const getPromptsList = async () => {
       try {
-        console.log("Fetching prompts...");
         const data = await getDocs(promptsCollectionRef);
-        console.log("Raw data:", data);
 
         if (!data.docs) {
-          console.log("No docs found in data");
           return;
         }
 
         const filteredData = data.docs.map((doc) => {
           const docData = doc.data();
-          console.log("Document data:", docData);
+
           return {
             ...docData,
             id: doc.id,
           };
         });
 
-        console.log("Setting promptList with:", filteredData);
         setPromptList(filteredData);
       } catch (err) {
         console.error("Error in getPromptsList:", err);
@@ -86,9 +81,7 @@ function App() {
 
     getPromptsList();
 
-    return () => {
-      console.log("Effect cleanup");
-    };
+    return () => {};
   }, []);
 
   const onSubmitAddPrompt = async () => {
@@ -271,6 +264,7 @@ function App() {
               }
             />
             <Route path="prompts/:id" element={<PromptDetail />} />
+
             {/* <Route path="ai-tools" element={<AiToolsPage />} /> */}
             <Route
               path="ai-tools"

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { getAuth } from "firebase/auth";
 import { useParams, useNavigate } from "react-router-dom";
+import Grid from "@mui/material/Grid2";
 import {
   Container,
   Typography,
@@ -9,21 +11,60 @@ import {
   Card,
   CardContent,
   Rating,
+  Button,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StarIcon from "@mui/icons-material/Star";
 import BackIcon from "../icons/BackIcon";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../config/firebase";
+import RatingDialog from "../components/RatingDialog";
 
 function PromptDetail() {
-  const { id } = useParams();
+  const auth = getAuth();
+  const userId = auth.currentUser?.uid;
+  const { id, promptId } = useParams();
   const navigate = useNavigate();
   const [prompt, setPrompt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+
+  const handleRatingSubmit = async (data) => {
+    setIsSubmitting(true);
+    try {
+      // Add submission logic here
+    } catch (error) {
+      setSubmitError(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   useEffect(() => {
+    // const fetchPrompt = async () => {
+    //   try {
+    //     const promptDoc = doc(db, "prompts", id);
+    //     const promptSnapshot = await getDoc(promptDoc);
+
+    //     if (!promptSnapshot.exists()) {
+    //       throw new Error("Prompt not found");
+    //     }
+
+    //     setPrompt({
+    //       id: promptSnapshot.id,
+    //       ...promptSnapshot.data(),
+    //     });
+    //   } catch (err) {
+    //     console.error("Error fetching prompt:", err);
+    //     setError(err.message);
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
     const fetchPrompt = async () => {
       try {
         const promptDoc = doc(db, "prompts", id);
@@ -33,9 +74,20 @@ function PromptDetail() {
           throw new Error("Prompt not found");
         }
 
+        const data = promptSnapshot.data();
+        const ratings = data.ratings || [];
+        const avgRating =
+          ratings.length > 0
+            ? (
+                ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
+              ).toFixed(1)
+            : 0;
+
         setPrompt({
           id: promptSnapshot.id,
-          ...promptSnapshot.data(),
+          ...data,
+          avgRating,
+          totalRatings: ratings.length,
         });
       } catch (err) {
         console.error("Error fetching prompt:", err);
@@ -71,25 +123,26 @@ function PromptDetail() {
 
   return (
     <>
-      <Box
-        sx={{
-          mb: 2,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-        }}
-      >
-        <Typography variant="h4" fontWeight="bold">
-          Prompt Details
-        </Typography>
-        {/* <Button
-    variant="contained"
-    startIcon={<AddIcon />}
-    onClick={() => setOpenDialog(true)}
-  >
-    Add Prompt
-  </Button> */}
-      </Box>
+      <Grid container alignItems="flex-end" mb={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Stack>
+            <Typography variant="h4" fontWeight="bold">
+              Prompt Details
+            </Typography>
+          </Stack>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Stack flexDirection="row" justifyContent="flex-end">
+            <Button
+              variant="contained"
+              onClick={() => setRatingDialogOpen(true)}
+            >
+              Rank Prompt
+            </Button>
+          </Stack>
+        </Grid>
+      </Grid>
+
       <Card>
         <CardContent>
           <Box sx={{ mb: 2 }}>
@@ -101,13 +154,12 @@ function PromptDetail() {
             <Stack direction="row" alignItems="center" mb={4}>
               <StarIcon sx={{ color: "rgb(250, 175, 0)" }} />
               <Stack sx={{ ml: 1, mr: 1 }}>
-                <Typography fontWeight="bold">4.6</Typography>
-              </Stack>
-              <Typography color="#999" sx={{ mr: 1 }}>
-                |
+                <Typography fontWeight="bold">{prompt.avgRating}</Typography>
+              </Stack>{" "}
+              <Typography color="#999">
+                {prompt.totalRatings}{" "}
+                {prompt.totalRatings === 1 ? "Review" : "Reviews"}
               </Typography>
-
-              <Typography color="#999">16 Reviews</Typography>
             </Stack>
 
             {prompt.category && (
@@ -155,6 +207,15 @@ function PromptDetail() {
           </Stack>
         </CardContent>
       </Card>
+      <RatingDialog
+        open={ratingDialogOpen}
+        onClose={() => setRatingDialogOpen(false)}
+        onSubmit={handleRatingSubmit}
+        loading={isSubmitting}
+        error={submitError}
+        promptId={promptId}
+        userId={auth.currentUser?.uid}
+      />
     </>
   );
 }
