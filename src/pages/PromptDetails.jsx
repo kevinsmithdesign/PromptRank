@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getAuth } from "firebase/auth";
+import { formatDistanceToNow } from "date-fns";
 import { useParams, useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid2";
 import {
@@ -16,28 +17,141 @@ import {
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StarIcon from "@mui/icons-material/Star";
 import BackIcon from "../icons/BackIcon";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  writeBatch,
+} from "firebase/firestore";
 import { db } from "../../config/firebase";
 import RatingDialog from "../components/RatingDialog";
 
 function PromptDetail() {
   const auth = getAuth();
   const userId = auth.currentUser?.uid;
-  const { id, promptId } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [prompt, setPrompt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [ratings, setRatings] = useState([]);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
+  const fetchPrompt = async () => {
+    try {
+      const promptDoc = doc(db, "prompts", id);
+      const promptSnapshot = await getDoc(promptDoc);
+
+      if (!promptSnapshot.exists()) {
+        throw new Error("Prompt not found");
+      }
+
+      const data = promptSnapshot.data();
+
+      setPrompt({
+        id: promptSnapshot.id,
+        ...data,
+        avgRating: data.avgRating || 0,
+        totalRatings: data.totalRatings || 0,
+      });
+    } catch (err) {
+      console.error("Error fetching prompt:", err);
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const fetchRatings = async () => {
+    try {
+      const ratingsQuery = query(
+        collection(db, "ratings"),
+        where("promptId", "==", id),
+        orderBy("createdAt", "desc")
+      );
+      const snapshot = await getDocs(ratingsQuery);
+
+      const ratingsWithUserData = await Promise.all(
+        snapshot.docs.map(async (docSnapshot) => {
+          // Changed 'doc' to 'docSnapshot'
+          const ratingData = docSnapshot.data();
+          const userRef = doc(db, "users", ratingData.userId);
+          const userDoc = await getDoc(userRef);
+          const userData = userDoc.data() || {};
+
+          return {
+            id: docSnapshot.id,
+            ...ratingData,
+            user: {
+              name: userData.displayName || "Anonymous User",
+              avatar: userData.photoURL || null,
+            },
+            timeAgo: formatDistanceToNow(new Date(ratingData.createdAt), {
+              addSuffix: true,
+            }),
+          };
+        })
+      );
+
+      setRatings(ratingsWithUserData);
+    } catch (err) {
+      console.error("Error fetching ratings:", err);
+      throw err;
+    }
+  };
+
   const handleRatingSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      // Add submission logic here
+      // Get current ratings for calculating new average
+      const ratingsQuery = query(
+        collection(db, "ratings"),
+        where("promptId", "==", id)
+      );
+      const ratingsSnapshot = await getDocs(ratingsQuery);
+      const currentRatings = ratingsSnapshot.docs.map(
+        (doc) => doc.data().rating
+      );
+
+      // Add the new rating
+      currentRatings.push(data.rating);
+
+      // Calculate new average
+      const newAvgRating =
+        currentRatings.reduce((sum, r) => sum + r, 0) / currentRatings.length;
+
+      const batch = writeBatch(db);
+
+      // Update prompt document
+      const promptRef = doc(db, "prompts", id);
+      batch.update(promptRef, {
+        avgRating: newAvgRating,
+        totalRatings: currentRatings.length,
+      });
+
+      // Add rating document
+      const ratingRef = doc(collection(db, "ratings"));
+      batch.set(ratingRef, {
+        rating: data.rating,
+        comment: data.comment,
+        userId: auth.currentUser?.uid,
+        promptId: id,
+        createdAt: new Date().toISOString(),
+      });
+
+      await batch.commit();
+
+      // Refresh ratings list
+      await fetchRatings();
+
+      setRatingDialogOpen(false); // Close dialog after successful submission
     } catch (error) {
+      console.error("Error submitting rating:", error);
       setSubmitError(error.message);
     } finally {
       setIsSubmitting(false);
@@ -45,32 +159,19 @@ function PromptDetail() {
   };
 
   useEffect(() => {
-    const fetchPrompt = async () => {
+    const loadData = async () => {
+      setLoading(true);
       try {
-        const promptDoc = doc(db, "prompts", id);
-        const promptSnapshot = await getDoc(promptDoc);
-
-        if (!promptSnapshot.exists()) {
-          throw new Error("Prompt not found");
-        }
-
-        const data = promptSnapshot.data();
-
-        setPrompt({
-          id: promptSnapshot.id,
-          ...data,
-          avgRating: data.avgRating || 0,
-          totalRatings: data.totalRatings || 0,
-        });
+        await fetchPrompt();
+        await fetchRatings();
       } catch (err) {
-        console.error("Error fetching prompt:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPrompt();
+    loadData();
   }, [id]);
 
   if (loading)
@@ -129,7 +230,9 @@ function PromptDetail() {
             <Stack direction="row" alignItems="center" mb={4}>
               <StarIcon sx={{ color: "rgb(250, 175, 0)" }} />
               <Stack sx={{ ml: 1, mr: 1 }}>
-                <Typography fontWeight="bold">{prompt.avgRating}</Typography>
+                <Typography fontWeight="bold">
+                  {prompt.avgRating.toFixed(1)}
+                </Typography>
               </Stack>{" "}
               <Typography color="#999">
                 {prompt.totalRatings}{" "}
@@ -154,11 +257,6 @@ function PromptDetail() {
               {prompt.title}
             </Typography>
 
-            {/* <Stack direction="row" alignItems="center" spacing={1}>
-              <StarIcon sx={{ color: "rgb(250, 175, 0)" }} />
-              <Typography>4.6</Typography>
-            </Stack> */}
-
             <Typography
               variant="body1"
               sx={{
@@ -177,11 +275,80 @@ function PromptDetail() {
             <Typography variant="caption" sx={{ color: "#999" }}>
               Author: Bobo
             </Typography>
-
-            {/* <Rating name="half-rating" defaultValue={2.5} precision={0.5} /> */}
           </Stack>
         </CardContent>
       </Card>
+
+      <Stack spacing={2} sx={{ mt: 4 }}>
+        <Typography variant="h5" fontWeight="bold">
+          Reviews ({ratings.length})
+        </Typography>
+
+        {ratings.map((rating) => (
+          <Card key={rating.id} sx={{ background: "#1A1A1A" }}>
+            <CardContent>
+              <Stack spacing={2}>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  {rating.user.avatar ? (
+                    <Box
+                      component="img"
+                      src={rating.user.avatar}
+                      alt={rating.user.name}
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "50%",
+                      }}
+                    />
+                  ) : (
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "50%",
+                        backgroundColor: "primary.main",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {rating.user.name.charAt(0)}
+                    </Box>
+                  )}
+                  <Stack sx={{ flex: 1 }}>
+                    <Typography variant="subtitle1" fontWeight="bold">
+                      {rating.user.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {rating.timeAgo}
+                    </Typography>
+                  </Stack>
+                  <Rating
+                    value={rating.rating}
+                    readOnly
+                    icon={<StarIcon sx={{ color: "rgb(250, 175, 0)" }} />}
+                    emptyIcon={<StarIcon />}
+                  />
+                </Stack>
+                {rating.comment && (
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: "rgba(255, 255, 255, 0.8)",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {rating.comment}
+                  </Typography>
+                )}
+              </Stack>
+            </CardContent>
+          </Card>
+        ))}
+      </Stack>
+
       <RatingDialog
         open={ratingDialogOpen}
         onClose={() => setRatingDialogOpen(false)}
