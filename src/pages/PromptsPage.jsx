@@ -399,7 +399,7 @@ function PromptPage() {
           </Stack>
         </Grid>
       </Grid>
-      <Stack flexDirection="row" gap={1} mb={6}>
+      {/* <Stack flexDirection="row" gap={1} mb={6}>
         {popularCategories.map(({ text, path }) => (
           <Button
             key={path} // Unique key for each Button
@@ -414,7 +414,7 @@ function PromptPage() {
             {text}
           </Button>
         ))}
-      </Stack>
+      </Stack> */}
       <Box
         sx={{
           mb: 2,

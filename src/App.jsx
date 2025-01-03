@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import "./App.css";
 import { Button } from "@mui/material";
-import { Auth } from "./components/Auth";
+// import { Auth } from "./components/Auth";
 import { db, auth } from "../config/firebase";
 import {
   getDocs,

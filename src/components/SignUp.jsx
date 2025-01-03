@@ -1,7 +1,7 @@
-// src/components/SignUp.js
 import React, { useState } from "react";
-import { auth, googleProvider } from "../../config/firebase";
+import { auth, googleProvider, db } from "../../config/firebase";
 import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import {
   Box,
   Button,
@@ -16,9 +16,34 @@ export const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [userName, setUserName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const saveUserToFirestore = async (user, additionalData = {}) => {
+    try {
+      const userRef = doc(db, "users", user.uid);
+      await setDoc(userRef, {
+        email: user.email,
+        // Use userName directly if provided, otherwise use Google displayName or email prefix
+        displayName:
+          additionalData.userName ||
+          user.displayName ||
+          user.email?.split("@")[0],
+        photoURL: user.photoURL || null,
+        createdAt: new Date().toISOString(),
+        // Save userName as a separate field as well
+        userName:
+          additionalData.userName ||
+          user.displayName ||
+          user.email?.split("@")[0],
+      });
+    } catch (err) {
+      console.error("Error saving user data:", err);
+      // Don't throw error here to prevent blocking auth flow
+    }
+  };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -30,7 +55,15 @@ export const SignUp = () => {
     try {
       setError("");
       setLoading(true);
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      // Save user data to Firestore
+      await saveUserToFirestore(userCredential.user, { userName });
+
       navigate("/main");
     } catch (err) {
       setError("Failed to create an account.");
@@ -43,7 +76,13 @@ export const SignUp = () => {
     try {
       setError("");
       setLoading(true);
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+
+      // For Google sign-in, use the full Google display name
+      await saveUserToFirestore(result.user, {
+        userName: result.user.displayName || result.user.email?.split("@")[0],
+      });
+
       navigate("/main/prompts");
     } catch (err) {
       setError("Failed to sign in with Google.");
@@ -86,6 +125,19 @@ export const SignUp = () => {
         ></Stack>
       </Stack>
       <Stack>
+        <Stack mb={3}>
+          <Typography fontWeight="bold" mb={1}>
+            Username*
+          </Typography>
+          <TextField
+            variant="outlined"
+            placeholder="Username*"
+            fullWidth
+            required
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+          />
+        </Stack>
         <Stack mb={3}>
           <Typography fontWeight="bold" mb={1}>
             Email*

@@ -13,6 +13,7 @@ import {
   CardContent,
   Rating,
   Button,
+  Alert,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StarIcon from "@mui/icons-material/Star";
@@ -42,6 +43,7 @@ function PromptDetail() {
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const fetchPrompt = async () => {
     try {
@@ -78,18 +80,24 @@ function PromptDetail() {
 
       const ratingsWithUserData = await Promise.all(
         snapshot.docs.map(async (docSnapshot) => {
-          // Changed 'doc' to 'docSnapshot'
           const ratingData = docSnapshot.data();
-          const userRef = doc(db, "users", ratingData.userId);
-          const userDoc = await getDoc(userRef);
-          const userData = userDoc.data() || {};
+
+          // Get the auth user directly
+          const user = auth.currentUser;
+
+          // If this rating is from the current user, use their display name
+          const displayName =
+            ratingData.userId === user?.uid
+              ? user.displayName
+              : "Anonymous User";
 
           return {
             id: docSnapshot.id,
             ...ratingData,
             user: {
-              name: userData.displayName || "Anonymous User",
-              avatar: userData.photoURL || null,
+              name: displayName,
+              avatar: null,
+              userName: null,
             },
             timeAgo: formatDistanceToNow(new Date(ratingData.createdAt), {
               addSuffix: true,
@@ -108,50 +116,12 @@ function PromptDetail() {
   const handleRatingSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      // Get current ratings for calculating new average
-      const ratingsQuery = query(
-        collection(db, "ratings"),
-        where("promptId", "==", id)
-      );
-      const ratingsSnapshot = await getDocs(ratingsQuery);
-      const currentRatings = ratingsSnapshot.docs.map(
-        (doc) => doc.data().rating
-      );
-
-      // Add the new rating
-      currentRatings.push(data.rating);
-
-      // Calculate new average
-      const newAvgRating =
-        currentRatings.reduce((sum, r) => sum + r, 0) / currentRatings.length;
-
-      const batch = writeBatch(db);
-
-      // Update prompt document
-      const promptRef = doc(db, "prompts", id);
-      batch.update(promptRef, {
-        avgRating: newAvgRating,
-        totalRatings: currentRatings.length,
-      });
-
-      // Add rating document
-      const ratingRef = doc(collection(db, "ratings"));
-      batch.set(ratingRef, {
-        rating: data.rating,
-        comment: data.comment,
-        userId: auth.currentUser?.uid,
-        promptId: id,
-        createdAt: new Date().toISOString(),
-      });
-
-      await batch.commit();
-
-      // Refresh ratings list
-      await fetchRatings();
-
-      setRatingDialogOpen(false); // Close dialog after successful submission
+      if (data.success) {
+        setSuccessMessage(data.message);
+        setTimeout(() => setSuccessMessage(null), 5000);
+        await fetchRatings();
+      }
     } catch (error) {
-      console.error("Error submitting rating:", error);
       setSubmitError(error.message);
     } finally {
       setIsSubmitting(false);
@@ -197,6 +167,22 @@ function PromptDetail() {
 
   return (
     <>
+      {successMessage && (
+        <Alert
+          severity="success"
+          sx={{
+            mb: 2,
+            backgroundColor: "rgba(76, 175, 80, 0.1)",
+            color: "#4CAF50",
+            "& .MuiAlert-icon": {
+              color: "#4CAF50",
+            },
+          }}
+        >
+          {successMessage}
+        </Alert>
+      )}
+
       <Grid container alignItems="flex-end" mb={2}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack>
@@ -318,10 +304,14 @@ function PromptDetail() {
                     </Box>
                   )}
                   <Stack sx={{ flex: 1 }}>
-                    <Typography variant="subtitle1" fontWeight="bold">
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="bold"
+                      color="white"
+                    >
                       {rating.user.name}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" color="#999">
                       {rating.timeAgo}
                     </Typography>
                   </Stack>
