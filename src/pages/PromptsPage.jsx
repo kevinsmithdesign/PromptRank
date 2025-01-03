@@ -693,8 +693,16 @@ function PromptPage() {
                 <Stack flexDirection="row" alignItems="center" mb={2}>
                   <StarIcon sx={{ color: "rgb(250, 175, 0)", mr: 1 }} />
                   <Stack sx={{ flex: 1 }}>
-                    <Typography>4.6</Typography>
+                    <Typography>
+                      {prompt.avgRating?.toFixed(1) || "No ratings"}
+                    </Typography>
                   </Stack>
+                  {prompt.totalRatings > 0 && (
+                    <Typography color="#999" fontSize="0.875rem">
+                      ({prompt.totalRatings}{" "}
+                      {prompt.totalRatings === 1 ? "review" : "reviews"})
+                    </Typography>
+                  )}
                   <Stack>
                     <Box
                       onClick={(e) => handleMenuOpen(e, prompt.id)}
@@ -778,6 +786,7 @@ function PromptPage() {
           },
         }}
       >
+        {/* In the Menu component */}
         {selectedPromptId &&
         promptList.find((p) => p.id === selectedPromptId)?.authorId ===
           auth.currentUser?.uid ? (
@@ -818,7 +827,7 @@ function PromptPage() {
             </MenuItem>
           </>
         ) : (
-          // Show save option for prompts created by other users
+          // Show options for prompts created by other users
           <>
             <MenuItem
               sx={{
@@ -847,6 +856,7 @@ function PromptPage() {
               View Prompt
             </MenuItem>
             <MenuItem
+              onClick={() => navigate(`/main/prompts/${selectedPromptId}`)}
               sx={{
                 display: "flex",
                 alignItems: "center",

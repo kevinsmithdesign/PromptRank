@@ -45,26 +45,6 @@ function PromptDetail() {
   };
 
   useEffect(() => {
-    // const fetchPrompt = async () => {
-    //   try {
-    //     const promptDoc = doc(db, "prompts", id);
-    //     const promptSnapshot = await getDoc(promptDoc);
-
-    //     if (!promptSnapshot.exists()) {
-    //       throw new Error("Prompt not found");
-    //     }
-
-    //     setPrompt({
-    //       id: promptSnapshot.id,
-    //       ...promptSnapshot.data(),
-    //     });
-    //   } catch (err) {
-    //     console.error("Error fetching prompt:", err);
-    //     setError(err.message);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
     const fetchPrompt = async () => {
       try {
         const promptDoc = doc(db, "prompts", id);
@@ -75,19 +55,12 @@ function PromptDetail() {
         }
 
         const data = promptSnapshot.data();
-        const ratings = data.ratings || [];
-        const avgRating =
-          ratings.length > 0
-            ? (
-                ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
-              ).toFixed(1)
-            : 0;
 
         setPrompt({
           id: promptSnapshot.id,
           ...data,
-          avgRating,
-          totalRatings: ratings.length,
+          avgRating: data.avgRating || 0,
+          totalRatings: data.totalRatings || 0,
         });
       } catch (err) {
         console.error("Error fetching prompt:", err);
@@ -133,12 +106,14 @@ function PromptDetail() {
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack flexDirection="row" justifyContent="flex-end">
-            <Button
-              variant="contained"
-              onClick={() => setRatingDialogOpen(true)}
-            >
-              Rank Prompt
-            </Button>
+            {prompt.authorId !== userId && (
+              <Button
+                variant="contained"
+                onClick={() => setRatingDialogOpen(true)}
+              >
+                Rank Prompt
+              </Button>
+            )}
           </Stack>
         </Grid>
       </Grid>
@@ -213,7 +188,7 @@ function PromptDetail() {
         onSubmit={handleRatingSubmit}
         loading={isSubmitting}
         error={submitError}
-        promptId={promptId}
+        promptId={id}
         userId={auth.currentUser?.uid}
       />
     </>
