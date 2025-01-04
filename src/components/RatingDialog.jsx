@@ -11,7 +11,7 @@ import {
   Rating,
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
-import { db } from "../../config/firebase";
+import { db, auth } from "../../config/firebase";
 import {
   addDoc,
   collection,
@@ -23,6 +23,7 @@ import {
   getDoc,
   updateDoc,
   deleteDoc,
+  setDoc,
 } from "firebase/firestore";
 
 const RatingDialog = ({ open, onClose, onSubmit, promptId, userId }) => {
@@ -74,9 +75,12 @@ const RatingDialog = ({ open, onClose, onSubmit, promptId, userId }) => {
 
     try {
       const batch = writeBatch(db);
-
-      // Debug the user ID being saved
-      console.log("Saving rating with userId:", userId);
+      const user = auth.currentUser;
+      console.log("Current user data:", {
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+      });
 
       let ratingRef;
       if (existingRatingId) {
@@ -88,22 +92,32 @@ const RatingDialog = ({ open, onClose, onSubmit, promptId, userId }) => {
         });
       } else {
         ratingRef = doc(collection(db, "ratings"));
-        // Verify the user document exists before saving
-        const userRef = doc(db, "users", userId);
-        const userDoc = await getDoc(userRef);
-        console.log("User document exists:", userDoc.exists());
-        console.log("User data:", userDoc.data());
 
+        // First verify/create user document
+        const userRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+          // Create user document if it doesn't exist
+          await setDoc(userRef, {
+            email: user.email,
+            displayName: user.displayName,
+            createdAt: new Date().toISOString(),
+          });
+          console.log("Created new user document");
+        }
+
+        // Save rating with author info
         batch.set(ratingRef, {
           rating,
           comment,
-          userId,
+          userId: user.uid,
+          userDisplayName: user.displayName, // Store display name directly in rating
           promptId,
           createdAt: new Date().toISOString(),
         });
       }
 
-      // Rest of the code remains the same...
       const ratingsQuery = query(
         collection(db, "ratings"),
         where("promptId", "==", promptId)
@@ -125,7 +139,6 @@ const RatingDialog = ({ open, onClose, onSubmit, promptId, userId }) => {
       });
 
       await batch.commit();
-
       onSubmit({
         success: true,
         message: existingRatingId
@@ -134,8 +147,8 @@ const RatingDialog = ({ open, onClose, onSubmit, promptId, userId }) => {
       });
       onClose();
     } catch (err) {
+      console.error("Error in handleSubmit:", err);
       setError("Failed to submit rating. Please try again.");
-      console.error("Error submitting rating:", err);
     } finally {
       setLoading(false);
     }

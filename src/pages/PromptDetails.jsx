@@ -78,24 +78,34 @@ function PromptDetail() {
       );
       const snapshot = await getDocs(ratingsQuery);
 
+      console.log("Found ratings:", snapshot.docs.length);
+
       const ratingsWithUserData = await Promise.all(
         snapshot.docs.map(async (docSnapshot) => {
           const ratingData = docSnapshot.data();
+          console.log("Rating data:", ratingData);
 
-          // Get the auth user directly
-          const user = auth.currentUser;
+          // Get user data either from rating or user document
+          const userDisplayName = ratingData.userDisplayName; // Try getting from rating first
+          let finalDisplayName = userDisplayName;
 
-          // If this rating is from the current user, use their display name
-          const displayName =
-            ratingData.userId === user?.uid
-              ? user.displayName
-              : "Anonymous User";
+          if (!finalDisplayName) {
+            // Fallback to user document if not in rating
+            const userRef = doc(db, "users", ratingData.userId);
+            const userDoc = await getDoc(userRef);
+            console.log("User document exists:", userDoc.exists());
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              console.log("User data:", userData);
+              finalDisplayName = userData.displayName;
+            }
+          }
 
           return {
             id: docSnapshot.id,
             ...ratingData,
             user: {
-              name: displayName,
+              name: finalDisplayName || "Anonymous User",
               avatar: null,
               userName: null,
             },
@@ -106,6 +116,7 @@ function PromptDetail() {
         })
       );
 
+      console.log("Processed ratings:", ratingsWithUserData);
       setRatings(ratingsWithUserData);
     } catch (err) {
       console.error("Error fetching ratings:", err);
