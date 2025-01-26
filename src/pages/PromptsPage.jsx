@@ -348,7 +348,7 @@ function PromptPage() {
     <>
       <Grid container mb={3}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <TextField
+          {/* <TextField
             fullWidth
             placeholder="Search Prompts and Prompt Categories"
             InputProps={{
@@ -385,7 +385,7 @@ function PromptPage() {
                 marginRight: 0, // Remove default right margin
               },
             }}
-          />
+          /> */}
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack flexDirection="row" justifyContent="flex-end">
@@ -393,6 +393,7 @@ function PromptPage() {
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => setOpenDialog(true)}
+              disabled={!auth.currentUser}
             >
               Add Prompt
             </Button>
@@ -417,16 +418,19 @@ function PromptPage() {
       </Stack> */}
       <Box
         sx={{
-          mb: 2,
+          mb: 1,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-end",
         }}
       >
         <Typography variant="h4" fontWeight="bold">
-          Popular Prompts
+          Prompts
         </Typography>
       </Box>
+      <Typography variant="body1" mb={2}>
+        Add prompts, rank prompts, and learn about AI tools.
+      </Typography>
 
       {/* Error Alerts */}
       {error && (
@@ -470,7 +474,7 @@ function PromptPage() {
             <Typography variant="h5" fontWeight="bold" mb={1}>
               Add New Prompt
             </Typography>
-            <Stack spacing={2}>
+            <Stack spacing={2} mb={4}>
               <Box>
                 <TextField
                   fullWidth
@@ -504,7 +508,7 @@ function PromptPage() {
                 value={newPromptDescription}
                 onChange={(e) => setNewPromptDescription(e.target.value)}
               />
-              <FormControlLabel
+              {/* <FormControlLabel
                 control={
                   <Switch
                     checked={newVisibilityModel}
@@ -512,7 +516,7 @@ function PromptPage() {
                   />
                 }
                 label="Public"
-              />
+              /> */}
             </Stack>
 
             {/* <DialogActions> */}
@@ -829,7 +833,7 @@ function PromptPage() {
         ) : (
           // Show options for prompts created by other users
           <>
-            <MenuItem
+            {/* <MenuItem
               sx={{
                 display: "flex",
                 alignItems: "center",
@@ -841,8 +845,8 @@ function PromptPage() {
             >
               <EyeIcon />
               Copy Prompt
-            </MenuItem>
-            <MenuItem
+            </MenuItem> */}
+            {/* <MenuItem
               sx={{
                 display: "flex",
                 alignItems: "center",
@@ -854,7 +858,7 @@ function PromptPage() {
             >
               <EyeIcon />
               View Prompt
-            </MenuItem>
+            </MenuItem> */}
             <MenuItem
               onClick={() => navigate(`/main/prompts/${selectedPromptId}`)}
               sx={{
@@ -869,7 +873,7 @@ function PromptPage() {
               <StarBorderIcon />
               Rank Prompt
             </MenuItem>
-            <MenuItem
+            {/* <MenuItem
               onClick={() => handleSavePrompt(selectedPromptId)}
               sx={{
                 display: "flex",
@@ -882,7 +886,7 @@ function PromptPage() {
             >
               <SaveIcon />
               Save Prompt
-            </MenuItem>
+            </MenuItem> */}
           </>
         )}
       </Menu>

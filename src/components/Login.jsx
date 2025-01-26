@@ -25,7 +25,7 @@ export const Login = () => {
       setError("");
       setLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/main");
+      navigate("/main/prompts");
     } catch (err) {
       setError("Failed to login. Please check your credentials.");
       console.error(err);

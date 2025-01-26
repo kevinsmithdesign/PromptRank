@@ -109,7 +109,7 @@ const ProfilePage = () => {
         </Typography>
       ) : collections.length === 0 ? (
         <Card sx={{ textAlign: "center", py: 6 }}>
-          <Typography color="text.secondary" sx={{ mb: 2 }}>
+          <Typography sx={{ mb: 2 }}>
             You haven't created any collections yet
           </Typography>
           <Button

@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { lazy, Suspense } from "react";
 import "./App.css";
 import { Button } from "@mui/material";
@@ -84,100 +89,6 @@ function App() {
     return () => {};
   }, []);
 
-  const onSubmitAddPrompt = async () => {
-    if (!newPromptTitle || !newPromptDescription) {
-      alert("Please fill in title and description");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      const currentUser = auth.currentUser;
-
-      if (!currentUser) {
-        throw new Error("Must be logged in to create prompts");
-      }
-
-      await addDoc(promptsCollectionRef, {
-        title: newPromptTitle,
-        description: newPromptDescription,
-        category: newCategory,
-        isVisible: newVisibilityModel,
-        authorId: currentUser.uid,
-        createdAt: new Date().toISOString(),
-      });
-
-      // Clear form
-      setNewPromptTitle("");
-      setNewPromptDescription("");
-      setNewCategory("");
-      setNewVisibilityModel(false);
-
-      // Refresh the list
-      const newData = await getDocs(promptsCollectionRef);
-      const newFilteredData = newData.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-      setPromptList(newFilteredData);
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "Failed to add prompt");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deletePrompt = async (id) => {
-    try {
-      setDeleteLoading((prev) => ({ ...prev, [id]: true }));
-      setDeleteError(null);
-
-      // Check if user is authenticated
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        throw new Error("You must be logged in to delete prompts");
-      }
-
-      // Get the prompt document to check ownership
-      const promptDoc = doc(db, "prompts", id);
-      const promptSnapshot = await getDoc(promptDoc);
-
-      // Verify the user owns this prompt
-      if (
-        promptSnapshot.exists() &&
-        promptSnapshot.data().authorId !== currentUser.uid
-      ) {
-        throw new Error("You can only delete your own prompts");
-      }
-
-      // Delete the document
-      await deleteDoc(promptDoc);
-
-      // Update local state to remove the deleted prompt
-      setPromptList((prevList) =>
-        prevList.filter((prompt) => prompt.id !== id)
-      );
-    } catch (err) {
-      console.error("Error deleting prompt:", err);
-      setDeleteError(err.message || "Failed to delete prompt");
-    } finally {
-      setDeleteLoading((prev) => ({ ...prev, [id]: false }));
-    }
-  };
-
-  const startEditing = (prompt) => {
-    setEditingId(prompt.id);
-    setEditForm({
-      title: prompt.title,
-      description: prompt.description,
-      category: prompt.category || "",
-      isVisible: prompt.isVisible || false,
-    });
-    setEditError(null);
-  };
-
   const cancelEditing = () => {
     setEditingId(null);
     setEditForm({
@@ -250,11 +161,11 @@ function App() {
     <>
       <Router>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          {/* <Route path="/" element={<LandingPage />} /> */}
+          <Route path="/" element={<Navigate to="/main/prompts" replace />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/main" element={<MainPage />}>
-            {/* <Route path="prompts" element={<PromptsPage />} /> */}
             <Route
               path="prompts"
               element={
@@ -264,8 +175,6 @@ function App() {
               }
             />
             <Route path="prompts/:id" element={<PromptDetail />} />
-
-            {/* <Route path="ai-tools" element={<AiToolsPage />} /> */}
             <Route
               path="ai-tools"
               element={

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Dialog,
   DialogTitle,
@@ -58,7 +59,8 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
 
       const currentUser = auth.currentUser;
       if (!currentUser) {
-        throw new Error("You must be logged in to view collections");
+        setError("not-logged-in");
+        return;
       }
 
       const collectionsRef = collection(
@@ -222,7 +224,20 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
+              {error === "not-logged-in" ? (
+                <span>
+                  You must be{" "}
+                  <Link
+                    to="/login"
+                    style={{ color: "#d32f2f", textDecoration: "underline" }}
+                  >
+                    logged in
+                  </Link>{" "}
+                  to view collections
+                </span>
+              ) : (
+                error
+              )}
             </Alert>
           )}
 
@@ -236,26 +251,26 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                 <ArrowBackIcon />
               </IconButton>
             )}
-            <Typography variant="h5" fontWeight="bold">
+            {/* <Typography variant="h5" fontWeight="bold">
               {isCreatingCollection
                 ? "Create New Collection"
                 : "Save Prompt to Collection"}
-            </Typography>
+            </Typography> */}
           </Stack>
 
           {!isCreatingCollection && (
             <Stack flexDirection="row" mb={2}>
               <Stack flexGrow={1} mr={3}>
-                <TextField
+                {/* <TextField
                   fullWidth
                   placeholder="Search Collections"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                /> */}
               </Stack>
               <Stack>
                 <Button
-                  variant="outlined"
+                  variant="contained"
                   onClick={() => setIsCreatingCollection(true)}
                 >
                   Add New Collection
@@ -273,14 +288,14 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                 value={newCollectionName}
                 onChange={(e) => setNewCollectionName(e.target.value)}
               />
-              <TextField
+              {/* <TextField
                 label="Description (Optional)"
                 fullWidth
                 multiline
                 rows={3}
                 value={newCollectionDescription}
                 onChange={(e) => setNewCollectionDescription(e.target.value)}
-              />
+              /> */}
             </Stack>
           ) : (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -307,9 +322,9 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                         display: "flex",
                         flexDirection: "column",
                         cursor: "pointer",
-                        position: "relative", // Required for pseudo-element positioning
+                        position: "relative",
                         border: `1px solid #222`,
-                        overflow: "hidden", // Ensures the pseudo-element doesn't overflow the card
+                        overflow: "hidden",
                         "&:hover": {
                           border: `1px solid ${theme.palette.primary.main}`,
                         },
@@ -321,15 +336,15 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                           width: "100%",
                           height: "100%",
                           backgroundColor: theme.palette.primary.main,
-                          opacity: 0, // Initial opacity
+                          opacity: 0,
                           transition: "opacity 0.3s ease",
-                          zIndex: 0, // Ensure the overlay is behind the content
+                          zIndex: 0,
                         },
                         "&:hover::before": {
-                          opacity: 0.2, // Adjust the overlay opacity on hover
+                          opacity: 0.2,
                         },
                         "& > *": {
-                          position: "relative", // Keeps the content above the pseudo-element
+                          position: "relative",
                           zIndex: 1,
                         },
                       }}
