@@ -73,6 +73,8 @@ function PromptPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [saveLoading, setSaveLoading] = useState({});
   const [saveError, setSaveError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredPrompts, setFilteredPrompts] = useState([]);
 
   // Edit states
   const [editingId, setEditingId] = useState(null);
@@ -115,6 +117,20 @@ function PromptPage() {
 
     getPromptsList();
   }, []);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredPrompts([]); // Reset when search is empty
+    } else {
+      const filtered = promptList.filter(
+        (prompt) =>
+          prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (prompt.category &&
+            prompt.category.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+      setFilteredPrompts(filtered);
+    }
+  }, [searchQuery, promptList]);
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
@@ -346,30 +362,33 @@ function PromptPage() {
 
   return (
     <>
-      <Grid container mb={3}>
+      <Box
+        sx={{
+          mb: 1,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+        }}
+      >
+        <Typography variant="h4" fontWeight="bold">
+          Prompts
+        </Typography>
+      </Box>
+      <Typography variant="body1" mb={2}>
+        Add prompts, rank prompts, and learn about AI tools.
+      </Typography>
+      <Grid container mb={3} spacing={4}>
         <Grid size={{ xs: 12, md: 6 }}>
-          {/* <TextField
+          <TextField
             fullWidth
             placeholder="Search Prompts and Prompt Categories"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
                   <IconButton edge="start" disabled>
                     <SearchIcon />
-                  </IconButton>
-                </InputAdornment>
-              ),
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    edge="end"
-                    sx={{
-                      background: theme.palette.primary.main,
-                      "&:hover": { background: "#115293" },
-                      mr: 0.1,
-                    }}
-                  >
-                    <SendMsgIcon />
                   </IconButton>
                 </InputAdornment>
               ),
@@ -385,7 +404,7 @@ function PromptPage() {
                 marginRight: 0, // Remove default right margin
               },
             }}
-          /> */}
+          />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack flexDirection="row" justifyContent="flex-end">
@@ -416,7 +435,7 @@ function PromptPage() {
           </Button>
         ))}
       </Stack> */}
-      <Box
+      {/* <Box
         sx={{
           mb: 1,
           display: "flex",
@@ -430,7 +449,7 @@ function PromptPage() {
       </Box>
       <Typography variant="body1" mb={2}>
         Add prompts, rank prompts, and learn about AI tools.
-      </Typography>
+      </Typography> */}
 
       {/* Error Alerts */}
       {error && (
@@ -657,7 +676,7 @@ function PromptPage() {
       {/* Prompts List */}
 
       <Grid container spacing={3}>
-        {promptList?.map((prompt) => (
+        {(searchQuery ? filteredPrompts : promptList)?.map((prompt) => (
           <Grid size={{ xs: 12, md: 6 }} key={prompt?.id || "fallback-key"}>
             <Card
               sx={{
