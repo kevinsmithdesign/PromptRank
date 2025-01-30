@@ -162,38 +162,6 @@ function PromptPage() {
     deletePrompt(promptId);
   };
 
-  const handleSavePrompt = async (promptId) => {
-    setSelectedPromptId(promptId);
-    setSaveToCollectionOpen(true);
-    handleMenuClose();
-
-    // try {
-    //   setSaveLoading((prev) => ({ ...prev, [promptId]: true }));
-    //   setSaveError(null);
-    //   const currentUser = auth.currentUser;
-    //   if (!currentUser) {
-    //     throw new Error("You must be logged in to save prompts");
-    //   }
-    //   // Add a reference to this prompt in user's saved prompts collection
-    //   const savedPromptsRef = collection(
-    //     db,
-    //     "users",
-    //     currentUser.uid,
-    //     "savedPrompts"
-    //   );
-    //   await addDoc(savedPromptsRef, {
-    //     promptId: promptId,
-    //     savedAt: new Date().toISOString(),
-    //   });
-    //   handleMenuClose();
-    // } catch (err) {
-    //   console.error("Error saving prompt:", err);
-    //   setSaveError(err.message || "Failed to save prompt");
-    // } finally {
-    //   setSaveLoading((prev) => ({ ...prev, [promptId]: false }));
-    // }
-  };
-
   const onSubmitAddPrompt = async () => {
     if (!newPromptTitle || !newPromptDescription) {
       setError("Please fill in title and description");
@@ -435,21 +403,6 @@ function PromptPage() {
           </Button>
         ))}
       </Stack> */}
-      {/* <Box
-        sx={{
-          mb: 1,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-        }}
-      >
-        <Typography variant="h4" fontWeight="bold">
-          Prompts
-        </Typography>
-      </Box>
-      <Typography variant="body1" mb={2}>
-        Add prompts, rank prompts, and learn about AI tools.
-      </Typography> */}
 
       {/* Error Alerts */}
       {error && (

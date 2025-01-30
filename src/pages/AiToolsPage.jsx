@@ -145,13 +145,6 @@ const AiToolsPage = () => {
         <Typography variant="h4" fontWeight="bold">
           AI Tools
         </Typography>
-        {/* <Button
-        variant="contained"
-        startIcon={<AddIcon />}
-        onClick={() => setOpenDialog(true)}
-      >
-        Add Prompt
-      </Button> */}
       </Box>
       <Box sx={{ flexGrow: 1, mb: 8 }}>
         <Grid container spacing={3}>
@@ -163,27 +156,17 @@ const AiToolsPage = () => {
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
+                  p: 5,
                 }}
               >
-                <Box sx={{ px: 2 }}>
+                {/* Content Box: Ensures description takes up available space */}
+                <Box sx={{ flexGrow: 1 }}>
                   <Stack
                     flexDirection="row"
                     alignItems="center"
                     mb={2.5}
                     mt={1}
-                    // sx={{ background: "red" }}
                   >
-                    <Stack>
-                      {/* <Box
-                        sx={{
-                          background: "#333",
-                          height: "54px",
-                          width: "54px",
-                          mr: "16px",
-                          borderRadius: "8px",
-                        }}
-                      ></Box> */}
-                    </Stack>
                     <Stack>
                       <Typography color="#fff" variant="h6" fontWeight="bold">
                         {title}
@@ -193,10 +176,11 @@ const AiToolsPage = () => {
                       </Typography>
                     </Stack>
                   </Stack>
-                  <Typography color="#fff" variant="body2" pb={3}>
+                  <Typography color="#fff" variant="body2" pb={4}>
                     {description}
                   </Typography>
                 </Box>
+
                 <Button
                   variant="contained"
                   fullWidth
@@ -204,6 +188,7 @@ const AiToolsPage = () => {
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  sx={{ mt: "auto" }}
                 >
                   Visit
                 </Button>
