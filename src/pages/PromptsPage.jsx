@@ -2,11 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Button,
-  Container,
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
   TextField,
   Card,
   CardContent,
@@ -20,14 +17,8 @@ import {
   MenuItem,
   useTheme,
   IconButton,
-  OutlinedInput,
-  InputLabel,
   InputAdornment,
-  FormControl,
 } from "@mui/material";
-
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 import { Add as AddIcon } from "@mui/icons-material";
 import SaveToCollectionDialog from "../components/SaveToCollectionDialog";
@@ -41,8 +32,6 @@ import DeleteIcon from "../icons/DeleteIcon";
 import SaveIcon from "../icons/SaveIcon";
 import EyeIcon from "../icons/EyeIcon";
 import SearchIcon from "../icons/SearchIcon";
-import SendMsgIcon from "../icons/SendMsgIcon";
-// import StarIcon from "../icons/StarIcon";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 
 import { db, auth } from "../../config/firebase";
@@ -160,6 +149,38 @@ function PromptPage() {
   const handleDeleteClick = (promptId) => {
     handleMenuClose();
     deletePrompt(promptId);
+  };
+
+  const handleSavePrompt = async (promptId) => {
+    setSelectedPromptId(promptId);
+    setSaveToCollectionOpen(true);
+    handleMenuClose();
+
+    // try {
+    //   setSaveLoading((prev) => ({ ...prev, [promptId]: true }));
+    //   setSaveError(null);
+    //   const currentUser = auth.currentUser;
+    //   if (!currentUser) {
+    //     throw new Error("You must be logged in to save prompts");
+    //   }
+    //   // Add a reference to this prompt in user's saved prompts collection
+    //   const savedPromptsRef = collection(
+    //     db,
+    //     "users",
+    //     currentUser.uid,
+    //     "savedPrompts"
+    //   );
+    //   await addDoc(savedPromptsRef, {
+    //     promptId: promptId,
+    //     savedAt: new Date().toISOString(),
+    //   });
+    //   handleMenuClose();
+    // } catch (err) {
+    //   console.error("Error saving prompt:", err);
+    //   setSaveError(err.message || "Failed to save prompt");
+    // } finally {
+    //   setSaveLoading((prev) => ({ ...prev, [promptId]: false }));
+    // }
   };
 
   const onSubmitAddPrompt = async () => {
@@ -325,7 +346,7 @@ function PromptPage() {
     { text: "Content Creation", path: "/UIUXDesign" },
     { text: "Trading Strategies", path: "/UIUXDesign" },
     { text: "Resume Builder", path: "/UIUXDesign" },
-    { text: "marketing Strategies", path: "/UIUXDesign" },
+    { text: "Marketing Strategies", path: "/UIUXDesign" },
   ];
 
   return (
@@ -387,7 +408,7 @@ function PromptPage() {
           </Stack>
         </Grid>
       </Grid>
-      {/* <Stack flexDirection="row" gap={1} mb={6}>
+      <Stack flexDirection="row" gap={1} mb={6}>
         {popularCategories.map(({ text, path }) => (
           <Button
             key={path} // Unique key for each Button
@@ -402,7 +423,7 @@ function PromptPage() {
             {text}
           </Button>
         ))}
-      </Stack> */}
+      </Stack>
 
       {/* Error Alerts */}
       {error && (
@@ -480,15 +501,6 @@ function PromptPage() {
                 value={newPromptDescription}
                 onChange={(e) => setNewPromptDescription(e.target.value)}
               />
-              {/* <FormControlLabel
-                control={
-                  <Switch
-                    checked={newVisibilityModel}
-                    onChange={(e) => setNewVisibilityModel(e.target.checked)}
-                  />
-                }
-                label="Public"
-              /> */}
             </Stack>
 
             {/* <DialogActions> */}
@@ -523,8 +535,6 @@ function PromptPage() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            // padding: "20px",
-            // borderRadius: "16px",
           },
         }}
       >
@@ -805,7 +815,7 @@ function PromptPage() {
         ) : (
           // Show options for prompts created by other users
           <>
-            {/* <MenuItem
+            <MenuItem
               sx={{
                 display: "flex",
                 alignItems: "center",
@@ -817,20 +827,7 @@ function PromptPage() {
             >
               <EyeIcon />
               Copy Prompt
-            </MenuItem> */}
-            {/* <MenuItem
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                "&:hover": {
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                },
-              }}
-            >
-              <EyeIcon />
-              View Prompt
-            </MenuItem> */}
+            </MenuItem>
             <MenuItem
               onClick={() => navigate(`/main/prompts/${selectedPromptId}`)}
               sx={{
@@ -845,7 +842,7 @@ function PromptPage() {
               <StarBorderIcon />
               Rank Prompt
             </MenuItem>
-            {/* <MenuItem
+            <MenuItem
               onClick={() => handleSavePrompt(selectedPromptId)}
               sx={{
                 display: "flex",
@@ -858,7 +855,7 @@ function PromptPage() {
             >
               <SaveIcon />
               Save Prompt
-            </MenuItem> */}
+            </MenuItem>
           </>
         )}
       </Menu>
