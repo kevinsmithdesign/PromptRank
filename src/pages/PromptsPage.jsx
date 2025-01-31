@@ -415,11 +415,34 @@ function PromptPage() {
         mb={6}
         sx={{
           overflowX: "auto",
-          // Remove the width: '100%' since it's causing the full-width scroll
-          scrollbarWidth: "none", // Firefox
-          "&::-webkit-scrollbar": {
-            display: "none", // Chrome/Safari
+          scrollbarWidth: "none",
+          cursor: "grab", // Shows users they can drag
+          "&:active": {
+            cursor: "grabbing", // Changes cursor while dragging
           },
+          "&::-webkit-scrollbar": {
+            display: "none",
+          },
+        }}
+        onMouseDown={(e) => {
+          const ele = e.currentTarget;
+          const startPos = {
+            left: ele.scrollLeft,
+            x: e.clientX,
+          };
+
+          const onMouseMove = (e) => {
+            const dx = e.clientX - startPos.x;
+            ele.scrollLeft = startPos.left - dx;
+          };
+
+          const onMouseUp = () => {
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+          };
+
+          document.addEventListener("mousemove", onMouseMove);
+          document.addEventListener("mouseup", onMouseUp);
         }}
       >
         {popularCategories.map(({ text, path }) => (
@@ -431,8 +454,8 @@ function PromptPage() {
               borderRadius: "32px",
               color: "white",
               fontWeight: "bold",
-              flexShrink: 0, // This prevents the buttons from shrinking
-              whiteSpace: "nowrap", // This keeps the text from wrapping
+              flexShrink: 0,
+              whiteSpace: "nowrap",
             }}
           >
             {text}
