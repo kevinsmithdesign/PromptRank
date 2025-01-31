@@ -346,6 +346,7 @@ function PromptPage() {
     { text: "Content Creation", path: "/UIUXDesign" },
     { text: "Trading Strategies", path: "/UIUXDesign" },
     { text: "Resume Builder", path: "/UIUXDesign" },
+    { text: "Business", path: "/UIUXDesign" },
     { text: "Marketing Strategies", path: "/UIUXDesign" },
   ];
 
@@ -408,16 +409,30 @@ function PromptPage() {
           </Stack>
         </Grid>
       </Grid>
-      <Stack flexDirection="row" gap={1} mb={6}>
+      <Stack
+        flexDirection="row"
+        gap={1}
+        mb={6}
+        sx={{
+          overflowX: "auto",
+          // Remove the width: '100%' since it's causing the full-width scroll
+          scrollbarWidth: "none", // Firefox
+          "&::-webkit-scrollbar": {
+            display: "none", // Chrome/Safari
+          },
+        }}
+      >
         {popularCategories.map(({ text, path }) => (
           <Button
-            key={path} // Unique key for each Button
+            key={path}
             sx={{
               background: "#222",
               padding: "16px 24px",
               borderRadius: "32px",
               color: "white",
               fontWeight: "bold",
+              flexShrink: 0, // This prevents the buttons from shrinking
+              whiteSpace: "nowrap", // This keeps the text from wrapping
             }}
           >
             {text}
