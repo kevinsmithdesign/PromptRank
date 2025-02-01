@@ -33,6 +33,7 @@ import SaveIcon from "../icons/SaveIcon";
 import EyeIcon from "../icons/EyeIcon";
 import SearchIcon from "../icons/SearchIcon";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
+import NoResultsMessage from "../components/NoResultsMessage";
 
 import { db, auth } from "../../config/firebase";
 import {
@@ -47,37 +48,7 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
-
-const NoResultsMessage = ({ searchQuery, selectedCategory }) => {
-  if (!searchQuery && !selectedCategory) return null;
-
-  let message = "No prompts found";
-  if (selectedCategory && searchQuery) {
-    message += ` in category "${selectedCategory}" matching "${searchQuery}"`;
-  } else if (selectedCategory) {
-    message += ` in category "${selectedCategory}"`;
-  } else if (searchQuery) {
-    message += ` matching "${searchQuery}"`;
-  }
-
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "200px",
-        width: "100%",
-        gap: 2,
-      }}
-    >
-      <Typography variant="h6" color="white">
-        {message}
-      </Typography>
-    </Box>
-  );
-};
+import AddEditPromptDialog from "../components/AddEditPromptDialog";
 
 function PromptPage() {
   const navigate = useNavigate();
@@ -437,68 +408,6 @@ function PromptPage() {
           </Stack>
         </Grid>
       </Grid>
-      {/* <Stack
-        flexDirection="row"
-        gap={1}
-        mb={6}
-        sx={{
-          overflowX: "auto",
-          scrollbarWidth: "none",
-          cursor: "grab",
-          "&:active": {
-            cursor: "grabbing",
-          },
-          "&::-webkit-scrollbar": {
-            display: "none",
-          },
-        }}
-        onMouseDown={(e) => {
-          const ele = e.currentTarget;
-          const startPos = {
-            left: ele.scrollLeft,
-            x: e.clientX,
-          };
-
-          const onMouseMove = (e) => {
-            const dx = e.clientX - startPos.x;
-            ele.scrollLeft = startPos.left - dx;
-          };
-
-          const onMouseUp = () => {
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
-          };
-
-          document.addEventListener("mousemove", onMouseMove);
-          document.addEventListener("mouseup", onMouseUp);
-        }}
-      >
-        {popularCategories.map(({ text, path }) => (
-          <Button
-            key={path}
-            sx={{
-              background:
-                selectedCategory === text ? theme.palette.primary.main : "#222",
-              padding: "16px 24px",
-              borderRadius: "32px",
-              color: "white",
-              fontWeight: "bold",
-              flexShrink: 0,
-              whiteSpace: "nowrap",
-              "&:hover": {
-                background:
-                  selectedCategory === text
-                    ? theme.palette.primary.dark
-                    : "rgba(255, 255, 255, 0.1)",
-              },
-            }}
-            onClick={() => handleCategoryClick(text)}
-          >
-            {text}
-          </Button>
-        ))}
-      </Stack> */}
-
       <Stack
         flexDirection="row"
         gap={1}
@@ -581,7 +490,6 @@ function PromptPage() {
           </Button>
         ))}
       </Stack>
-
       {/* Error Alerts */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -603,190 +511,26 @@ function PromptPage() {
           {saveError}
         </Alert>
       )}
-
-      {/* Add Prompt Dialog */}
-      <Dialog
-        fullScreen
-        open={openDialog}
-        onClose={handleCloseDialog}
-        sx={{
-          "& .MuiDialog-paper": {
-            backgroundColor: "#111",
-            color: "#fff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          },
-        }}
-      >
-        <Box sx={{ maxWidth: "600px", width: "100%", mx: "auto" }}>
-          <DialogContent>
-            <Typography variant="h5" fontWeight="bold" mb={1}>
-              Add New Prompt
-            </Typography>
-            <Stack spacing={2} mb={4}>
-              <Box>
-                <TextField
-                  fullWidth
-                  placeholder="Enter Category"
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                />
-              </Box>
-              <TextField
-                placeholder="Add Prompt Title"
-                fullWidth
-                required
-                value={newPromptTitle}
-                onChange={(e) => setNewPromptTitle(e.target.value)}
-              />
-              <TextField
-                placeholder="Add Prompt Description"
-                label=""
-                fullWidth
-                required
-                multiline
-                rows={8}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "0.5rem",
-                    background: "#222",
-                    height: "auto",
-                    minHeight: "120px",
-                  },
-                }}
-                value={newPromptDescription}
-                onChange={(e) => setNewPromptDescription(e.target.value)}
-              />
-            </Stack>
-
-            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-              <Stack flexDirection="row" gap={2}>
-                <Button variant="outlined" onClick={handleCloseDialog}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={onSubmitAddPrompt}
-                  disabled={loading}
-                  variant="contained"
-                >
-                  {loading ? "Adding..." : "Add Prompt"}
-                </Button>
-              </Stack>
-            </Box>
-          </DialogContent>
-        </Box>
-      </Dialog>
-
-      {/* Edit Prompt Dialog */}
-      <Dialog
-        fullScreen
-        open={editDialogOpen}
-        onClose={cancelEditing}
-        sx={{
-          "& .MuiDialog-paper": {
-            backgroundColor: "#111",
-            color: "#fff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          },
-        }}
-      >
-        <Box sx={{ maxWidth: "600px", width: "100%", mx: "auto" }}>
-          <DialogContent>
-            <Typography variant="h5" fontWeight="bold" mb={1}>
-              Edit Prompt
-            </Typography>
-
-            {editError && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {editError}
-              </Alert>
-            )}
-            <Stack spacing={2} sx={{ mt: 1 }}>
-              <TextField
-                placeholder="Enter Category"
-                fullWidth
-                value={editForm.category}
-                onChange={(e) =>
-                  setEditForm((prev) => ({
-                    ...prev,
-                    category: e.target.value,
-                  }))
-                }
-              />
-              <TextField
-                placeholder="Prompt Title"
-                fullWidth
-                required
-                value={editForm.title}
-                onChange={(e) =>
-                  setEditForm((prev) => ({
-                    ...prev,
-                    title: e.target.value,
-                  }))
-                }
-              />
-              <TextField
-                placeholder="Prompt Description"
-                fullWidth
-                required
-                multiline
-                rows={8}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "0.5rem",
-                    background: "#222",
-                    height: "auto",
-                    minHeight: "120px",
-                  },
-                }}
-                value={editForm.description}
-                onChange={(e) =>
-                  setEditForm((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={editForm.isVisible}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        isVisible: e.target.checked,
-                      }))
-                    }
-                  />
-                }
-                label="Public"
-              />
-            </Stack>
-            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-              <Stack flexDirection="row" gap={2}>
-                <Button
-                  variant="outlined"
-                  onClick={cancelEditing}
-                  disabled={editLoading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={() => handleEditSubmit(editingId)}
-                  disabled={editLoading}
-                >
-                  {editLoading ? "Saving..." : "Save Changes"}
-                </Button>
-              </Stack>
-            </Box>
-          </DialogContent>
-        </Box>
-      </Dialog>
-
+      <AddEditPromptDialog
+        openDialog={openDialog}
+        handleCloseDialog={handleCloseDialog}
+        newCategory={newCategory}
+        setNewCategory={setNewCategory}
+        newPromptTitle={newPromptTitle}
+        setNewPromptTitle={setNewPromptTitle}
+        newPromptDescription={newPromptDescription}
+        setNewPromptDescription={setNewPromptDescription}
+        onSubmitAddPrompt={onSubmitAddPrompt}
+        editDialogOpen={editDialogOpen}
+        cancelEditing={cancelEditing}
+        loading={loading}
+        editError={editError}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        editLoading={editLoading}
+        handleEditSubmit={handleEditSubmit}
+        editingId={editingId}
+      />
       {/* Prompts List */}
       <Grid container spacing={3}>
         {(filteredPrompts.length > 0
@@ -905,7 +649,6 @@ function PromptPage() {
           </Grid>
         ))}
       </Grid>
-
       {/* No Results Message */}
       {(searchQuery || selectedCategory) && filteredPrompts.length === 0 && (
         <NoResultsMessage
@@ -913,7 +656,6 @@ function PromptPage() {
           selectedCategory={selectedCategory}
         />
       )}
-
       {/* Menu */}
       <Menu
         anchorEl={menuAnchorEl}
