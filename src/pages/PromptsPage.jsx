@@ -425,6 +425,7 @@ function PromptsPage() {
 
       {/* Prompts List */}
       <PromptCard
+        loading={isLoading}
         filteredPrompts={filteredPrompts}
         searchQuery={searchQuery}
         selectedCategory={selectedCategory}
