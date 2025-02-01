@@ -1,4 +1,3 @@
-// src/api/prompts.js
 import { db, auth } from "../../config/firebase";
 import {
   getDocs,
@@ -19,7 +18,6 @@ const promptsCollection = collection(db, "prompts");
 const ratingsCollection = collection(db, "ratings");
 
 export const promptsApi = {
-  // Existing methods...
   getPrompts: async () => {
     const q = query(promptsCollection, orderBy("createdAt", "desc"));
     const data = await getDocs(q);
@@ -98,7 +96,11 @@ export const promptsApi = {
     };
 
     await updateDoc(promptDoc, updateData);
-    return { id, ...updateData };
+    return {
+      id,
+      ...promptSnapshot.data(),
+      ...updateData,
+    };
   },
 
   deletePrompt: async (id) => {
@@ -122,7 +124,6 @@ export const promptsApi = {
     return id;
   },
 
-  // New methods for prompt details and ratings
   getPromptDetail: async (id) => {
     const promptDoc = await getDoc(doc(db, "prompts", id));
 
@@ -132,7 +133,6 @@ export const promptsApi = {
 
     const data = promptDoc.data();
 
-    // Fetch author data
     const authorRef = doc(db, "users", data.authorId);
     const authorDoc = await getDoc(authorRef);
     const authorData = authorDoc.exists() ? authorDoc.data() : null;
@@ -158,8 +158,6 @@ export const promptsApi = {
     const ratingsWithUserData = await Promise.all(
       snapshot.docs.map(async (docSnapshot) => {
         const ratingData = docSnapshot.data();
-
-        // Get user data
         let finalDisplayName = ratingData.userDisplayName;
 
         if (!finalDisplayName) {
@@ -195,7 +193,6 @@ export const promptsApi = {
 
     const batch = writeBatch(db);
 
-    // Create new rating document
     const ratingRef = doc(collection(db, "ratings"));
     const ratingData = {
       promptId,
@@ -208,7 +205,6 @@ export const promptsApi = {
 
     batch.set(ratingRef, ratingData);
 
-    // Update prompt's average rating and total ratings
     const promptRef = doc(db, "prompts", promptId);
     const promptDoc = await getDoc(promptRef);
     const promptData = promptDoc.data();
@@ -232,47 +228,3 @@ export const promptsApi = {
     };
   },
 };
-
-// src/hooks/usePrompts.js - Add these new hooks
-export function usePromptDetail(id) {
-  const queryClient = useQueryClient();
-
-  const {
-    data: prompt,
-    isLoading: promptLoading,
-    error: promptError,
-  } = useQuery({
-    queryKey: ["prompt", id],
-    queryFn: () => promptsApi.getPromptDetail(id),
-    enabled: !!id,
-  });
-
-  const {
-    data: ratings = [],
-    isLoading: ratingsLoading,
-    error: ratingsError,
-  } = useQuery({
-    queryKey: ["prompt-ratings", id],
-    queryFn: () => promptsApi.getPromptRatings(id),
-    enabled: !!id,
-  });
-
-  const submitRatingMutation = useMutation({
-    mutationFn: promptsApi.submitRating,
-    onSuccess: () => {
-      // Invalidate and refetch both prompt and ratings queries
-      queryClient.invalidateQueries(["prompt", id]);
-      queryClient.invalidateQueries(["prompt-ratings", id]);
-    },
-  });
-
-  return {
-    prompt,
-    ratings,
-    isLoading: promptLoading || ratingsLoading,
-    error: promptError || ratingsError,
-    submitRating: submitRatingMutation.mutate,
-    isSubmittingRating: submitRatingMutation.isLoading,
-    submitRatingError: submitRatingMutation.error,
-  };
-}

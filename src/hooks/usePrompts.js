@@ -1,9 +1,7 @@
-// src/hooks/usePrompts.js
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { promptsApi } from "../api/prompts";
 
-// Base hook for prompts list operations
-function usePrompts() {
+export function usePrompts() {
   const queryClient = useQueryClient();
 
   const {
@@ -18,21 +16,59 @@ function usePrompts() {
   const createPromptMutation = useMutation({
     mutationFn: promptsApi.createPrompt,
     onSuccess: (newPrompt) => {
-      queryClient.invalidateQueries(["prompts"]);
+      queryClient.setQueryData(["prompts"], (old) => {
+        return [newPrompt, ...(old || [])];
+      });
     },
   });
 
   const updatePromptMutation = useMutation({
     mutationFn: promptsApi.updatePrompt,
-    onSuccess: (updatedPrompt) => {
+    onMutate: async (updatedPrompt) => {
+      await queryClient.cancelQueries(["prompts"]);
+      await queryClient.cancelQueries(["prompt", updatedPrompt.id]);
+
+      const previousPrompts = queryClient.getQueryData(["prompts"]);
+
+      queryClient.setQueryData(["prompts"], (old) => {
+        return old?.map((prompt) =>
+          prompt.id === updatedPrompt.id
+            ? { ...prompt, ...updatedPrompt }
+            : prompt
+        );
+      });
+
+      queryClient.setQueryData(["prompt", updatedPrompt.id], (old) => ({
+        ...old,
+        ...updatedPrompt,
+      }));
+
+      return { previousPrompts };
+    },
+    onError: (err, newPrompt, context) => {
+      queryClient.setQueryData(["prompts"], context.previousPrompts);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries(["prompts"]);
-      queryClient.invalidateQueries(["prompt", updatedPrompt.id]);
     },
   });
 
   const deletePromptMutation = useMutation({
     mutationFn: promptsApi.deletePrompt,
-    onSuccess: (deletedId) => {
+    onMutate: async (promptId) => {
+      await queryClient.cancelQueries(["prompts"]);
+      const previousPrompts = queryClient.getQueryData(["prompts"]);
+
+      queryClient.setQueryData(["prompts"], (old) => {
+        return old?.filter((prompt) => prompt.id !== promptId);
+      });
+
+      return { previousPrompts };
+    },
+    onError: (err, promptId, context) => {
+      queryClient.setQueryData(["prompts"], context.previousPrompts);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries(["prompts"]);
     },
   });
@@ -47,11 +83,13 @@ function usePrompts() {
     createPromptLoading: createPromptMutation.isLoading,
     updatePromptLoading: updatePromptMutation.isLoading,
     deletePromptLoading: deletePromptMutation.isLoading,
+    createPromptError: createPromptMutation.error,
+    updatePromptError: updatePromptMutation.error,
+    deletePromptError: deletePromptMutation.error,
   };
 }
 
-// Hook for single prompt operations
-function usePrompt(id) {
+export function usePrompt(id) {
   return useQuery({
     queryKey: ["prompt", id],
     queryFn: () => promptsApi.getPromptById(id),
@@ -59,8 +97,7 @@ function usePrompt(id) {
   });
 }
 
-// Hook for user-specific prompts
-function useUserPrompts(userId) {
+export function useUserPrompts(userId) {
   return useQuery({
     queryKey: ["prompts", "user", userId],
     queryFn: () => promptsApi.getUserPrompts(userId),
@@ -68,8 +105,7 @@ function useUserPrompts(userId) {
   });
 }
 
-// Hook for prompt details and ratings
-function usePromptDetail(id) {
+export function usePromptDetail(id) {
   const queryClient = useQueryClient();
 
   const {
@@ -110,6 +146,3 @@ function usePromptDetail(id) {
     submitRatingError: submitRatingMutation.error,
   };
 }
-
-// Single export statement for all hooks
-export { usePrompts, usePrompt, useUserPrompts, usePromptDetail };

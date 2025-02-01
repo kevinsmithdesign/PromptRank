@@ -6,19 +6,12 @@ import {
   Dialog,
   DialogContent,
   TextField,
-  Card,
-  CardContent,
   Typography,
   FormControlLabel,
   Switch,
   Stack,
   Box,
   Alert,
-  Menu,
-  MenuItem,
-  useTheme,
-  IconButton,
-  InputAdornment,
 } from "@mui/material";
 
 const AddEditPromptDialog = ({
@@ -41,6 +34,117 @@ const AddEditPromptDialog = ({
   handleEditSubmit,
   editingId,
 }) => {
+  // Validation state for Add form
+  const [addFormErrors, setAddFormErrors] = useState({
+    category: "",
+    title: "",
+    description: "",
+  });
+
+  // Validation state for Edit form
+  const [editFormErrors, setEditFormErrors] = useState({
+    category: "",
+    title: "",
+    description: "",
+  });
+
+  // Reset errors when dialogs close
+  useEffect(() => {
+    if (!openDialog) {
+      setAddFormErrors({ category: "", title: "", description: "" });
+    }
+    if (!editDialogOpen) {
+      setEditFormErrors({ category: "", title: "", description: "" });
+    }
+  }, [openDialog, editDialogOpen]);
+
+  // Validate Add form
+  const validateAddForm = () => {
+    const errors = {
+      category: "",
+      title: "",
+      description: "",
+    };
+    let isValid = true;
+
+    if (!newCategory.trim()) {
+      errors.category = "Category is required";
+      isValid = false;
+    } else if (newCategory.length > 50) {
+      errors.category = "Category must be less than 50 characters";
+      isValid = false;
+    }
+
+    if (!newPromptTitle.trim()) {
+      errors.title = "Title is required";
+      isValid = false;
+    } else if (newPromptTitle.length > 100) {
+      errors.title = "Title must be less than 100 characters";
+      isValid = false;
+    }
+
+    if (!newPromptDescription.trim()) {
+      errors.description = "Description is required";
+      isValid = false;
+    } else if (newPromptDescription.length > 1000) {
+      errors.description = "Description must be less than 1000 characters";
+      isValid = false;
+    }
+
+    setAddFormErrors(errors);
+    return isValid;
+  };
+
+  // Validate Edit form
+  const validateEditForm = () => {
+    const errors = {
+      title: "",
+      description: "",
+    };
+    let isValid = true;
+
+    if (!editForm.category.trim()) {
+      errors.category = "Category is required";
+      isValid = false;
+    } else if (editForm.category.length > 50) {
+      errors.category = "Category must be less than 50 characters";
+      isValid = false;
+    }
+
+    if (!editForm.title.trim()) {
+      errors.title = "Title is required";
+      isValid = false;
+    } else if (editForm.title.length > 100) {
+      errors.title = "Title must be less than 100 characters";
+      isValid = false;
+    }
+
+    if (!editForm.description.trim()) {
+      errors.description = "Description is required";
+      isValid = false;
+    } else if (editForm.description.length > 1000) {
+      errors.description = "Description must be less than 1000 characters";
+      isValid = false;
+    }
+
+    setEditFormErrors(errors);
+    return isValid;
+  };
+
+  // Modified submit handlers
+  const handleAddSubmit = (e) => {
+    e.preventDefault();
+    if (validateAddForm()) {
+      onSubmitAddPrompt();
+    }
+  };
+
+  const handleModifiedEditSubmit = (id) => {
+    if (validateEditForm()) {
+      handleEditSubmit(id);
+    }
+  };
+
   return (
     <>
       <Dialog
@@ -69,6 +173,12 @@ const AddEditPromptDialog = ({
                   placeholder="Enter Category"
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
+                  required
+                  error={!!addFormErrors.category}
+                  helperText={addFormErrors.category}
+                  FormHelperTextProps={{
+                    sx: { color: "error.main" },
+                  }}
                 />
               </Box>
               <TextField
@@ -77,6 +187,11 @@ const AddEditPromptDialog = ({
                 required
                 value={newPromptTitle}
                 onChange={(e) => setNewPromptTitle(e.target.value)}
+                error={!!addFormErrors.title}
+                helperText={addFormErrors.title}
+                FormHelperTextProps={{
+                  sx: { color: "error.main" },
+                }}
               />
               <TextField
                 placeholder="Add Prompt Description"
@@ -95,6 +210,11 @@ const AddEditPromptDialog = ({
                 }}
                 value={newPromptDescription}
                 onChange={(e) => setNewPromptDescription(e.target.value)}
+                error={!!addFormErrors.description}
+                helperText={addFormErrors.description}
+                FormHelperTextProps={{
+                  sx: { color: "error.main" },
+                }}
               />
             </Stack>
 
@@ -104,7 +224,7 @@ const AddEditPromptDialog = ({
                   Cancel
                 </Button>
                 <Button
-                  onClick={onSubmitAddPrompt}
+                  onClick={handleAddSubmit}
                   disabled={loading}
                   variant="contained"
                 >
@@ -153,6 +273,12 @@ const AddEditPromptDialog = ({
                     category: e.target.value,
                   }))
                 }
+                required
+                error={!!editFormErrors.category}
+                helperText={editFormErrors.category}
+                FormHelperTextProps={{
+                  sx: { color: "error.main" },
+                }}
               />
               <TextField
                 placeholder="Prompt Title"
@@ -165,6 +291,11 @@ const AddEditPromptDialog = ({
                     title: e.target.value,
                   }))
                 }
+                error={!!editFormErrors.title}
+                helperText={editFormErrors.title}
+                FormHelperTextProps={{
+                  sx: { color: "error.main" },
+                }}
               />
               <TextField
                 placeholder="Prompt Description"
@@ -187,6 +318,11 @@ const AddEditPromptDialog = ({
                     description: e.target.value,
                   }))
                 }
+                error={!!editFormErrors.description}
+                helperText={editFormErrors.description}
+                FormHelperTextProps={{
+                  sx: { color: "error.main" },
+                }}
               />
               <FormControlLabel
                 control={
@@ -214,7 +350,7 @@ const AddEditPromptDialog = ({
                 </Button>
                 <Button
                   variant="contained"
-                  onClick={() => handleEditSubmit(editingId)}
+                  onClick={() => handleModifiedEditSubmit(editingId)}
                   disabled={editLoading}
                 >
                   {editLoading ? "Saving..." : "Save Changes"}

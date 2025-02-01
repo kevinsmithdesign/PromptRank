@@ -114,12 +114,40 @@ function PromptsPage() {
     }
   };
 
+  // const handleEditPrompt = async (id) => {
+  //   if (!editForm.title || !editForm.description) return;
+
+  //   try {
+  //     await updatePrompt({ id, ...editForm });
+  //     setEditDialogOpen(false);
+  //   } catch (err) {
+  //     console.error("Error updating prompt:", err);
+  //   }
+  // };
   const handleEditPrompt = async (id) => {
-    if (!editForm.title || !editForm.description) return;
+    console.log("Submitting edit for id:", id, "with form:", editForm); // Debug log
+    if (!id || !editForm.title || !editForm.description) {
+      console.error("Missing required fields for edit");
+      return;
+    }
 
     try {
-      await updatePrompt({ id, ...editForm });
+      await updatePrompt({
+        id,
+        title: editForm.title,
+        description: editForm.description,
+        category: editForm.category,
+        isVisible: editForm.isVisible,
+      });
+      // Clear states after successful update
       setEditDialogOpen(false);
+      setSelectedPromptId(null);
+      setEditForm({
+        title: "",
+        description: "",
+        category: "",
+        isVisible: false,
+      });
     } catch (err) {
       console.error("Error updating prompt:", err);
     }
@@ -135,17 +163,34 @@ function PromptsPage() {
   };
 
   // Other Handlers
+  // const startEditing = (prompt) => {
+  //   setEditForm({
+  //     title: prompt.title,
+  //     description: prompt.description,
+  //     category: prompt.category || "",
+  //     isVisible: prompt.isVisible || false,
+  //   });
+  //   setEditDialogOpen(true);
+  // };
+
+  // const handleEditClick = (prompt) => {
+  //   handleMenuClose();
+  //   startEditing(prompt);
+  // };
   const startEditing = (prompt) => {
+    console.log("Starting edit for prompt:", prompt); // Debug log
     setEditForm({
       title: prompt.title,
       description: prompt.description,
       category: prompt.category || "",
       isVisible: prompt.isVisible || false,
     });
+    setSelectedPromptId(prompt.id);
     setEditDialogOpen(true);
   };
 
   const handleEditClick = (prompt) => {
+    console.log("Edit clicked for prompt:", prompt); // Debug log
     handleMenuClose();
     startEditing(prompt);
   };
@@ -154,6 +199,17 @@ function PromptsPage() {
     setSelectedPromptId(promptId);
     setSaveToCollectionOpen(true);
     handleMenuClose();
+  };
+
+  const cancelEditing = () => {
+    setEditDialogOpen(false);
+    setSelectedPromptId(null);
+    setEditForm({
+      title: "",
+      description: "",
+      category: "",
+      isVisible: false,
+    });
   };
 
   const popularCategories = [
@@ -314,7 +370,7 @@ function PromptsPage() {
       )}
 
       {/* Dialogs */}
-      <AddEditPromptDialog
+      {/* <AddEditPromptDialog
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
         newCategory={newPromptData.category}
@@ -332,6 +388,32 @@ function PromptsPage() {
         onSubmitAddPrompt={handleCreatePrompt}
         editDialogOpen={editDialogOpen}
         cancelEditing={() => setEditDialogOpen(false)}
+        loading={createPromptLoading}
+        editError={null}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        editLoading={updatePromptLoading}
+        handleEditSubmit={handleEditPrompt}
+        editingId={selectedPromptId}
+      /> */}
+      <AddEditPromptDialog
+        openDialog={openDialog}
+        handleCloseDialog={handleCloseDialog}
+        newCategory={newPromptData.category}
+        setNewCategory={(category) =>
+          setNewPromptData((prev) => ({ ...prev, category }))
+        }
+        newPromptTitle={newPromptData.title}
+        setNewPromptTitle={(title) =>
+          setNewPromptData((prev) => ({ ...prev, title }))
+        }
+        newPromptDescription={newPromptData.description}
+        setNewPromptDescription={(description) =>
+          setNewPromptData((prev) => ({ ...prev, description }))
+        }
+        onSubmitAddPrompt={handleCreatePrompt}
+        editDialogOpen={editDialogOpen}
+        cancelEditing={cancelEditing} // Use the new cancelEditing handler
         loading={createPromptLoading}
         editError={null}
         editForm={editForm}
