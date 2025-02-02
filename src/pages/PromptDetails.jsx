@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { getAuth } from "firebase/auth";
 import { formatDistanceToNow } from "date-fns";
 import { useParams, useNavigate } from "react-router-dom";
@@ -14,9 +14,11 @@ import {
   Rating,
   Button,
   Alert,
+  Tooltip,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StarIcon from "@mui/icons-material/Star";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import BackIcon from "../icons/BackIcon";
 import {
   doc,
@@ -26,27 +28,29 @@ import {
   where,
   orderBy,
   getDocs,
-  writeBatch,
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import RatingDialog from "../components/RatingDialog";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 function PromptDetail() {
   const auth = getAuth();
   const userId = auth.currentUser?.uid;
   const { id } = useParams();
   const navigate = useNavigate();
-  const [prompt, setPrompt] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [ratings, setRatings] = useState([]);
+  const queryClient = useQueryClient();
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [copied, setCopied] = useState(false);
 
-  const fetchPrompt = async () => {
-    try {
+  // Fetch prompt data
+  const {
+    data: prompt,
+    error: promptError,
+    isLoading: promptLoading,
+  } = useQuery({
+    queryKey: ["prompt", id],
+    queryFn: async () => {
       const promptDoc = doc(db, "prompts", id);
       const promptSnapshot = await getDoc(promptDoc);
 
@@ -55,28 +59,24 @@ function PromptDetail() {
       }
 
       const data = promptSnapshot.data();
-
-      // Fetch author data
       const authorRef = doc(db, "users", data.authorId);
       const authorDoc = await getDoc(authorRef);
       const authorData = authorDoc.exists() ? authorDoc.data() : null;
 
-      setPrompt({
+      return {
         id: promptSnapshot.id,
         ...data,
         avgRating: data.avgRating || 0,
         totalRatings: data.totalRatings || 0,
         authorName: authorData?.displayName || authorData?.email || "Anonymous",
-      });
-    } catch (err) {
-      console.error("Error fetching prompt:", err);
-      setError(err.message);
-      throw err;
-    }
-  };
+      };
+    },
+  });
 
-  const fetchRatings = async () => {
-    try {
+  // Fetch ratings
+  const { data: ratings = [] } = useQuery({
+    queryKey: ["ratings", id],
+    queryFn: async () => {
       const ratingsQuery = query(
         collection(db, "ratings"),
         where("promptId", "==", id),
@@ -84,25 +84,17 @@ function PromptDetail() {
       );
       const snapshot = await getDocs(ratingsQuery);
 
-      console.log("Found ratings:", snapshot.docs.length);
-
-      const ratingsWithUserData = await Promise.all(
+      return Promise.all(
         snapshot.docs.map(async (docSnapshot) => {
           const ratingData = docSnapshot.data();
-          console.log("Rating data:", ratingData);
-
-          // Get user data either from rating or user document
-          const userDisplayName = ratingData.userDisplayName; // Try getting from rating first
+          const userDisplayName = ratingData.userDisplayName;
           let finalDisplayName = userDisplayName;
 
           if (!finalDisplayName) {
-            // Fallback to user document if not in rating
             const userRef = doc(db, "users", ratingData.userId);
             const userDoc = await getDoc(userRef);
-            console.log("User document exists:", userDoc.exists());
             if (userDoc.exists()) {
               const userData = userDoc.data();
-              console.log("User data:", userData);
               finalDisplayName = userData.displayName;
             }
           }
@@ -121,66 +113,55 @@ function PromptDetail() {
           };
         })
       );
-
-      console.log("Processed ratings:", ratingsWithUserData);
-      setRatings(ratingsWithUserData);
-    } catch (err) {
-      console.error("Error fetching ratings:", err);
-      throw err;
-    }
-  };
+    },
+    enabled: !!prompt,
+  });
 
   const handleRatingSubmit = async (data) => {
-    setIsSubmitting(true);
-    try {
-      if (data.success) {
-        setSuccessMessage(data.message);
-        setTimeout(() => setSuccessMessage(null), 5000);
-        await fetchRatings();
-      }
-    } catch (error) {
-      setSubmitError(error.message);
-    } finally {
-      setIsSubmitting(false);
+    if (data.success) {
+      setSuccessMessage(data.message);
+      setTimeout(() => setSuccessMessage(null), 5000);
+      // Invalidate relevant queries
+      queryClient.invalidateQueries(["ratings", id]);
+      queryClient.invalidateQueries(["prompt", id]);
     }
   };
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
+  const handleCopyDescription = async () => {
+    if (prompt?.description) {
       try {
-        await fetchPrompt();
-        await fetchRatings();
+        await navigator.clipboard.writeText(prompt.description);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
       } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+        console.error("Failed to copy text:", err);
       }
-    };
+    }
+  };
 
-    loadData();
-  }, [id]);
-
-  if (loading)
+  if (promptLoading) {
     return (
       <Container sx={{ mt: 8 }}>
         <Typography>Loading...</Typography>
       </Container>
     );
+  }
 
-  if (error)
+  if (promptError) {
     return (
       <Container sx={{ mt: 8 }}>
-        <Typography color="error">{error}</Typography>
+        <Typography color="error">{promptError.message}</Typography>
       </Container>
     );
+  }
 
-  if (!prompt)
+  if (!prompt) {
     return (
       <Container sx={{ mt: 8 }}>
         <Typography>Prompt not found</Typography>
       </Container>
     );
+  }
 
   return (
     <>
@@ -236,7 +217,7 @@ function PromptDetail() {
                 <Typography fontWeight="bold">
                   {prompt.avgRating.toFixed(1)}
                 </Typography>
-              </Stack>{" "}
+              </Stack>
               <Typography color="#999">
                 {prompt.totalRatings}{" "}
                 {prompt.totalRatings === 1 ? "Review" : "Reviews"}
@@ -260,16 +241,35 @@ function PromptDetail() {
               {prompt.title}
             </Typography>
 
-            <Typography
-              variant="body1"
-              sx={{
-                color: "rgba(255, 255, 255, 0.8)",
-                lineHeight: 1.7,
-                mb: 4,
-              }}
-            >
-              {prompt.description}
-            </Typography>
+            <Box sx={{ position: "relative", mb: 4 }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "rgba(255, 255, 255, 0.8)",
+                  lineHeight: 1.7,
+                  pr: 8, // Make room for copy button
+                }}
+              >
+                {prompt.description}
+              </Typography>
+              <Tooltip title={copied ? "Copied!" : "Copy description"}>
+                <IconButton
+                  onClick={handleCopyDescription}
+                  sx={{
+                    position: "absolute",
+                    right: 0,
+                    top: 0,
+                    color: copied ? "success.main" : "primary.main",
+                  }}
+                >
+                  {copied ? (
+                    <CheckCircleIcon fontSize="small" />
+                  ) : (
+                    <ContentCopyIcon fontSize="small" />
+                  )}
+                </IconButton>
+              </Tooltip>
+            </Box>
 
             <Typography variant="caption" sx={{ color: "#999" }}>
               Created: {new Date(prompt.createdAt).toLocaleDateString()}
@@ -292,34 +292,21 @@ function PromptDetail() {
             <CardContent>
               <Stack spacing={2}>
                 <Stack direction="row" alignItems="center" spacing={2}>
-                  {rating.user.avatar ? (
-                    <Box
-                      component="img"
-                      src={rating.user.avatar}
-                      alt={rating.user.name}
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: "50%",
-                      }}
-                    />
-                  ) : (
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: "50%",
-                        backgroundColor: "primary.main",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "white",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {rating.user.name.charAt(0)}
-                    </Box>
-                  )}
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      backgroundColor: "primary.main",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {rating.user.name.charAt(0)}
+                  </Box>
                   <Stack sx={{ flex: 1 }}>
                     <Typography
                       variant="subtitle1"
@@ -360,8 +347,6 @@ function PromptDetail() {
         open={ratingDialogOpen}
         onClose={() => setRatingDialogOpen(false)}
         onSubmit={handleRatingSubmit}
-        loading={isSubmitting}
-        error={submitError}
         promptId={id}
         userId={auth.currentUser?.uid}
       />

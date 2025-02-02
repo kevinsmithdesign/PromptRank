@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,82 +9,95 @@ import {
   TextField,
   Alert,
   Rating,
+  Tooltip,
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
+import { doc, collection, query, where, writeBatch } from "firebase/firestore";
 import { db, auth } from "../../config/firebase";
-import {
-  addDoc,
-  collection,
-  doc,
-  writeBatch,
-  query,
-  where,
-  getDocs,
-  getDoc,
-  updateDoc,
-  deleteDoc,
-  setDoc,
-} from "firebase/firestore";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getDocs, getDoc, setDoc } from "firebase/firestore";
+
+const MAX_COMMENT_LENGTH = 1000;
 
 const RatingDialog = ({ open, onClose, onSubmit, promptId, userId }) => {
+  const queryClient = useQueryClient();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [existingRatingId, setExistingRatingId] = useState(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  useEffect(() => {
-    const fetchExistingRating = async () => {
-      if (!open || !userId || !promptId) return;
+  // Fetch existing rating
+  const { data: existingRating } = useQuery({
+    queryKey: ["rating", userId, promptId],
+    queryFn: async () => {
+      if (!userId || !promptId) return null;
 
-      try {
-        const ratingsQuery = query(
-          collection(db, "ratings"),
-          where("userId", "==", userId),
-          where("promptId", "==", promptId)
-        );
-        const snapshot = await getDocs(ratingsQuery);
+      const ratingsQuery = query(
+        collection(db, "ratings"),
+        where("userId", "==", userId),
+        where("promptId", "==", promptId)
+      );
+      const snapshot = await getDocs(ratingsQuery);
 
-        if (!snapshot.empty) {
-          const existingRating = snapshot.docs[0];
-          setRating(existingRating.data().rating);
-          setComment(existingRating.data().comment);
-          setExistingRatingId(existingRating.id);
-        } else {
-          if (!isInitialLoad) {
-            setRating(0);
-            setComment("");
-          }
-          setExistingRatingId(null);
-        }
-        setIsInitialLoad(false);
-      } catch (err) {
-        console.error("Error fetching existing rating:", err);
-        setError("Failed to load your previous rating");
+      if (!snapshot.empty) {
+        const doc = snapshot.docs[0];
+        return { id: doc.id, ...doc.data() };
       }
-    };
+      return null;
+    },
+    enabled: open && !!userId && !!promptId,
+    onSuccess: (data) => {
+      if (data) {
+        setRating(data.rating);
+        setComment(data.comment || "");
+      } else {
+        setRating(0);
+        setComment("");
+      }
+    },
+  });
 
-    fetchExistingRating();
-  }, [open, userId, promptId]);
+  // Comment validation
+  const validateComment = (text) => {
+    if (text.length > MAX_COMMENT_LENGTH) {
+      return `Comment must be ${MAX_COMMENT_LENGTH} characters or less`;
+    }
+    if (text.trim() && text.trim().length < 3) {
+      return "Comment must be at least 3 characters long if provided";
+    }
+    return null;
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  // Handle comment change with validation
+  const handleCommentChange = (e) => {
+    const newComment = e.target.value;
+    setComment(newComment);
+    const validationError = validateComment(newComment);
+    setError(validationError);
+  };
 
-    try {
+  // Helper function to determine tooltip message
+  const getTooltipMessage = () => {
+    if (submitMutation.isLoading) {
+      return "Please wait while your rating is being submitted";
+    }
+    if (rating === 0) {
+      return "Please select a star rating to continue";
+    }
+    if (error) {
+      return error;
+    }
+    return "";
+  };
+
+  // Submit rating mutation
+  const submitMutation = useMutation({
+    mutationFn: async () => {
       const batch = writeBatch(db);
       const user = auth.currentUser;
-      console.log("Current user data:", {
-        uid: user.uid,
-        displayName: user.displayName,
-        email: user.email,
-      });
 
       let ratingRef;
-      if (existingRatingId) {
-        ratingRef = doc(db, "ratings", existingRatingId);
+      if (existingRating?.id) {
+        ratingRef = doc(db, "ratings", existingRating.id);
         batch.update(ratingRef, {
           rating,
           comment,
@@ -92,43 +105,38 @@ const RatingDialog = ({ open, onClose, onSubmit, promptId, userId }) => {
         });
       } else {
         ratingRef = doc(collection(db, "ratings"));
-
-        // First verify/create user document
         const userRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userRef);
 
         if (!userDoc.exists()) {
-          // Create user document if it doesn't exist
           await setDoc(userRef, {
             email: user.email,
             displayName: user.displayName,
             createdAt: new Date().toISOString(),
           });
-          console.log("Created new user document");
         }
 
-        // Save rating with author info
         batch.set(ratingRef, {
           rating,
           comment,
           userId: user.uid,
-          userDisplayName: user.displayName, // Store display name directly in rating
+          userDisplayName: user.displayName,
           promptId,
           createdAt: new Date().toISOString(),
         });
       }
 
+      // Update prompt average rating
       const ratingsQuery = query(
         collection(db, "ratings"),
         where("promptId", "==", promptId)
       );
       const ratingsSnapshot = await getDocs(ratingsQuery);
       const currentRatings = ratingsSnapshot.docs
-        .filter((doc) => doc.id !== existingRatingId)
+        .filter((doc) => doc.id !== existingRating?.id)
         .map((doc) => doc.data().rating);
 
       currentRatings.push(rating);
-
       const newAvgRating =
         currentRatings.reduce((sum, r) => sum + r, 0) / currentRatings.length;
 
@@ -139,25 +147,44 @@ const RatingDialog = ({ open, onClose, onSubmit, promptId, userId }) => {
       });
 
       await batch.commit();
+      return existingRating?.id ? "updated" : "created";
+    },
+    onSuccess: (result) => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries(["rating", userId, promptId]);
+      queryClient.invalidateQueries(["prompt", promptId]);
+
       onSubmit({
         success: true,
-        message: existingRatingId
-          ? "Your rating has been updated! 🌟"
-          : "Thanks for rating this prompt! 🌟",
+        message:
+          result === "updated"
+            ? "Your rating has been updated! 🌟"
+            : "Thanks for rating this prompt! 🌟",
       });
       onClose();
-    } catch (err) {
-      console.error("Error in handleSubmit:", err);
+    },
+    onError: (err) => {
+      console.error("Error submitting rating:", err);
       setError("Failed to submit rating. Please try again.");
-    } finally {
-      setLoading(false);
+    },
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const validationError = validateComment(comment);
+    if (validationError) {
+      setError(validationError);
+      return;
     }
+
+    submitMutation.mutate();
   };
 
-  const dialogTitle = existingRatingId
+  const dialogTitle = existingRating
     ? "Update Your Rating"
     : "Rate this Prompt";
-  const submitButtonText = existingRatingId ? "Update Rating" : "Submit Rating";
+  const submitButtonText = existingRating ? "Update Rating" : "Submit Rating";
 
   return (
     <Dialog
@@ -206,6 +233,10 @@ const RatingDialog = ({ open, onClose, onSubmit, promptId, userId }) => {
               fullWidth
               multiline
               rows={8}
+              error={!!error}
+              // helperText={
+              //   error || `${comment.length}/${MAX_COMMENT_LENGTH} characters`
+              // }
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "0.5rem",
@@ -215,22 +246,53 @@ const RatingDialog = ({ open, onClose, onSubmit, promptId, userId }) => {
                 },
               }}
               value={comment}
-              onChange={(e) => setComment(e.target.value)}
+              onChange={handleCommentChange}
             />
           </Stack>
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
             <Stack flexDirection="row" gap={2}>
-              <Button variant="outlined" onClick={onClose} disabled={loading}>
+              <Button
+                variant="outlined"
+                onClick={onClose}
+                disabled={submitMutation.isLoading}
+              >
                 Cancel
               </Button>
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                disabled={loading || rating === 0}
+              <Tooltip
+                title={getTooltipMessage()}
+                placement="bottom"
+                disableHoverListener={
+                  !(submitMutation.isLoading || rating === 0 || error)
+                }
+                // open={!!(submitMutation.isLoading || rating === 0 || error)}
+                PopperProps={{
+                  sx: {
+                    "& .MuiTooltip-tooltip": {
+                      bgcolor: "rgba(0, 0, 0, 0.9)",
+                      color: "#fff",
+                      fontSize: "0.875rem",
+                      maxWidth: "300px",
+                      padding: "8px 12px",
+                      margin: "8px 0",
+                    },
+                  },
+                }}
               >
-                {loading ? "Submitting..." : submitButtonText}
-              </Button>
+                <span>
+                  <Button
+                    variant="contained"
+                    onClick={handleSubmit}
+                    disabled={
+                      submitMutation.isLoading || rating === 0 || !!error
+                    }
+                  >
+                    {submitMutation.isLoading
+                      ? "Submitting..."
+                      : submitButtonText}
+                  </Button>
+                </span>
+              </Tooltip>
             </Stack>
           </Box>
         </DialogContent>
