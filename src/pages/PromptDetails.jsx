@@ -16,10 +16,12 @@
 //   Alert,
 //   Tooltip,
 //   Skeleton,
+//   TextField,
 // } from "@mui/material";
 // import StarIcon from "@mui/icons-material/Star";
 // import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 // import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+// import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 // import BackIcon from "../icons/BackIcon";
 // import {
 //   doc,
@@ -29,12 +31,13 @@
 //   where,
 //   orderBy,
 //   getDocs,
+//   addDoc,
+//   serverTimestamp,
 // } from "firebase/firestore";
 // import { db } from "../../config/firebase";
 // import RatingDialog from "../components/RatingDialog";
 // import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-// // Skeleton component for review cards
 // function PromptDetail() {
 //   const auth = getAuth();
 //   const userId = auth.currentUser?.uid;
@@ -44,6 +47,8 @@
 //   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
 //   const [successMessage, setSuccessMessage] = useState(null);
 //   const [copied, setCopied] = useState(false);
+//   const [expandedComments, setExpandedComments] = useState({});
+//   const [commentInputs, setCommentInputs] = useState({});
 
 //   // Fetch prompt data
 //   const {
@@ -116,7 +121,49 @@
 //         })
 //       );
 //     },
-//     enabled: !!prompt,
+//   });
+
+//   // Fetch comments
+//   const { data: commentsMap = {}, isLoading: commentsLoading } = useQuery({
+//     queryKey: ["comments", id],
+//     queryFn: async () => {
+//       const commentsQuery = query(
+//         collection(db, "comments"),
+//         where("promptId", "==", id),
+//         orderBy("createdAt", "desc")
+//       );
+//       const snapshot = await getDocs(commentsQuery);
+
+//       const commentsByRating = {};
+//       for (const doc of snapshot.docs) {
+//         const commentData = doc.data();
+//         const ratingId = commentData.ratingId;
+//         if (!commentsByRating[ratingId]) {
+//           commentsByRating[ratingId] = [];
+//         }
+
+//         // Fetch user data for the comment
+//         let userName = commentData.userDisplayName;
+//         if (!userName && commentData.userId) {
+//           const userRef = doc(db, "users", commentData.userId);
+//           const userDoc = await getDoc(userRef);
+//           if (userDoc.exists()) {
+//             userName = userDoc.data().displayName;
+//           }
+//         }
+
+//         commentsByRating[ratingId].push({
+//           id: doc.id,
+//           ...commentData,
+//           userDisplayName: userName || "Anonymous",
+//           timeAgo: formatDistanceToNow(new Date(commentData.createdAt), {
+//             addSuffix: true,
+//           }),
+//         });
+//       }
+
+//       return commentsByRating;
+//     },
 //   });
 
 //   const handleRatingSubmit = async (data) => {
@@ -141,34 +188,151 @@
 //     }
 //   };
 
-//   // Common header layout that's always shown
-//   const headerContent = (
-//     <Grid container alignItems="flex-end" mb={2}>
-//       <Grid size={{ xs: 12, md: 6 }}>
-//         <Stack>
-//           <Typography variant="h4" fontWeight="bold">
-//             Prompt Details
-//           </Typography>
-//         </Stack>
-//       </Grid>
-//       <Grid size={{ xs: 12, md: 6 }}>
-//         <Stack flexDirection="row" justifyContent="flex-end">
-//           <Button
-//             variant="contained"
-//             disabled={promptLoading}
-//             onClick={() => setRatingDialogOpen(true)}
-//           >
-//             Rank Prompt
-//           </Button>
-//         </Stack>
-//       </Grid>
-//     </Grid>
-//   );
+//   const handleAddComment = async (ratingId) => {
+//     const commentContent = commentInputs[ratingId]?.trim();
+//     if (!commentContent || !auth.currentUser) return;
 
+//     try {
+//       await addDoc(collection(db, "comments"), {
+//         promptId: id,
+//         ratingId,
+//         userId: auth.currentUser.uid,
+//         userDisplayName: auth.currentUser.displayName || "Anonymous",
+//         content: commentContent,
+//         createdAt: serverTimestamp(),
+//       });
+
+//       // Clear input and invalidate comments query
+//       setCommentInputs((prev) => ({ ...prev, [ratingId]: "" }));
+//       queryClient.invalidateQueries(["comments", id]);
+
+//       // Show success message
+//       setSuccessMessage("Comment added successfully");
+//       setTimeout(() => setSuccessMessage(null), 3000);
+//     } catch (error) {
+//       console.error("Error adding comment:", error);
+//       setSuccessMessage("Failed to add comment. Please try again.");
+//       setTimeout(() => setSuccessMessage(null), 3000);
+//     }
+//   };
+
+//   const toggleComments = (ratingId) => {
+//     setExpandedComments((prev) => ({
+//       ...prev,
+//       [ratingId]: !prev[ratingId],
+//     }));
+//   };
+
+//   const renderCommentSection = (ratingId) => {
+//     const comments = commentsMap[ratingId] || [];
+//     const isExpanded = expandedComments[ratingId];
+
+//     return (
+//       <Box sx={{ mt: 2 }}>
+//         <Button
+//           startIcon={<ChatBubbleOutlineIcon />}
+//           onClick={() => toggleComments(ratingId)}
+//           sx={{ mb: 1 }}
+//         >
+//           {comments.length} Comments
+//         </Button>
+
+//         {isExpanded && (
+//           <Stack spacing={2}>
+//             {comments.map((comment) => (
+//               <Box
+//                 key={comment.id}
+//                 sx={{
+//                   p: 2,
+//                   bgcolor: "rgba(255, 255, 255, 0.05)",
+//                   borderRadius: 1,
+//                 }}
+//               >
+//                 <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+//                   <Box
+//                     sx={{
+//                       width: 32,
+//                       height: 32,
+//                       borderRadius: "50%",
+//                       bgcolor: "primary.main",
+//                       display: "flex",
+//                       alignItems: "center",
+//                       justifyContent: "center",
+//                       fontSize: "0.875rem",
+//                     }}
+//                   >
+//                     {comment.userDisplayName.charAt(0)}
+//                   </Box>
+//                   <Stack>
+//                     <Typography variant="subtitle2">
+//                       {comment.userDisplayName}
+//                     </Typography>
+//                     <Typography variant="caption" color="text.secondary">
+//                       {comment.timeAgo}
+//                     </Typography>
+//                   </Stack>
+//                 </Stack>
+//                 <Typography variant="body2">{comment.content}</Typography>
+//               </Box>
+//             ))}
+
+//             {auth.currentUser && (
+//               <Stack spacing={1}>
+//                 <TextField
+//                   size="small"
+//                   placeholder="Add a comment..."
+//                   multiline
+//                   rows={2}
+//                   value={commentInputs[ratingId] || ""}
+//                   onChange={(e) =>
+//                     setCommentInputs((prev) => ({
+//                       ...prev,
+//                       [ratingId]: e.target.value,
+//                     }))
+//                   }
+//                   sx={{
+//                     bgcolor: "rgba(255, 255, 255, 0.05)",
+//                     borderRadius: 1,
+//                   }}
+//                 />
+//                 <Button
+//                   variant="contained"
+//                   size="small"
+//                   disabled={!commentInputs[ratingId]?.trim()}
+//                   onClick={() => handleAddComment(ratingId)}
+//                 >
+//                   Post Comment
+//                 </Button>
+//               </Stack>
+//             )}
+//           </Stack>
+//         )}
+//       </Box>
+//     );
+//   };
+
+//   // Loading and error states remain the same...
 //   if (promptLoading) {
 //     return (
 //       <>
-//         {headerContent}
+//         {/* Header content */}
+//         <Grid container alignItems="flex-end" mb={2}>
+//           <Grid size={{ xs: 12, md: 6 }}>
+//             <Stack>
+//               <Typography variant="h4" fontWeight="bold">
+//                 Prompt Details
+//               </Typography>
+//             </Stack>
+//           </Grid>
+//           <Grid size={{ xs: 12, md: 6 }}>
+//             <Stack flexDirection="row" justifyContent="flex-end">
+//               <Button variant="contained" disabled>
+//                 Rank Prompt
+//               </Button>
+//             </Stack>
+//           </Grid>
+//         </Grid>
+
 //         <Card>
 //           <CardContent>
 //             <Box sx={{ mb: 2 }}>
@@ -177,27 +341,18 @@
 //               </IconButton>
 //             </Box>
 //             <Stack spacing={2}>
-//               {/* Rating skeleton */}
 //               <Stack direction="row" alignItems="center" spacing={1}>
 //                 <StarIcon sx={{ color: "rgba(250, 175, 0, 0.3)" }} />
 //                 <Skeleton variant="text" width={40} />
 //                 <Skeleton variant="text" width={80} />
 //               </Stack>
-
-//               {/* Category skeleton */}
 //               <Skeleton variant="text" width={100} />
-
-//               {/* Title skeleton */}
 //               <Skeleton variant="text" width="80%" height={40} />
-
-//               {/* Description skeleton */}
 //               <Box sx={{ mb: 4 }}>
 //                 <Skeleton variant="text" width="100%" />
 //                 <Skeleton variant="text" width="100%" />
 //                 <Skeleton variant="text" width="80%" />
 //               </Box>
-
-//               {/* Metadata skeletons */}
 //               <Stack spacing={1}>
 //                 <Skeleton variant="text" width={150} />
 //                 <Skeleton variant="text" width={120} />
@@ -205,6 +360,62 @@
 //             </Stack>
 //           </CardContent>
 //         </Card>
+
+//         <Stack spacing={2} sx={{ mt: 4 }}>
+//           <Typography variant="h5" fontWeight="bold">
+//             Ratings
+//           </Typography>
+//           {[1, 2, 3].map((index) => (
+//             <Card key={index} sx={{ background: "#1A1A1A" }}>
+//               <CardContent>
+//                 <Stack spacing={2}>
+//                   <Stack direction="row" alignItems="center" spacing={2}>
+//                     <Skeleton
+//                       variant="circular"
+//                       width={40}
+//                       height={40}
+//                       sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+//                     />
+//                     <Stack sx={{ flex: 1 }}>
+//                       <Skeleton
+//                         variant="text"
+//                         width="60%"
+//                         sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+//                       />
+//                       <Skeleton
+//                         variant="text"
+//                         width="40%"
+//                         sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+//                       />
+//                     </Stack>
+//                     <Rating
+//                       value={0}
+//                       readOnly
+//                       icon={
+//                         <StarIcon sx={{ color: "rgba(250, 175, 0, 0.1)" }} />
+//                       }
+//                       emptyIcon={
+//                         <StarIcon sx={{ color: "rgba(255, 255, 255, 0.1)" }} />
+//                       }
+//                     />
+//                   </Stack>
+//                   <Stack spacing={1}>
+//                     <Skeleton
+//                       variant="text"
+//                       width="100%"
+//                       sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+//                     />
+//                     <Skeleton
+//                       variant="text"
+//                       width="80%"
+//                       sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+//                     />
+//                   </Stack>
+//                 </Stack>
+//               </CardContent>
+//             </Card>
+//           ))}
+//         </Stack>
 //       </>
 //     );
 //   }
@@ -349,56 +560,55 @@
 //           Ratings {!ratingsLoading && `(${ratings.length})`}
 //         </Typography>
 
-//         {ratingsLoading
+//         {ratingsLoading || commentsLoading
 //           ? [1, 2, 3].map((index) => (
 //               <Card key={index} sx={{ background: "#1A1A1A" }}>
 //                 <CardContent>
 //                   <Stack spacing={2}>
 //                     <Stack direction="row" alignItems="center" spacing={2}>
-//                       <Box
-//                         sx={{
-//                           width: 40,
-//                           height: 40,
-//                           borderRadius: "50%",
-//                           backgroundColor: "primary.main",
-//                           display: "flex",
-//                           alignItems: "center",
-//                           justifyContent: "center",
-//                           color: "white",
-//                           fontWeight: "bold",
-//                         }}
-//                       >
-//                         <Typography> </Typography>
-//                       </Box>
+//                       <Skeleton
+//                         variant="circular"
+//                         width={40}
+//                         height={40}
+//                         sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+//                       />
 //                       <Stack sx={{ flex: 1 }}>
-//                         <Typography
-//                           variant="subtitle1"
-//                           fontWeight="bold"
-//                           color="white"
-//                         >
-//                           <Skeleton />
-//                         </Typography>
-//                         <Typography variant="caption" color="#999">
-//                           <Skeleton />
-//                         </Typography>
+//                         <Skeleton
+//                           variant="text"
+//                           width="60%"
+//                           sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+//                         />
+//                         <Skeleton
+//                           variant="text"
+//                           width="40%"
+//                           sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+//                         />
 //                       </Stack>
 //                       <Rating
 //                         value={0}
 //                         readOnly
-//                         icon={<StarIcon />}
-//                         emptyIcon={<StarIcon />}
+//                         icon={
+//                           <StarIcon sx={{ color: "rgba(250, 175, 0, 0.1)" }} />
+//                         }
+//                         emptyIcon={
+//                           <StarIcon
+//                             sx={{ color: "rgba(255, 255, 255, 0.1)" }}
+//                           />
+//                         }
 //                       />
 //                     </Stack>
-//                     <Typography
-//                       variant="body1"
-//                       sx={{
-//                         color: "rgba(255, 255, 255, 0.8)",
-//                         lineHeight: 1.6,
-//                       }}
-//                     >
-//                       <Skeleton />
-//                       <Skeleton />
-//                     </Typography>
+//                     <Stack spacing={1}>
+//                       <Skeleton
+//                         variant="text"
+//                         width="100%"
+//                         sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+//                       />
+//                       <Skeleton
+//                         variant="text"
+//                         width="80%"
+//                         sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+//                       />
+//                     </Stack>
 //                   </Stack>
 //                 </CardContent>
 //               </Card>
@@ -453,6 +663,7 @@
 //                         {rating.comment}
 //                       </Typography>
 //                     )}
+//                     {renderCommentSection(rating.id)}
 //                   </Stack>
 //                 </CardContent>
 //               </Card>
@@ -490,10 +701,12 @@ import {
   Alert,
   Tooltip,
   Skeleton,
+  TextField,
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import BackIcon from "../icons/BackIcon";
 import {
   doc,
@@ -503,6 +716,8 @@ import {
   where,
   orderBy,
   getDocs,
+  addDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import RatingDialog from "../components/RatingDialog";
@@ -517,6 +732,8 @@ function PromptDetail() {
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [expandedComments, setExpandedComments] = useState({});
+  const [commentInputs, setCommentInputs] = useState({});
 
   // Fetch prompt data
   const {
@@ -548,7 +765,7 @@ function PromptDetail() {
     },
   });
 
-  // Fetch ratings
+  // Fetch ratings with caching
   const { data: ratings = [], isLoading: ratingsLoading } = useQuery({
     queryKey: ["ratings", id],
     queryFn: async () => {
@@ -589,6 +806,53 @@ function PromptDetail() {
         })
       );
     },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    cacheTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+  });
+
+  // Fetch comments with caching
+  const { data: commentsMap = {}, isLoading: commentsLoading } = useQuery({
+    queryKey: ["comments", id],
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    cacheTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    queryFn: async () => {
+      const commentsQuery = query(
+        collection(db, "comments"),
+        where("promptId", "==", id),
+        orderBy("createdAt", "desc")
+      );
+      const snapshot = await getDocs(commentsQuery);
+
+      const commentsByRating = {};
+      for (const doc of snapshot.docs) {
+        const commentData = doc.data();
+        const ratingId = commentData.ratingId;
+        if (!commentsByRating[ratingId]) {
+          commentsByRating[ratingId] = [];
+        }
+
+        // Fetch user data for the comment
+        let userName = commentData.userDisplayName;
+        if (!userName && commentData.userId) {
+          const userRef = doc(db, "users", commentData.userId);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            userName = userDoc.data().displayName;
+          }
+        }
+
+        commentsByRating[ratingId].push({
+          id: doc.id,
+          ...commentData,
+          userDisplayName: userName || "Anonymous",
+          timeAgo: formatDistanceToNow(new Date(commentData.createdAt), {
+            addSuffix: true,
+          }),
+        });
+      }
+
+      return commentsByRating;
+    },
   });
 
   const handleRatingSubmit = async (data) => {
@@ -613,90 +877,184 @@ function PromptDetail() {
     }
   };
 
-  // Common header layout that's always shown
-  const headerContent = (
-    <Grid container alignItems="flex-end" mb={2}>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <Stack>
-          <Typography variant="h4" fontWeight="bold">
-            Prompt Details
-          </Typography>
-        </Stack>
-      </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <Stack flexDirection="row" justifyContent="flex-end">
-          <Button
-            variant="contained"
-            disabled={promptLoading}
-            onClick={() => setRatingDialogOpen(true)}
-          >
-            Rank Prompt
-          </Button>
-        </Stack>
-      </Grid>
-    </Grid>
-  );
+  const handleAddComment = async (ratingId) => {
+    const commentContent = commentInputs[ratingId]?.trim();
+    if (!commentContent || !auth.currentUser) return;
 
-  const renderRatingsLoadingState = () => (
-    <Stack spacing={2} sx={{ mt: 4 }}>
-      <Typography variant="h5" fontWeight="bold">
-        Ratings
-      </Typography>
-      {[1, 2, 3].map((index) => (
-        <Card key={index} sx={{ background: "#1A1A1A" }}>
-          <CardContent>
-            <Stack spacing={2}>
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <Skeleton
-                  variant="circular"
-                  width={40}
-                  height={40}
-                  sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
-                />
-                <Stack sx={{ flex: 1 }}>
-                  <Skeleton
-                    variant="text"
-                    width="60%"
-                    sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
-                  />
-                  <Skeleton
-                    variant="text"
-                    width="40%"
-                    sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
-                  />
+    try {
+      const timestamp = new Date().toISOString();
+      const newComment = {
+        promptId: id,
+        ratingId,
+        userId: auth.currentUser.uid,
+        userDisplayName: auth.currentUser.displayName || "Anonymous",
+        content: commentContent,
+        createdAt: timestamp,
+      };
+
+      // Optimistically update the UI
+      queryClient.setQueryData(["comments", id], (oldData) => {
+        const newData = { ...oldData };
+        const ratingComments = [...(newData[ratingId] || [])];
+        ratingComments.unshift({
+          ...newComment,
+          id: "temp-" + Date.now(),
+          timeAgo: "Just now",
+        });
+        newData[ratingId] = ratingComments;
+        return newData;
+      });
+
+      // Clear input
+      setCommentInputs((prev) => ({ ...prev, [ratingId]: "" }));
+
+      // Add to Firebase
+      const docRef = await addDoc(collection(db, "comments"), {
+        ...newComment,
+        createdAt: serverTimestamp(),
+      });
+
+      // Update the optimistic comment with the real ID
+      queryClient.setQueryData(["comments", id], (oldData) => {
+        const newData = { ...oldData };
+        const ratingComments = newData[ratingId].map((comment) =>
+          comment.id === "temp-" + Date.now()
+            ? { ...comment, id: docRef.id }
+            : comment
+        );
+        newData[ratingId] = ratingComments;
+        return newData;
+      });
+
+      // Show success message
+      setSuccessMessage("Comment added successfully");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      // Revert optimistic update
+      queryClient.invalidateQueries(["comments", id]);
+      setSuccessMessage("Failed to add comment. Please try again.");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    }
+  };
+
+  const toggleComments = (ratingId) => {
+    setExpandedComments((prev) => ({
+      ...prev,
+      [ratingId]: !prev[ratingId],
+    }));
+  };
+
+  const renderCommentSection = (ratingId) => {
+    const comments = commentsMap[ratingId] || [];
+    const isExpanded = expandedComments[ratingId];
+
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Button
+          startIcon={<ChatBubbleOutlineIcon />}
+          onClick={() => toggleComments(ratingId)}
+          sx={{ mb: 1 }}
+        >
+          {comments.length} Comments
+        </Button>
+
+        {isExpanded && (
+          <Stack spacing={2}>
+            {comments.map((comment) => (
+              <Box
+                key={comment.id}
+                sx={{
+                  p: 2,
+                  bgcolor: "rgba(255, 255, 255, 0.05)",
+                  borderRadius: 1,
+                }}
+              >
+                <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+                  <Box
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: "50%",
+                      bgcolor: "primary.main",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "0.875rem",
+                    }}
+                  >
+                    {comment.userDisplayName.charAt(0)}
+                  </Box>
+                  <Stack>
+                    <Typography variant="subtitle2">
+                      {comment.userDisplayName}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {comment.timeAgo}
+                    </Typography>
+                  </Stack>
                 </Stack>
-                <Rating
-                  value={0}
-                  readOnly
-                  icon={<StarIcon sx={{ color: "rgba(250, 175, 0, 0.1)" }} />}
-                  emptyIcon={
-                    <StarIcon sx={{ color: "rgba(255, 255, 255, 0.1)" }} />
-                  }
-                />
-              </Stack>
-              <Stack spacing={1}>
-                <Skeleton
-                  variant="text"
-                  width="100%"
-                  sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
-                />
-                <Skeleton
-                  variant="text"
-                  width="80%"
-                  sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
-                />
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
-      ))}
-    </Stack>
-  );
+                <Typography variant="body2">{comment.content}</Typography>
+              </Box>
+            ))}
 
+            {auth.currentUser && (
+              <Stack spacing={1}>
+                <TextField
+                  size="small"
+                  placeholder="Add a comment..."
+                  multiline
+                  rows={2}
+                  value={commentInputs[ratingId] || ""}
+                  onChange={(e) =>
+                    setCommentInputs((prev) => ({
+                      ...prev,
+                      [ratingId]: e.target.value,
+                    }))
+                  }
+                  sx={{
+                    bgcolor: "rgba(255, 255, 255, 0.05)",
+                    borderRadius: 1,
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  size="small"
+                  disabled={!commentInputs[ratingId]?.trim()}
+                  onClick={() => handleAddComment(ratingId)}
+                >
+                  Post Comment
+                </Button>
+              </Stack>
+            )}
+          </Stack>
+        )}
+      </Box>
+    );
+  };
+
+  // Loading and error states remain the same...
   if (promptLoading) {
     return (
       <>
-        {headerContent}
+        {/* Header content */}
+        <Grid container alignItems="flex-end" mb={2}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Stack>
+              <Typography variant="h4" fontWeight="bold">
+                Prompt Details
+              </Typography>
+            </Stack>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Stack flexDirection="row" justifyContent="flex-end">
+              <Button variant="contained" disabled>
+                Rank Prompt
+              </Button>
+            </Stack>
+          </Grid>
+        </Grid>
+
         <Card>
           <CardContent>
             <Box sx={{ mb: 2 }}>
@@ -705,27 +1063,18 @@ function PromptDetail() {
               </IconButton>
             </Box>
             <Stack spacing={2}>
-              {/* Rating skeleton */}
               <Stack direction="row" alignItems="center" spacing={1}>
                 <StarIcon sx={{ color: "rgba(250, 175, 0, 0.3)" }} />
                 <Skeleton variant="text" width={40} />
                 <Skeleton variant="text" width={80} />
               </Stack>
-
-              {/* Category skeleton */}
               <Skeleton variant="text" width={100} />
-
-              {/* Title skeleton */}
               <Skeleton variant="text" width="80%" height={40} />
-
-              {/* Description skeleton */}
               <Box sx={{ mb: 4 }}>
                 <Skeleton variant="text" width="100%" />
                 <Skeleton variant="text" width="100%" />
                 <Skeleton variant="text" width="80%" />
               </Box>
-
-              {/* Metadata skeletons */}
               <Stack spacing={1}>
                 <Skeleton variant="text" width={150} />
                 <Skeleton variant="text" width={120} />
@@ -733,7 +1082,62 @@ function PromptDetail() {
             </Stack>
           </CardContent>
         </Card>
-        {renderRatingsLoadingState()}
+
+        <Stack spacing={2} sx={{ mt: 4 }}>
+          <Typography variant="h5" fontWeight="bold">
+            Ratings
+          </Typography>
+          {[1, 2, 3].map((index) => (
+            <Card key={index} sx={{ background: "#1A1A1A" }}>
+              <CardContent>
+                <Stack spacing={2}>
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <Skeleton
+                      variant="circular"
+                      width={40}
+                      height={40}
+                      sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+                    />
+                    <Stack sx={{ flex: 1 }}>
+                      <Skeleton
+                        variant="text"
+                        width="60%"
+                        sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+                      />
+                      <Skeleton
+                        variant="text"
+                        width="40%"
+                        sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+                      />
+                    </Stack>
+                    <Rating
+                      value={0}
+                      readOnly
+                      icon={
+                        <StarIcon sx={{ color: "rgba(250, 175, 0, 0.1)" }} />
+                      }
+                      emptyIcon={
+                        <StarIcon sx={{ color: "rgba(255, 255, 255, 0.1)" }} />
+                      }
+                    />
+                  </Stack>
+                  <Stack spacing={1}>
+                    <Skeleton
+                      variant="text"
+                      width="100%"
+                      sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+                    />
+                    <Skeleton
+                      variant="text"
+                      width="80%"
+                      sx={{ bgcolor: "rgba(255, 255, 255, 0.1)" }}
+                    />
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Card>
+          ))}
+        </Stack>
       </>
     );
   }
@@ -878,7 +1282,7 @@ function PromptDetail() {
           Ratings {!ratingsLoading && `(${ratings.length})`}
         </Typography>
 
-        {ratingsLoading
+        {ratingsLoading || commentsLoading
           ? [1, 2, 3].map((index) => (
               <Card key={index} sx={{ background: "#1A1A1A" }}>
                 <CardContent>
@@ -981,6 +1385,7 @@ function PromptDetail() {
                         {rating.comment}
                       </Typography>
                     )}
+                    {renderCommentSection(rating.id)}
                   </Stack>
                 </CardContent>
               </Card>
