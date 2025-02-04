@@ -44,6 +44,13 @@ const theme = createTheme({
   },
   spacing: 8, // Default spacing multiplier
   components: {
+    MuiRating: {
+      styleOverrides: {
+        iconEmpty: {
+          color: "#999", // Change empty star color globally
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {

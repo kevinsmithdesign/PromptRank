@@ -37,6 +37,7 @@ import {
 import { db } from "../../config/firebase";
 import RatingDialog from "../components/RatingDialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import SaveIcon from "../icons/SaveIcon";
 
 function PromptDetail() {
   const auth = getAuth();
@@ -273,14 +274,14 @@ function PromptDetail() {
         </Button>
 
         {isExpanded && (
-          <Stack spacing={2}>
+          <Stack spacing={1}>
             {comments.map((comment) => (
               <Box
                 key={comment.id}
                 sx={{
-                  p: 2,
+                  p: 4,
                   bgcolor: "rgba(255, 255, 255, 0.05)",
-                  borderRadius: 1,
+                  borderRadius: 2,
                 }}
               >
                 <Stack direction="row" spacing={1} alignItems="center" mb={1}>
@@ -299,10 +300,10 @@ function PromptDetail() {
                     {comment.userDisplayName.charAt(0)}
                   </Box>
                   <Stack>
-                    <Typography variant="subtitle2">
+                    <Typography variant="subtitle2" color="white">
                       {comment.userDisplayName}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" color="#999">
                       {comment.timeAgo}
                     </Typography>
                   </Stack>
@@ -412,11 +413,74 @@ function PromptDetail() {
 
       <Card>
         <CardContent>
-          <Box sx={{ mb: 2 }}>
-            <IconButton onClick={() => navigate(-1)}>
-              <BackIcon />
-            </IconButton>
+          <Box display="flex" flexDirection="row" sx={{ mb: 2 }}>
+            <Box sx={{ flex: 1 }}>
+              <IconButton
+                onClick={() => navigate(-1)}
+                sx={{
+                  background: "#444",
+                  p: 2,
+                  "&:hover": { background: "#333" },
+                }}
+              >
+                <BackIcon />
+              </IconButton>
+            </Box>
+
+            {/* Fixed Copy Button */}
+            <Box sx={{ mr: 1 }}>
+              <Tooltip title={copied ? "Copied!" : "Copy prompt"}>
+                <IconButton
+                  onClick={handleCopyDescription}
+                  sx={{
+                    background: "#444",
+                    p: 2,
+                    "&:hover": { background: "#333" },
+                    color: copied ? "success.main" : "primary.main",
+                  }}
+                >
+                  {copied ? (
+                    <CheckCircleIcon fontSize="small" />
+                  ) : (
+                    <ContentCopyIcon fontSize="small" />
+                  )}
+                </IconButton>
+              </Tooltip>
+            </Box>
+
+            <Box>
+              <IconButton
+                sx={{
+                  background: "#444",
+                  p: 2,
+                  "&:hover": { background: "#333" },
+                }}
+              >
+                <SaveIcon />
+              </IconButton>
+            </Box>
           </Box>
+
+          {/* <Box>
+              <Tooltip title={copied ? "Copied!" : "Copy description"}>
+                <IconButton
+                  onClick={handleCopyDescription}
+                  sx={{
+                    position: "absolute",
+                    right: 0,
+                    top: 0,
+                    color: copied ? "success.main" : "primary.main",
+                  }}
+                >
+                  {copied ? (
+                    <CheckCircleIcon fontSize="small" />
+                  ) : (
+                    <ContentCopyIcon fontSize="small" />
+                  )}
+                </IconButton>
+              </Tooltip>
+            </Box> */}
+
           <Stack>
             <Stack direction="row" alignItems="center" mb={4}>
               <StarIcon sx={{ color: "rgb(250, 175, 0)" }} />
@@ -459,7 +523,7 @@ function PromptDetail() {
               >
                 {prompt.description}
               </Typography>
-              <Tooltip title={copied ? "Copied!" : "Copy description"}>
+              {/* <Tooltip title={copied ? "Copied!" : "Copy description"}>
                 <IconButton
                   onClick={handleCopyDescription}
                   sx={{
@@ -475,7 +539,7 @@ function PromptDetail() {
                     <ContentCopyIcon fontSize="small" />
                   )}
                 </IconButton>
-              </Tooltip>
+              </Tooltip> */}
             </Box>
 
             <Typography variant="caption" sx={{ color: "#999" }}>
@@ -496,7 +560,7 @@ function PromptDetail() {
 
         {ratingsLoading || commentsLoading
           ? [1, 2, 3].map((index) => (
-              <Card key={index} sx={{ background: "#1A1A1A" }}>
+              <Card key={index}>
                 <CardContent>
                   <Stack spacing={2}>
                     <Stack direction="row" alignItems="center" spacing={2}>
@@ -548,7 +612,7 @@ function PromptDetail() {
               </Card>
             ))
           : ratings.map((rating) => (
-              <Card key={rating.id} sx={{ background: "#1A1A1A" }}>
+              <Card key={rating.id}>
                 <CardContent>
                   <Stack spacing={2}>
                     <Stack direction="row" alignItems="center" spacing={2}>
