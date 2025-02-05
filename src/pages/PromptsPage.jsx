@@ -114,16 +114,6 @@ function PromptsPage() {
     }
   };
 
-  // const handleEditPrompt = async (id) => {
-  //   if (!editForm.title || !editForm.description) return;
-
-  //   try {
-  //     await updatePrompt({ id, ...editForm });
-  //     setEditDialogOpen(false);
-  //   } catch (err) {
-  //     console.error("Error updating prompt:", err);
-  //   }
-  // };
   const handleEditPrompt = async (id) => {
     console.log("Submitting edit for id:", id, "with form:", editForm); // Debug log
     if (!id || !editForm.title || !editForm.description) {
@@ -162,21 +152,6 @@ function PromptsPage() {
     }
   };
 
-  // Other Handlers
-  // const startEditing = (prompt) => {
-  //   setEditForm({
-  //     title: prompt.title,
-  //     description: prompt.description,
-  //     category: prompt.category || "",
-  //     isVisible: prompt.isVisible || false,
-  //   });
-  //   setEditDialogOpen(true);
-  // };
-
-  // const handleEditClick = (prompt) => {
-  //   handleMenuClose();
-  //   startEditing(prompt);
-  // };
   const startEditing = (prompt) => {
     console.log("Starting edit for prompt:", prompt); // Debug log
     setEditForm({
@@ -370,32 +345,6 @@ function PromptsPage() {
       )}
 
       {/* Dialogs */}
-      {/* <AddEditPromptDialog
-        openDialog={openDialog}
-        handleCloseDialog={handleCloseDialog}
-        newCategory={newPromptData.category}
-        setNewCategory={(category) =>
-          setNewPromptData((prev) => ({ ...prev, category }))
-        }
-        newPromptTitle={newPromptData.title}
-        setNewPromptTitle={(title) =>
-          setNewPromptData((prev) => ({ ...prev, title }))
-        }
-        newPromptDescription={newPromptData.description}
-        setNewPromptDescription={(description) =>
-          setNewPromptData((prev) => ({ ...prev, description }))
-        }
-        onSubmitAddPrompt={handleCreatePrompt}
-        editDialogOpen={editDialogOpen}
-        cancelEditing={() => setEditDialogOpen(false)}
-        loading={createPromptLoading}
-        editError={null}
-        editForm={editForm}
-        setEditForm={setEditForm}
-        editLoading={updatePromptLoading}
-        handleEditSubmit={handleEditPrompt}
-        editingId={selectedPromptId}
-      /> */}
       <AddEditPromptDialog
         openDialog={openDialog}
         handleCloseDialog={handleCloseDialog}
