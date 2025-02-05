@@ -21,6 +21,7 @@ import DeleteIcon from "../icons/DeleteIcon";
 import SaveIcon from "../icons/SaveIcon";
 import EyeIcon from "../icons/EyeIcon";
 import NoResultsMessage from "./NoResultsMessage";
+import CopyIcon from "../icons/CopyIcon";
 
 const PromptCard = ({
   loading = false, // New loading prop
@@ -256,7 +257,7 @@ const PromptCard = ({
         ) : (
           <>
             <MenuItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <EyeIcon />
+              <CopyIcon />
               Copy Prompt
             </MenuItem>
             <MenuItem
