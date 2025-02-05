@@ -51,6 +51,13 @@ const theme = createTheme({
         },
       },
     },
+    MuiSkeleton: {
+      styleOverrides: {
+        root: {
+          backgroundColor: "#333", // Change this to your desired color
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
