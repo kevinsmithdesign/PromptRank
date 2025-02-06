@@ -11,19 +11,20 @@ import {
   arrayUnion,
   arrayRemove,
   increment,
+  getDoc,
 } from "firebase/firestore";
-import { getDoc } from "firebase/firestore";
 import { db } from "../../config/firebase";
 
 const Comment = ({
   comment,
+  parentId,
   currentUser,
   onReply,
   onEdit,
   onDelete,
   onLike,
   onDislike,
-  level = 0,
+  isReply = false,
 }) => {
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -32,9 +33,15 @@ const Comment = ({
 
   const isAuthor = currentUser?.uid === comment.userId;
 
+  // Calculate counts from arrays, ensuring they exist
+  const likeCount = comment.likedBy?.length || 0;
+  const dislikeCount = comment.dislikedBy?.length || 0;
+
   const handleSubmitReply = () => {
     if (replyText.trim()) {
-      onReply(comment.id, replyText);
+      // If this is a reply to a reply, use the parent's ID
+      const targetParentId = parentId || comment.id;
+      onReply(targetParentId, replyText);
       setReplyText("");
       setIsReplying(false);
     }
@@ -42,167 +49,242 @@ const Comment = ({
 
   const handleSubmitEdit = () => {
     if (editText.trim() && editText !== comment.content) {
-      onEdit(comment.id, editText);
+      // For nested replies, we need both IDs
+      if (parentId) {
+        onEdit(parentId, comment.id, editText);
+      } else {
+        onEdit(comment.id, null, editText);
+      }
       setIsEditing(false);
+    }
+  };
+
+  const handleDelete = () => {
+    if (parentId) {
+      onDelete(parentId, comment.id);
+    } else {
+      onDelete(comment.id);
+    }
+  };
+
+  const handleLike = () => {
+    if (parentId) {
+      onLike(parentId, comment.id);
+    } else {
+      onLike(comment.id);
+    }
+  };
+
+  const handleDislike = () => {
+    if (parentId) {
+      onDislike(parentId, comment.id);
+    } else {
+      onDislike(comment.id);
     }
   };
 
   return (
     <Box
       sx={{
-        ml: level > 0 ? 4 : 0,
-        mb: 2,
-        p: 2,
-        bgcolor: "rgba(255, 255, 255, 0.05)",
-        borderRadius: 2,
+        pl: isReply ? 6 : 0,
+        width: "100%",
       }}
     >
-      {/* User Info */}
-      <Stack direction="row" spacing={1} alignItems="center" mb={1}>
-        <Box
-          sx={{
-            width: 32,
-            height: 32,
-            borderRadius: "50%",
-            bgcolor: "primary.main",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {comment.userDisplayName?.[0] || "A"}
-        </Box>
-        <Stack>
-          <Typography variant="subtitle2" color="white">
-            {comment.userDisplayName || "Anonymous"}
-          </Typography>
-          <Typography variant="caption" color="#999">
-            {comment.timeAgo}
-          </Typography>
-        </Stack>
-      </Stack>
-
-      {/* Comment Content */}
-      {isEditing ? (
-        <Box sx={{ mt: 2, mb: 2 }}>
-          <TextField
-            fullWidth
-            size="small"
-            value={editText}
-            onChange={(e) => setEditText(e.target.value)}
-            multiline
-            rows={2}
-            sx={{ mb: 1 }}
-          />
-          <Stack direction="row" spacing={1}>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={handleSubmitEdit}
-              disabled={!editText.trim() || editText === comment.content}
-            >
-              Save
-            </Button>
-            <Button
-              size="small"
-              onClick={() => {
-                setIsEditing(false);
-                setEditText(comment.content);
+      {/* Main Comment Container */}
+      <Box
+        sx={{
+          mb: 1,
+          width: "100%",
+        }}
+      >
+        <Stack spacing={1}>
+          {/* User Info and Comment Content */}
+          <Stack direction="row" spacing={1.5}>
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                bgcolor: "primary.main",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
               }}
             >
-              Cancel
-            </Button>
+              {comment.userDisplayName?.[0] || "A"}
+            </Box>
+            <Box
+              sx={{
+                bgcolor: "rgba(255, 255, 255, 0.05)",
+                borderRadius: 2,
+                p: 1.5,
+                width: "fit-content",
+                maxWidth: "calc(100% - 48px)",
+              }}
+            >
+              <Typography variant="subtitle2" color="white" sx={{ mb: 0.5 }}>
+                {comment.userDisplayName || "Anonymous"}
+              </Typography>
+              {isEditing ? (
+                <TextField
+                  fullWidth
+                  size="small"
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  multiline
+                  rows={2}
+                  sx={{ mb: 1 }}
+                />
+              ) : (
+                <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+                  {comment.content}
+                </Typography>
+              )}
+            </Box>
           </Stack>
-        </Box>
-      ) : (
-        <Typography variant="body2" sx={{ mb: 2 }}>
-          {comment.content}
-        </Typography>
-      )}
 
-      {/* Action Buttons */}
-      <Stack direction="row" spacing={2}>
-        <Button
-          size="small"
-          onClick={() => onLike(comment.id)}
-          sx={{
-            color: comment.likedBy?.includes(currentUser?.uid)
-              ? "primary.main"
-              : "text.secondary",
-          }}
-        >
-          Like ({comment.likes || 0})
-        </Button>
-        <Button
-          size="small"
-          onClick={() => onDislike(comment.id)}
-          sx={{
-            color: comment.dislikedBy?.includes(currentUser?.uid)
-              ? "error.main"
-              : "text.secondary",
-          }}
-        >
-          Dislike ({comment.dislikes || 0})
-        </Button>
-
-        {isAuthor ? (
-          <>
-            <Button size="small" onClick={() => setIsEditing(!isEditing)}>
-              Edit
-            </Button>
+          {/* Action Buttons */}
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{
+              ml: 5.5,
+              "& .MuiButton-root": {
+                minWidth: "unset",
+                px: 1,
+                textTransform: "none",
+                fontWeight: "normal",
+              },
+            }}
+          >
             <Button
               size="small"
-              color="error"
-              onClick={() => onDelete(comment.id)}
+              onClick={handleLike}
+              sx={{
+                color: comment.likedBy?.includes(currentUser?.uid)
+                  ? "primary.main"
+                  : "text.secondary",
+              }}
             >
-              Delete
+              Like {likeCount > 0 && `(${likeCount})`}
             </Button>
-          </>
-        ) : (
-          <Button size="small" onClick={() => setIsReplying(!isReplying)}>
-            Reply
-          </Button>
-        )}
-      </Stack>
 
-      {/* Reply Form */}
-      {isReplying && (
-        <Box sx={{ mt: 2 }}>
-          <TextField
-            fullWidth
-            size="small"
-            value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
-            placeholder="Write a reply..."
-            multiline
-            rows={2}
-            sx={{ mb: 1 }}
-          />
-          <Button
-            variant="contained"
-            size="small"
-            onClick={handleSubmitReply}
-            disabled={!replyText.trim()}
-          >
-            Post Reply
-          </Button>
-        </Box>
-      )}
+            <Button
+              size="small"
+              onClick={handleDislike}
+              sx={{
+                color: comment.dislikedBy?.includes(currentUser?.uid)
+                  ? "error.main"
+                  : "text.secondary",
+              }}
+            >
+              Dislike {dislikeCount > 0 && `(${dislikeCount})`}
+            </Button>
+
+            <Button
+              size="small"
+              onClick={() => setIsReplying(!isReplying)}
+              sx={{ color: "text.secondary" }}
+            >
+              Reply
+            </Button>
+
+            {isAuthor && (
+              <>
+                <Button
+                  size="small"
+                  onClick={() => setIsEditing(!isEditing)}
+                  sx={{ color: "text.secondary" }}
+                >
+                  Edit
+                </Button>
+                <Button
+                  size="small"
+                  onClick={handleDelete}
+                  sx={{ color: "error.main" }}
+                >
+                  Delete
+                </Button>
+              </>
+            )}
+
+            <Typography
+              variant="caption"
+              color="#999"
+              sx={{ alignSelf: "center" }}
+            >
+              {comment.timeAgo}
+            </Typography>
+          </Stack>
+
+          {/* Edit/Reply Forms */}
+          {isEditing && (
+            <Stack direction="row" spacing={1} sx={{ ml: 5.5 }}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleSubmitEdit}
+                disabled={!editText.trim() || editText === comment.content}
+              >
+                Save
+              </Button>
+              <Button
+                size="small"
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditText(comment.content);
+                }}
+              >
+                Cancel
+              </Button>
+            </Stack>
+          )}
+
+          {isReplying && (
+            <Box sx={{ ml: 5.5 }}>
+              <TextField
+                fullWidth
+                size="small"
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Write a reply..."
+                multiline
+                rows={2}
+                sx={{ mb: 1 }}
+              />
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleSubmitReply}
+                disabled={!replyText.trim()}
+              >
+                Reply
+              </Button>
+            </Box>
+          )}
+        </Stack>
+      </Box>
 
       {/* Nested Replies */}
-      {comment.replies?.map((reply) => (
-        <Comment
-          key={reply.id}
-          comment={reply}
-          currentUser={currentUser}
-          onReply={onReply}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onLike={onLike}
-          onDislike={onDislike}
-          level={level + 1}
-        />
-      ))}
+      {comment.replies?.length > 0 && (
+        <Stack spacing={1}>
+          {comment.replies.map((reply) => (
+            <Comment
+              key={reply.id}
+              comment={reply}
+              parentId={comment.id}
+              currentUser={currentUser}
+              onReply={onReply}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onLike={onLike}
+              onDislike={onDislike}
+              isReply={true}
+            />
+          ))}
+        </Stack>
+      )}
     </Box>
   );
 };
@@ -269,7 +351,6 @@ const CommentThread = ({
         dislikedBy: [],
       };
 
-      // Add new reply to the replies array
       await updateDoc(commentRef, {
         replies: arrayUnion(replyData),
       });
@@ -280,8 +361,8 @@ const CommentThread = ({
     }
   };
 
-  // Edit comment
-  const handleEdit = async (commentId, newContent) => {
+  // Edit comment or reply
+  const handleEdit = async (commentId, newContent, replyId = null) => {
     if (!currentUser) return;
 
     try {
@@ -293,16 +374,38 @@ const CommentThread = ({
         return;
       }
 
-      // Only allow editing if user is the author
-      if (commentDoc.data().userId !== currentUser.uid) {
-        console.error("Not authorized to edit this comment");
-        return;
-      }
+      const comment = commentDoc.data();
 
-      await updateDoc(commentRef, {
-        content: newContent,
-        editedAt: serverTimestamp(),
-      });
+      if (replyId) {
+        // Editing a reply
+        const updatedReplies = comment.replies.map((reply) => {
+          if (reply.id === replyId) {
+            if (reply.userId !== currentUser.uid) {
+              throw new Error("Not authorized to edit this reply");
+            }
+            return {
+              ...reply,
+              content: newContent,
+              editedAt: new Date().toISOString(),
+            };
+          }
+          return reply;
+        });
+
+        await updateDoc(commentRef, {
+          replies: updatedReplies,
+        });
+      } else {
+        // Editing main comment
+        if (comment.userId !== currentUser.uid) {
+          throw new Error("Not authorized to edit this comment");
+        }
+
+        await updateDoc(commentRef, {
+          content: newContent,
+          editedAt: serverTimestamp(),
+        });
+      }
 
       onCommentUpdate();
     } catch (error) {
@@ -310,8 +413,8 @@ const CommentThread = ({
     }
   };
 
-  // Delete comment
-  const handleDelete = async (commentId) => {
+  // Delete comment or reply
+  const handleDelete = async (commentId, replyId = null) => {
     if (!currentUser) return;
 
     try {
@@ -323,21 +426,44 @@ const CommentThread = ({
         return;
       }
 
-      // Only allow deletion if user is the author
-      if (commentDoc.data().userId !== currentUser.uid) {
-        console.error("Not authorized to delete this comment");
-        return;
+      if (replyId) {
+        // Deleting a reply
+        const comment = commentDoc.data();
+        const replyIndex = comment.replies.findIndex(
+          (reply) => reply.id === replyId
+        );
+
+        if (replyIndex === -1) {
+          throw new Error("Reply not found");
+        }
+
+        if (comment.replies[replyIndex].userId !== currentUser.uid) {
+          throw new Error("Not authorized to delete this reply");
+        }
+
+        const updatedReplies = comment.replies.filter(
+          (reply) => reply.id !== replyId
+        );
+        await updateDoc(commentRef, {
+          replies: updatedReplies,
+        });
+      } else {
+        // Deleting main comment
+        const comment = commentDoc.data();
+        if (comment.userId !== currentUser.uid) {
+          throw new Error("Not authorized to delete this comment");
+        }
+        await deleteDoc(commentRef);
       }
 
-      await deleteDoc(commentRef);
       onCommentUpdate();
     } catch (error) {
       console.error("Error deleting comment:", error);
     }
   };
 
-  // Handle likes/dislikes
-  const handleReaction = async (commentId, isLike) => {
+  // Handle likes/dislikes for both comments and replies
+  const handleReaction = async (commentId, isLike, replyId = null) => {
     if (!currentUser) return;
 
     try {
@@ -351,33 +477,86 @@ const CommentThread = ({
 
       const comment = commentDoc.data();
       const userId = currentUser.uid;
-      const action = isLike ? "likedBy" : "dislikedBy";
-      const oppositeAction = isLike ? "dislikedBy" : "likedBy";
-      const counterField = isLike ? "likes" : "dislikes";
-      const oppositeCounter = isLike ? "dislikes" : "likes";
 
-      const hasReacted = comment[action]?.includes(userId);
-      const hasOppositeReaction = comment[oppositeAction]?.includes(userId);
+      if (replyId) {
+        // Handle reaction for reply
+        const updatedReplies = comment.replies.map((reply) => {
+          if (reply.id === replyId) {
+            const likedBy = reply.likedBy || [];
+            const dislikedBy = reply.dislikedBy || [];
+            const hasReacted = isLike
+              ? likedBy.includes(userId)
+              : dislikedBy.includes(userId);
+            const hasOppositeReaction = isLike
+              ? dislikedBy.includes(userId)
+              : likedBy.includes(userId);
 
-      if (hasReacted) {
-        // Remove reaction
-        await updateDoc(commentRef, {
-          [action]: arrayRemove(userId),
-          [counterField]: increment(-1),
+            if (hasReacted) {
+              // Remove reaction
+              return {
+                ...reply,
+                [isLike ? "likedBy" : "dislikedBy"]: (isLike
+                  ? likedBy
+                  : dislikedBy
+                ).filter((id) => id !== userId),
+                [isLike ? "likes" : "dislikes"]:
+                  (reply[isLike ? "likes" : "dislikes"] || 0) - 1,
+              };
+            } else {
+              // Add reaction
+              const updates = {
+                ...reply,
+                [isLike ? "likedBy" : "dislikedBy"]: [
+                  ...(isLike ? likedBy : dislikedBy),
+                  userId,
+                ],
+                [isLike ? "likes" : "dislikes"]:
+                  (reply[isLike ? "likes" : "dislikes"] || 0) + 1,
+              };
+
+              if (hasOppositeReaction) {
+                updates[isLike ? "dislikedBy" : "likedBy"] = (
+                  isLike ? dislikedBy : likedBy
+                ).filter((id) => id !== userId);
+                updates[isLike ? "dislikes" : "likes"] =
+                  (reply[isLike ? "dislikes" : "likes"] || 0) - 1;
+              }
+
+              return updates;
+            }
+          }
+          return reply;
         });
+
+        await updateDoc(commentRef, { replies: updatedReplies });
       } else {
-        // Add reaction and remove opposite if exists
-        const updates = {
-          [action]: arrayUnion(userId),
-          [counterField]: increment(1),
-        };
+        // Handle reaction for main comment
+        const action = isLike ? "likedBy" : "dislikedBy";
+        const oppositeAction = isLike ? "dislikedBy" : "likedBy";
+        const counterField = isLike ? "likes" : "dislikes";
+        const oppositeCounter = isLike ? "dislikes" : "likes";
 
-        if (hasOppositeReaction) {
-          updates[oppositeAction] = arrayRemove(userId);
-          updates[oppositeCounter] = increment(-1);
+        const hasReacted = comment[action]?.includes(userId);
+        const hasOppositeReaction = comment[oppositeAction]?.includes(userId);
+
+        if (hasReacted) {
+          await updateDoc(commentRef, {
+            [action]: arrayRemove(userId),
+            [counterField]: increment(-1),
+          });
+        } else {
+          const updates = {
+            [action]: arrayUnion(userId),
+            [counterField]: increment(1),
+          };
+
+          if (hasOppositeReaction) {
+            updates[oppositeAction] = arrayRemove(userId);
+            updates[oppositeCounter] = increment(-1);
+          }
+
+          await updateDoc(commentRef, updates);
         }
-
-        await updateDoc(commentRef, updates);
       }
 
       onCommentUpdate();
@@ -430,8 +609,12 @@ const CommentThread = ({
               onReply={handleReply}
               onEdit={handleEdit}
               onDelete={handleDelete}
-              onLike={(commentId) => handleReaction(commentId, true)}
-              onDislike={(commentId) => handleReaction(commentId, false)}
+              onLike={(commentId, replyId) =>
+                handleReaction(commentId, true, replyId)
+              }
+              onDislike={(commentId, replyId) =>
+                handleReaction(commentId, false, replyId)
+              }
             />
           ))}
         </Stack>
