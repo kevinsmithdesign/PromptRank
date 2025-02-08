@@ -119,62 +119,62 @@ function PromptDetail() {
   );
 
   // Fetch comments with caching
-  const { data: commentsMap = {}, isLoading: commentsLoading } = useQuery({
-    queryKey: ["comments", id],
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
-    queryFn: async () => {
-      try {
-        const commentsQuery = query(
-          collection(db, "comments"),
-          where("promptId", "==", id),
-          orderBy("createdAt", "desc")
-        );
+  // const { data: commentsMap = {}, isLoading: commentsLoading } = useQuery({
+  //   queryKey: ["comments", id],
+  //   staleTime: 5 * 60 * 1000,
+  //   cacheTime: 30 * 60 * 1000,
+  //   queryFn: async () => {
+  //     try {
+  //       const commentsQuery = query(
+  //         collection(db, "comments"),
+  //         where("promptId", "==", id),
+  //         orderBy("createdAt", "desc")
+  //       );
 
-        const snapshot = await getDocs(commentsQuery);
-        const commentsByRating = {};
+  //       const snapshot = await getDocs(commentsQuery);
+  //       const commentsByRating = {};
 
-        for (const doc of snapshot.docs) {
-          const commentData = doc.data();
-          const ratingId = commentData.ratingId;
+  //       for (const doc of snapshot.docs) {
+  //         const commentData = doc.data();
+  //         const ratingId = commentData.ratingId;
 
-          if (!commentsByRating[ratingId]) {
-            commentsByRating[ratingId] = [];
-          }
+  //         if (!commentsByRating[ratingId]) {
+  //           commentsByRating[ratingId] = [];
+  //         }
 
-          const timestamp =
-            commentData.createdAt?.toDate?.() ||
-            new Date(commentData.createdAt);
+  //         const timestamp =
+  //           commentData.createdAt?.toDate?.() ||
+  //           new Date(commentData.createdAt);
 
-          let userName = commentData.userDisplayName;
-          if (!userName && commentData.userId) {
-            const userRef = doc(db, "users", commentData.userId);
-            const userDoc = await getDoc(userRef);
-            if (userDoc.exists()) {
-              userName = userDoc.data().displayName;
-            }
-          }
+  //         let userName = commentData.userDisplayName;
+  //         if (!userName && commentData.userId) {
+  //           const userRef = doc(db, "users", commentData.userId);
+  //           const userDoc = await getDoc(userRef);
+  //           if (userDoc.exists()) {
+  //             userName = userDoc.data().displayName;
+  //           }
+  //         }
 
-          commentsByRating[ratingId].push({
-            id: doc.id,
-            ...commentData,
-            userDisplayName: userName || "Anonymous",
-            timeAgo: formatDistanceToNow(timestamp, { addSuffix: true }),
-            replies: commentData.replies || [],
-            likes: commentData.likes || 0,
-            dislikes: commentData.dislikes || 0,
-            likedBy: commentData.likedBy || [],
-            dislikedBy: commentData.dislikedBy || [],
-          });
-        }
+  //         commentsByRating[ratingId].push({
+  //           id: doc.id,
+  //           ...commentData,
+  //           userDisplayName: userName || "Anonymous",
+  //           timeAgo: formatDistanceToNow(timestamp, { addSuffix: true }),
+  //           replies: commentData.replies || [],
+  //           likes: commentData.likes || 0,
+  //           dislikes: commentData.dislikes || 0,
+  //           likedBy: commentData.likedBy || [],
+  //           dislikedBy: commentData.dislikedBy || [],
+  //         });
+  //       }
 
-        return commentsByRating;
-      } catch (error) {
-        console.error("Error in comments query:", error);
-        throw error;
-      }
-    },
-  });
+  //       return commentsByRating;
+  //     } catch (error) {
+  //       console.error("Error in comments query:", error);
+  //       throw error;
+  //     }
+  //   },
+  // });
 
   const handleRatingSubmit = async (data) => {
     if (data.success) {
@@ -198,19 +198,19 @@ function PromptDetail() {
     }
   };
 
-  const renderCommentSection = (ratingId) => {
-    const comments = commentsMap[ratingId] || [];
+  // const renderCommentSection = (ratingId) => {
+  //   const comments = commentsMap[ratingId] || [];
 
-    return (
-      <CommentThread
-        promptId={id}
-        ratingId={ratingId}
-        currentUser={auth.currentUser}
-        comments={comments}
-        onCommentUpdate={() => queryClient.invalidateQueries(["comments", id])}
-      />
-    );
-  };
+  //   return (
+  //     <CommentThread
+  //       promptId={id}
+  //       ratingId={ratingId}
+  //       currentUser={auth.currentUser}
+  //       comments={comments}
+  //       onCommentUpdate={() => queryClient.invalidateQueries(["comments", id])}
+  //     />
+  //   );
+  // };
 
   if (promptLoading) {
     return (
@@ -337,7 +337,10 @@ function PromptDetail() {
                 {rating.comment && (
                   <Typography variant="body1">{rating.comment}</Typography>
                 )}
-                {renderCommentSection(rating.id)}
+                {/* {renderCommentSection(rating.id)} */}
+
+                {/* COMMENTS WILL GO HERE */}
+                <CommentThread />
               </Stack>
             </CardContent>
           </Card>
