@@ -23,6 +23,7 @@ import {
   where,
   orderBy,
   getDocs,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import RatingDialog from "../components/RatingDialog";
@@ -112,6 +113,11 @@ function PromptDetail() {
     cacheTime: 30 * 60 * 1000,
   });
 
+  // Find if current user has already rated
+  const userExistingRating = ratings.find(
+    (rating) => rating.userId === auth.currentUser?.uid
+  );
+
   // Fetch comments with caching
   const { data: commentsMap = {}, isLoading: commentsLoading } = useQuery({
     queryKey: ["comments", id],
@@ -176,6 +182,19 @@ function PromptDetail() {
       setTimeout(() => setSuccessMessage(null), 5000);
       queryClient.invalidateQueries(["ratings", id]);
       queryClient.invalidateQueries(["prompt", id]);
+    }
+  };
+
+  const handleDeleteRating = async (ratingId) => {
+    try {
+      await deleteDoc(doc(db, "ratings", ratingId));
+      setSuccessMessage("Rating deleted successfully");
+      setTimeout(() => setSuccessMessage(null), 5000);
+      queryClient.invalidateQueries(["ratings", id]);
+      queryClient.invalidateQueries(["prompt", id]);
+    } catch (error) {
+      console.error("Error deleting rating:", error);
+      setSuccessMessage("Error deleting rating");
     }
   };
 
@@ -244,13 +263,13 @@ function PromptDetail() {
           </Stack>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Stack flexDirection="row" justifyContent="flex-end">
+          <Stack flexDirection="row" justifyContent="flex-end" spacing={2}>
             {prompt.authorId !== auth.currentUser?.uid && (
               <Button
                 variant="contained"
                 onClick={() => setRatingDialogOpen(true)}
               >
-                Rank Prompt
+                {userExistingRating ? "Update Rating" : "Rank Prompt"}
               </Button>
             )}
           </Stack>
@@ -296,12 +315,24 @@ function PromptDetail() {
                       {rating.timeAgo}
                     </Typography>
                   </Stack>
-                  <Rating
-                    value={rating.rating}
-                    readOnly
-                    icon={<StarIcon sx={{ color: "rgb(250, 175, 0)" }} />}
-                    emptyIcon={<StarIcon />}
-                  />
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Rating
+                      value={rating.rating}
+                      readOnly
+                      icon={<StarIcon sx={{ color: "rgb(250, 175, 0)" }} />}
+                      emptyIcon={<StarIcon />}
+                    />
+                    {rating.userId === auth.currentUser?.uid && (
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        onClick={() => handleDeleteRating(rating.id)}
+                      >
+                        Delete
+                      </Button>
+                    )}
+                  </Stack>
                 </Stack>
                 {rating.comment && (
                   <Typography variant="body1">{rating.comment}</Typography>
@@ -319,6 +350,7 @@ function PromptDetail() {
         onSubmit={handleRatingSubmit}
         promptId={id}
         userId={auth.currentUser?.uid}
+        existingRating={userExistingRating}
       />
     </>
   );
