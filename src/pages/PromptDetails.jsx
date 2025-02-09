@@ -38,7 +38,6 @@ function PromptDetail() {
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // Fetch prompt data
   const {
     data: prompt,
     error: promptError,
@@ -68,7 +67,6 @@ function PromptDetail() {
     },
   });
 
-  // Fetch ratings with caching
   const { data: ratings = [], isLoading: ratingsLoading } = useQuery({
     queryKey: ["ratings", id],
     queryFn: async () => {
@@ -113,68 +111,9 @@ function PromptDetail() {
     cacheTime: 30 * 60 * 1000,
   });
 
-  // Find if current user has already rated
   const userExistingRating = ratings.find(
     (rating) => rating.userId === auth.currentUser?.uid
   );
-
-  // Fetch comments with caching
-  // const { data: commentsMap = {}, isLoading: commentsLoading } = useQuery({
-  //   queryKey: ["comments", id],
-  //   staleTime: 5 * 60 * 1000,
-  //   cacheTime: 30 * 60 * 1000,
-  //   queryFn: async () => {
-  //     try {
-  //       const commentsQuery = query(
-  //         collection(db, "comments"),
-  //         where("promptId", "==", id),
-  //         orderBy("createdAt", "desc")
-  //       );
-
-  //       const snapshot = await getDocs(commentsQuery);
-  //       const commentsByRating = {};
-
-  //       for (const doc of snapshot.docs) {
-  //         const commentData = doc.data();
-  //         const ratingId = commentData.ratingId;
-
-  //         if (!commentsByRating[ratingId]) {
-  //           commentsByRating[ratingId] = [];
-  //         }
-
-  //         const timestamp =
-  //           commentData.createdAt?.toDate?.() ||
-  //           new Date(commentData.createdAt);
-
-  //         let userName = commentData.userDisplayName;
-  //         if (!userName && commentData.userId) {
-  //           const userRef = doc(db, "users", commentData.userId);
-  //           const userDoc = await getDoc(userRef);
-  //           if (userDoc.exists()) {
-  //             userName = userDoc.data().displayName;
-  //           }
-  //         }
-
-  //         commentsByRating[ratingId].push({
-  //           id: doc.id,
-  //           ...commentData,
-  //           userDisplayName: userName || "Anonymous",
-  //           timeAgo: formatDistanceToNow(timestamp, { addSuffix: true }),
-  //           replies: commentData.replies || [],
-  //           likes: commentData.likes || 0,
-  //           dislikes: commentData.dislikes || 0,
-  //           likedBy: commentData.likedBy || [],
-  //           dislikedBy: commentData.dislikedBy || [],
-  //         });
-  //       }
-
-  //       return commentsByRating;
-  //     } catch (error) {
-  //       console.error("Error in comments query:", error);
-  //       throw error;
-  //     }
-  //   },
-  // });
 
   const handleRatingSubmit = async (data) => {
     if (data.success) {
@@ -197,20 +136,6 @@ function PromptDetail() {
       setSuccessMessage("Error deleting rating");
     }
   };
-
-  // const renderCommentSection = (ratingId) => {
-  //   const comments = commentsMap[ratingId] || [];
-
-  //   return (
-  //     <CommentThread
-  //       promptId={id}
-  //       ratingId={ratingId}
-  //       currentUser={auth.currentUser}
-  //       comments={comments}
-  //       onCommentUpdate={() => queryClient.invalidateQueries(["comments", id])}
-  //     />
-  //   );
-  // };
 
   if (promptLoading) {
     return (
@@ -337,10 +262,19 @@ function PromptDetail() {
                 {rating.comment && (
                   <Typography variant="body1">{rating.comment}</Typography>
                 )}
-                {/* {renderCommentSection(rating.id)} */}
 
-                {/* COMMENTS WILL GO HERE */}
-                <CommentThread />
+                {/* Add console log to verify props */}
+                {console.log("Rendering CommentThread with props:", {
+                  promptId: id,
+                  ratingId: rating.id,
+                  currentUser: auth.currentUser,
+                })}
+
+                <CommentThread
+                  promptId={id}
+                  ratingId={rating.id}
+                  currentUser={auth.currentUser}
+                />
               </Stack>
             </CardContent>
           </Card>

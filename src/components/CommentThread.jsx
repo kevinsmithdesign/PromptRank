@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   Button,
-  Paper,
   Card,
   TextField,
   Avatar,
@@ -14,7 +13,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SendIcon from "@mui/icons-material/Send";
 import {
-  getFirestore,
   collection,
   addDoc,
   updateDoc,
@@ -25,11 +23,9 @@ import {
   serverTimestamp,
   orderBy,
   increment,
+  where,
 } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db } from "../../config/firebase";
-
-const auth = getAuth();
 
 const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
   const [showReplies, setShowReplies] = useState(false);
@@ -43,14 +39,12 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
       "m ago"
     : "just now";
 
-  // Get first letter of display name or email for avatar
   const getAvatarText = () => {
     if (data.userDisplayName) return data.userDisplayName[0].toUpperCase();
     if (data.userEmail) return data.userEmail[0].toUpperCase();
     return "U";
   };
 
-  // Check if current user is the comment author
   const isAuthor = currentUser && currentUser.uid === data.userId;
 
   return (
@@ -58,11 +52,10 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
       <Card
         elevation={0}
         sx={{
-          padding: 4,
+          padding: 2,
           borderRadius: 2,
           border: "1px solid #444",
           backgroundColor: "#222",
-          // maxWidth: "500px",
           display: "flex",
           alignItems: "flex-start",
           gap: 2,
@@ -72,7 +65,7 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
           {!data.userPhotoURL && getAvatarText()}
         </Avatar>
 
-        <Box>
+        <Box sx={{ width: "100%" }}>
           <Typography variant="body2" fontWeight="bold" mb={0.5}>
             {data.userDisplayName || data.userEmail || "Anonymous User"}
           </Typography>
@@ -102,6 +95,7 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
                   color: "#999",
                   textTransform: "none",
                   padding: "0px 5px",
+                  cursor: "pointer",
                 }}
               >
                 Reply
@@ -167,7 +161,7 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
             placeholder="Write a reply..."
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
-            sx={{ backgroundColor: "#f0f2f5", borderRadius: "20px" }}
+            sx={{ backgroundColor: "#1e1e1e", borderRadius: "20px" }}
           />
           <IconButton
             onClick={() => {
@@ -217,85 +211,112 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
   );
 };
 
-const CommentThread = () => {
+const CommentThread = ({ promptId, ratingId, currentUser }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    // Set up auth state listener
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-    });
+    if (!promptId || !ratingId) {
+      console.log("Missing promptId or ratingId:", { promptId, ratingId });
+      return;
+    }
 
-    // Set up real-time listener for comments
-    const q = query(collection(db, "comments"), orderBy("timestamp", "desc"));
+    console.log("Setting up comments listener for:", { promptId, ratingId });
 
-    const unsubscribeComments = onSnapshot(q, (snapshot) => {
-      const commentsMap = new Map();
+    const q = query(
+      collection(db, "comments"),
+      where("promptId", "==", promptId),
+      where("ratingId", "==", ratingId)
+    );
 
-      snapshot.forEach((doc) => {
-        const comment = {
-          id: doc.id,
-          ...doc.data(),
-          replies: [],
-          replyCount: 0,
-        };
-        commentsMap.set(doc.id, comment);
-      });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        console.log("Received comments snapshot:", snapshot.size, "documents");
 
-      const topLevelComments = [];
-      commentsMap.forEach((comment) => {
-        if (comment.parentId === "root") {
-          topLevelComments.push(comment);
-        } else {
-          const parentComment = commentsMap.get(comment.parentId);
-          if (parentComment) {
-            parentComment.replies.push(comment);
-            parentComment.replyCount++;
+        const commentsMap = new Map();
+
+        snapshot.forEach((doc) => {
+          const commentData = doc.data();
+          console.log("Comment data:", { id: doc.id, ...commentData });
+
+          const comment = {
+            id: doc.id,
+            ...commentData,
+            replies: [],
+            replyCount: 0,
+          };
+          commentsMap.set(doc.id, comment);
+        });
+
+        const topLevelComments = [];
+        commentsMap.forEach((comment) => {
+          if (comment.parentId === "root") {
+            topLevelComments.push(comment);
+          } else {
+            const parentComment = commentsMap.get(comment.parentId);
+            if (parentComment) {
+              parentComment.replies.push(comment);
+              parentComment.replyCount++;
+            }
           }
-        }
-      });
+        });
 
-      setComments(topLevelComments);
-    });
+        console.log("Processed comments:", topLevelComments);
+        setComments(topLevelComments);
+      },
+      (error) => {
+        console.error("Error in comments snapshot:", error);
+      }
+    );
 
-    return () => {
-      unsubscribeAuth();
-      unsubscribeComments();
-    };
-  }, []);
+    return () => unsubscribe();
+  }, [promptId, ratingId]);
 
   const handleAddComment = async (parentId, text) => {
-    if (!currentUser) return;
+    if (!currentUser || !text.trim()) return;
 
     try {
-      await addDoc(collection(db, "comments"), {
+      console.log("Adding new comment:", {
+        parentId,
+        text,
+        promptId,
+        ratingId,
+        userId: currentUser.uid,
+      });
+
+      const commentData = {
         text,
         parentId: parentId || "root",
+        promptId,
+        ratingId,
         timestamp: serverTimestamp(),
         likes: 0,
         userId: currentUser.uid,
         userEmail: currentUser.email,
         userDisplayName: currentUser.displayName,
         userPhotoURL: currentUser.photoURL,
-      });
+      };
+
+      const docRef = await addDoc(collection(db, "comments"), commentData);
+      console.log("Added comment with ID:", docRef.id);
     } catch (error) {
-      console.error("Error adding comment: ", error);
+      console.error("Error adding comment:", error);
     }
   };
 
   const handleEditComment = async (commentId, newText) => {
-    if (!currentUser) return;
+    if (!currentUser || !newText.trim()) return;
 
     try {
+      console.log("Editing comment:", { commentId, newText });
       const commentRef = doc(db, "comments", commentId);
       await updateDoc(commentRef, {
         text: newText,
         editedAt: serverTimestamp(),
       });
     } catch (error) {
-      console.error("Error editing comment: ", error);
+      console.error("Error editing comment:", error);
     }
   };
 
@@ -303,9 +324,10 @@ const CommentThread = () => {
     if (!currentUser) return;
 
     try {
+      console.log("Deleting comment:", commentId);
       await deleteDoc(doc(db, "comments", commentId));
     } catch (error) {
-      console.error("Error deleting comment: ", error);
+      console.error("Error deleting comment:", error);
     }
   };
 
@@ -313,17 +335,20 @@ const CommentThread = () => {
     if (!currentUser) return;
 
     try {
+      console.log("Liking comment:", commentId);
       const commentRef = doc(db, "comments", commentId);
       await updateDoc(commentRef, {
         likes: increment(1),
       });
     } catch (error) {
-      console.error("Error liking comment: ", error);
+      console.error("Error liking comment:", error);
     }
   };
 
+  console.log("Current comments state:", comments);
+
   return (
-    <Box sx={{ padding: 2, maxWidth: "600px" }}>
+    <Box sx={{ padding: 2 }}>
       {currentUser ? (
         <>
           <TextField
@@ -333,6 +358,20 @@ const CommentThread = () => {
             placeholder="Write a comment..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
+            sx={{
+              backgroundColor: "#1e1e1e",
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#444",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#666",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#888",
+                },
+              },
+            }}
           />
           <Button
             sx={{ marginTop: 1 }}
