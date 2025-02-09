@@ -4,6 +4,7 @@ import {
   Typography,
   Button,
   Paper,
+  Card,
   TextField,
   Avatar,
   IconButton,
@@ -54,16 +55,17 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
 
   return (
     <Box sx={{ marginBottom: 1, marginLeft: data.parentId === "root" ? 0 : 4 }}>
-      <Paper
+      <Card
         elevation={0}
         sx={{
-          padding: 1.5,
+          padding: 4,
           borderRadius: 2,
-          backgroundColor: "#f0f2f5",
-          maxWidth: "500px",
+          border: "1px solid #444",
+          backgroundColor: "#222",
+          // maxWidth: "500px",
           display: "flex",
           alignItems: "flex-start",
-          gap: 1.5,
+          gap: 2,
         }}
       >
         <Avatar sx={{ width: 32, height: 32 }} src={data.userPhotoURL || null}>
@@ -71,7 +73,7 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
         </Avatar>
 
         <Box>
-          <Typography variant="body2" fontWeight="bold">
+          <Typography variant="body2" fontWeight="bold" mb={0.5}>
             {data.userDisplayName || data.userEmail || "Anonymous User"}
           </Typography>
           {editing ? (
@@ -82,26 +84,28 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
               onChange={(e) => setEditText(e.target.value)}
             />
           ) : (
-            <Typography variant="body2">{data.text}</Typography>
+            <Typography variant="body2" mb={1}>
+              {data.text}
+            </Typography>
           )}
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography variant="caption" color="gray">
+            <Typography variant="caption" color="#999">
               {timeAgo}
             </Typography>
             {currentUser && (
-              <Button
+              <Box
                 size="small"
                 onClick={() => setReplying(!replying)}
                 sx={{
                   fontSize: "0.75rem",
-                  color: "blue",
+                  color: "#999",
                   textTransform: "none",
                   padding: "0px 5px",
                 }}
               >
                 Reply
-              </Button>
+              </Box>
             )}
             <IconButton
               size="small"
@@ -141,7 +145,7 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
             )}
           </Box>
         </Box>
-      </Paper>
+      </Card>
 
       {replying && currentUser && (
         <Box
@@ -153,10 +157,7 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
             marginLeft: 5,
           }}
         >
-          <Avatar
-            sx={{ width: 28, height: 28 }}
-            src={currentUser.photoURL || null}
-          >
+          <Avatar sx={{}} src={currentUser.photoURL || null}>
             {!currentUser.photoURL &&
               (currentUser.displayName?.[0] || currentUser.email?.[0] || "U")}
           </Avatar>
@@ -322,7 +323,7 @@ const CommentThread = () => {
   };
 
   return (
-    <Box sx={{ padding: 2, maxWidth: "600px", backgroundColor: "#ffffff" }}>
+    <Box sx={{ padding: 2, maxWidth: "600px" }}>
       {currentUser ? (
         <>
           <TextField
