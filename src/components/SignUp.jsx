@@ -1,236 +1,3 @@
-// import React, { useState } from "react";
-// import { auth, googleProvider, db } from "../../config/firebase";
-// import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-// import { doc, setDoc } from "firebase/firestore";
-// import {
-//   Box,
-//   Button,
-//   TextField,
-//   Typography,
-//   Stack,
-//   Alert,
-//   IconButton,
-//   InputAdornment,
-// } from "@mui/material";
-// import { Visibility, VisibilityOff } from "@mui/icons-material";
-// import { useNavigate } from "react-router-dom";
-
-// export const SignUp = () => {
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const [confirmPassword, setConfirmPassword] = useState("");
-//   const [userName, setUserName] = useState("");
-//   const [error, setError] = useState("");
-//   const [loading, setLoading] = useState(false);
-//   const [showPassword, setShowPassword] = useState(false);
-//   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-//   const navigate = useNavigate();
-
-//   const saveUserToFirestore = async (user, additionalData = {}) => {
-//     try {
-//       const userRef = doc(db, "users", user.uid);
-//       await setDoc(userRef, {
-//         email: user.email,
-//         displayName:
-//           additionalData.userName ||
-//           user.displayName ||
-//           user.email?.split("@")[0],
-//         photoURL: user.photoURL || null,
-//         createdAt: new Date().toISOString(),
-//         userName:
-//           additionalData.userName ||
-//           user.displayName ||
-//           user.email?.split("@")[0],
-//       });
-//     } catch (err) {
-//       console.error("Error saving user data:", err);
-//     }
-//   };
-
-//   const handleSignUp = async (e) => {
-//     e.preventDefault();
-
-//     if (password !== confirmPassword) {
-//       return setError("Passwords do not match");
-//     }
-
-//     try {
-//       setError("");
-//       setLoading(true);
-//       const userCredential = await createUserWithEmailAndPassword(
-//         auth,
-//         email,
-//         password
-//       );
-
-//       await saveUserToFirestore(userCredential.user, { userName });
-//       navigate("/main/prompts");
-//     } catch (err) {
-//       const errorMessage = err.message
-//         .replace("Firebase: Error (auth/", "")
-//         .replace(").", "")
-//         .replace(/-/g, " ");
-//       setError(errorMessage);
-//       console.error(err);
-//     }
-//     setLoading(false);
-//   };
-
-//   const handleGoogleSignIn = async () => {
-//     try {
-//       setError("");
-//       setLoading(true);
-//       const result = await signInWithPopup(auth, googleProvider);
-
-//       await saveUserToFirestore(result.user, {
-//         userName: result.user.displayName || result.user.email?.split("@")[0],
-//       });
-
-//       navigate("/main/prompts");
-//     } catch (err) {
-//       setError("Failed to sign in with Google.");
-//       console.error(err);
-//     }
-//     setLoading(false);
-//   };
-
-//   return (
-//     <Box component="form" onSubmit={handleSignUp}>
-//       <Typography variant="h4" fontWeight="bold" mb={4}>
-//         Sign Up
-//       </Typography>
-//       {error && (
-//         <Alert severity="error" sx={{ mb: 2 }}>
-//           {error}
-//         </Alert>
-//       )}
-
-//       <Stack mb={3}>
-//         <Button
-//           variant="outlined"
-//           color="secondary"
-//           onClick={handleGoogleSignIn}
-//           fullWidth
-//           disabled={loading}
-//         >
-//           Sign Up with Google
-//         </Button>
-//       </Stack>
-//       <Stack display="flex" flexDirection="row" alignItems="center" mb={3}>
-//         <Stack
-//           flexGrow={1}
-//           sx={{ width: "100&", background: "#fff", height: "1px", mr: 2 }}
-//         ></Stack>
-//         <Stack>OR</Stack>
-//         <Stack
-//           flexGrow={1}
-//           sx={{ width: "100&", background: "#fff", height: "1px", ml: 2 }}
-//         ></Stack>
-//       </Stack>
-//       <Stack>
-//         <Stack mb={3}>
-//           <Typography fontWeight="bold" mb={1}>
-//             Username
-//           </Typography>
-//           <TextField
-//             variant="outlined"
-//             placeholder="Username"
-//             fullWidth
-//             value={userName}
-//             onChange={(e) => setUserName(e.target.value)}
-//           />
-//         </Stack>
-//         <Stack mb={3}>
-//           <Typography fontWeight="bold" mb={1}>
-//             Email*
-//           </Typography>
-//           <TextField
-//             variant="outlined"
-//             placeholder="Email*"
-//             fullWidth
-//             required
-//             value={email}
-//             onChange={(e) => setEmail(e.target.value)}
-//           />
-//         </Stack>
-//         <Stack mb={3}>
-//           <Typography fontWeight="bold" mb={1}>
-//             Password*
-//           </Typography>
-//           <TextField
-//             type={showPassword ? "text" : "password"}
-//             variant="outlined"
-//             placeholder="Password*"
-//             fullWidth
-//             required
-//             value={password}
-//             onChange={(e) => setPassword(e.target.value)}
-//             InputProps={{
-//               endAdornment: (
-//                 <InputAdornment position="end">
-//                   <IconButton
-//                     onClick={() => setShowPassword(!showPassword)}
-//                     edge="end"
-//                   >
-//                     {showPassword ? <VisibilityOff /> : <Visibility />}
-//                   </IconButton>
-//                 </InputAdornment>
-//               ),
-//             }}
-//           />
-//         </Stack>
-//         <Stack mb={6}>
-//           <Typography fontWeight="bold" mb={1}>
-//             Confirm Password*
-//           </Typography>
-//           <TextField
-//             type={showConfirmPassword ? "text" : "password"}
-//             placeholder="Confirm Password*"
-//             variant="outlined"
-//             fullWidth
-//             required
-//             value={confirmPassword}
-//             onChange={(e) => setConfirmPassword(e.target.value)}
-//             InputProps={{
-//               endAdornment: (
-//                 <InputAdornment position="end">
-//                   <IconButton
-//                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-//                     edge="end"
-//                   >
-//                     {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-//                   </IconButton>
-//                 </InputAdornment>
-//               ),
-//             }}
-//           />
-//         </Stack>
-
-//         <Button
-//           variant="contained"
-//           color="primary"
-//           type="submit"
-//           fullWidth
-//           disabled={loading}
-//         >
-//           Sign Up
-//         </Button>
-
-//         <Typography variant="body2" textAlign="center">
-//           Already have an account?
-//           <Button
-//             variant="text"
-//             onClick={() => navigate("/login")}
-//             sx={{ ml: 1 }}
-//           >
-//             Log In
-//           </Button>
-//         </Typography>
-//       </Stack>
-//     </Box>
-//   );
-// };
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -331,9 +98,9 @@ export function SignUp() {
     <Box
       component="form"
       onSubmit={handleSignUp}
-      sx={{ maxWidth: "400px", mx: "auto" }}
+      sx={{ maxWidth: "400px", width: "100%" }}
     >
-      <Typography variant="h4" fontWeight="bold" mb={4}>
+      <Typography variant="h5" fontWeight="bold" mb={2}>
         Sign Up
       </Typography>
 
@@ -369,7 +136,7 @@ export function SignUp() {
             mr: 2,
           }}
         />
-        <Typography color="text.secondary">OR</Typography>
+        <Typography>OR</Typography>
         <Stack
           flexGrow={1}
           sx={{
@@ -382,9 +149,9 @@ export function SignUp() {
       </Stack>
 
       {/* Sign-up Form */}
-      <Stack spacing={3}>
-        <Stack>
-          <Typography fontWeight="bold" mb={1}>
+      <Stack>
+        <Stack mb={3}>
+          <Typography fontWeight="bold" mb={0.5}>
             Username
           </Typography>
           <TextField
@@ -397,9 +164,8 @@ export function SignUp() {
             disabled={loading}
           />
         </Stack>
-
-        <Stack>
-          <Typography fontWeight="bold" mb={1}>
+        <Stack mb={3}>
+          <Typography fontWeight="bold" mb={0.5}>
             Email*
           </Typography>
           <TextField
@@ -415,9 +181,8 @@ export function SignUp() {
             disabled={loading}
           />
         </Stack>
-
-        <Stack>
-          <Typography fontWeight="bold" mb={1}>
+        <Stack mb={3}>
+          <Typography fontWeight="bold" mb={0.5}>
             Password*
           </Typography>
           <TextField
@@ -439,16 +204,15 @@ export function SignUp() {
                     edge="end"
                     disabled={loading}
                   >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                    {showPassword ? <Visibility /> : <VisibilityOff />}
                   </IconButton>
                 </InputAdornment>
               ),
             }}
           />
         </Stack>
-
-        <Stack>
-          <Typography fontWeight="bold" mb={1}>
+        <Stack mb={4}>
+          <Typography fontWeight="bold" mb={0.5}>
             Confirm Password*
           </Typography>
           <TextField
@@ -470,14 +234,13 @@ export function SignUp() {
                     edge="end"
                     disabled={loading}
                   >
-                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
                   </IconButton>
                 </InputAdornment>
               ),
             }}
           />
         </Stack>
-
         <Button
           variant="contained"
           color="primary"
@@ -487,18 +250,31 @@ export function SignUp() {
         >
           Sign Up
         </Button>
-
-        <Typography variant="body2" textAlign="center">
-          Already have an account?
-          <Button
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mt: 2,
+          }}
+        >
+          <Typography variant="body2" textAlign="center" sx={{ mr: 0.5 }}>
+            Already have an account?
+          </Typography>
+          <Box
             variant="text"
             onClick={() => navigate("/login")}
-            sx={{ ml: 1 }}
+            sx={{
+              color: "#1976d2",
+              textDecoration: "underline",
+              cursor: "pointer",
+              fontSize: "14px",
+            }}
             disabled={loading}
           >
             Log In
-          </Button>
-        </Typography>
+          </Box>
+        </Box>
       </Stack>
     </Box>
   );
