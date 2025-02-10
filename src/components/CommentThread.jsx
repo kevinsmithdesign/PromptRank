@@ -221,8 +221,6 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
       return;
     }
 
-    console.log("Setting up comments listener for:", { promptId, ratingId });
-
     const q = query(
       collection(db, "comments"),
       where("promptId", "==", promptId),
@@ -232,13 +230,10 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        console.log("Received comments snapshot:", snapshot.size, "documents");
-
         const commentsMap = new Map();
 
         snapshot.forEach((doc) => {
           const commentData = doc.data();
-          console.log("Comment data:", { id: doc.id, ...commentData });
 
           const comment = {
             id: doc.id,
@@ -262,7 +257,6 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
           }
         });
 
-        console.log("Processed comments:", topLevelComments);
         setComments(topLevelComments);
       },
       (error) => {
@@ -277,14 +271,6 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
     if (!currentUser || !text.trim()) return;
 
     try {
-      console.log("Adding new comment:", {
-        parentId,
-        text,
-        promptId,
-        ratingId,
-        userId: currentUser.uid,
-      });
-
       const commentData = {
         text,
         parentId: parentId || "root",
@@ -299,7 +285,6 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
       };
 
       const docRef = await addDoc(collection(db, "comments"), commentData);
-      console.log("Added comment with ID:", docRef.id);
     } catch (error) {
       console.error("Error adding comment:", error);
     }
@@ -309,7 +294,6 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
     if (!currentUser || !newText.trim()) return;
 
     try {
-      console.log("Editing comment:", { commentId, newText });
       const commentRef = doc(db, "comments", commentId);
       await updateDoc(commentRef, {
         text: newText,
@@ -324,7 +308,6 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
     if (!currentUser) return;
 
     try {
-      console.log("Deleting comment:", commentId);
       await deleteDoc(doc(db, "comments", commentId));
     } catch (error) {
       console.error("Error deleting comment:", error);
@@ -335,7 +318,6 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
     if (!currentUser) return;
 
     try {
-      console.log("Liking comment:", commentId);
       const commentRef = doc(db, "comments", commentId);
       await updateDoc(commentRef, {
         likes: increment(1),
@@ -344,8 +326,6 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
       console.error("Error liking comment:", error);
     }
   };
-
-  console.log("Current comments state:", comments);
 
   return (
     <Box sx={{ padding: 2 }}>

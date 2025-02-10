@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
   Button,
   TextField,
   Card,
@@ -17,183 +15,95 @@ import {
   IconButton,
   useTheme,
 } from "@mui/material";
-import FolderIcon from "@mui/icons-material/Folder";
-import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { db, auth } from "../../config/firebase";
-import {
-  getDocs,
-  collection,
-  addDoc,
-  doc,
-  updateDoc,
-  increment,
-  query,
-  orderBy,
-} from "firebase/firestore";
+import { auth } from "../../config/firebase";
+import { useCollections } from "../hooks/useCollections";
 
 const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
   const theme = useTheme();
   const [isCreatingCollection, setIsCreatingCollection] = useState(false);
-  const [collections, setCollections] = useState([]);
   const [selectedCollection, setSelectedCollection] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [duplicateError, setDuplicateError] = useState("");
 
   // New collection form states
   const [newCollectionName, setNewCollectionName] = useState("");
   const [newCollectionDescription, setNewCollectionDescription] = useState("");
 
-  useEffect(() => {
-    if (open) {
-      fetchCollections();
-    }
-  }, [open]);
-
-  const fetchCollections = async () => {
-    try {
-      setInitialLoading(true);
-      setError(null);
-
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        setError("not-logged-in");
-        return;
-      }
-
-      const collectionsRef = collection(
-        db,
-        "users",
-        currentUser.uid,
-        "collections"
-      );
-      const q = query(collectionsRef, orderBy("createdAt", "desc"));
-      const snapshot = await getDocs(q);
-
-      const collectionsData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      setCollections(collectionsData);
-    } catch (err) {
-      setError(err.message || "Failed to fetch collections");
-    } finally {
-      setInitialLoading(false);
-    }
-  };
+  const {
+    collections,
+    isLoading,
+    error,
+    createCollection,
+    createCollectionLoading,
+    saveToCollection,
+    saveToCollectionLoading,
+  } = useCollections();
 
   const handleCollectionSelect = (collectionId) => {
     setSelectedCollection(collectionId);
-    setError(null);
   };
 
   const handleCreateCollection = async () => {
     if (!newCollectionName.trim()) {
-      setError("Collection name is required");
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
-
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        throw new Error("You must be logged in to create collections");
+    createCollection(
+      {
+        name: newCollectionName,
+        description: newCollectionDescription,
+      },
+      {
+        onSuccess: (newCollection) => {
+          setSelectedCollection(newCollection.id);
+          handleBackToList();
+        },
       }
-
-      const collectionsRef = collection(
-        db,
-        "users",
-        currentUser.uid,
-        "collections"
-      );
-      const newCollection = await addDoc(collectionsRef, {
-        name: newCollectionName.trim(),
-        description: newCollectionDescription.trim(),
-        createdAt: new Date().toISOString(),
-        promptCount: 0,
-      });
-
-      const createdCollection = {
-        id: newCollection.id,
-        name: newCollectionName.trim(),
-        description: newCollectionDescription.trim(),
-        promptCount: 0,
-      };
-
-      setCollections((prev) => [createdCollection, ...prev]);
-      setSelectedCollection(createdCollection.id);
-      handleBackToList();
-    } catch (err) {
-      setError(err.message || "Failed to create collection");
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   const handleSave = async () => {
     if (!selectedCollection) {
-      setError("Please select a collection");
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
+    console.log("Starting save, loading state:", saveToCollectionLoading);
 
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        throw new Error("You must be logged in to save to collections");
+    saveToCollection(
+      {
+        collectionId: selectedCollection,
+        promptId,
+      },
+      {
+        onSuccess: () => {
+          console.log("Save successful");
+          onSave(selectedCollection);
+          handleClose();
+        },
+        onError: (error) => {
+          console.log("Save error:", error);
+          if (error.message === "This prompt is already in this collection") {
+            setDuplicateError(
+              `This prompt is already in the selected collection`
+            );
+            setTimeout(() => {
+              setDuplicateError("");
+            }, 3000);
+          }
+        },
       }
-
-      const promptsRef = collection(
-        db,
-        "users",
-        currentUser.uid,
-        "collections",
-        selectedCollection,
-        "prompts"
-      );
-
-      await addDoc(promptsRef, {
-        promptId: promptId,
-        addedAt: new Date().toISOString(),
-      });
-
-      const collectionRef = doc(
-        db,
-        "users",
-        currentUser.uid,
-        "collections",
-        selectedCollection
-      );
-      await updateDoc(collectionRef, {
-        promptCount: increment(1),
-      });
-
-      onSave(selectedCollection);
-      handleClose();
-    } catch (err) {
-      setError(err.message || "Failed to save to collection");
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   const handleBackToList = () => {
     setIsCreatingCollection(false);
     setNewCollectionName("");
     setNewCollectionDescription("");
-    setError(null);
   };
 
   const handleClose = () => {
     setSelectedCollection(null);
-    setError(null);
     setIsCreatingCollection(false);
     setNewCollectionName("");
     setNewCollectionDescription("");
@@ -224,7 +134,7 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              {error === "not-logged-in" ? (
+              {error.message === "not-logged-in" ? (
                 <span>
                   You must be{" "}
                   <Link
@@ -236,8 +146,14 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                   to view collections
                 </span>
               ) : (
-                error
+                error.message
               )}
+            </Alert>
+          )}
+
+          {duplicateError && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              {duplicateError}
             </Alert>
           )}
 
@@ -251,23 +167,11 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                 <ArrowBackIcon />
               </IconButton>
             )}
-            {/* <Typography variant="h5" fontWeight="bold">
-              {isCreatingCollection
-                ? "Create New Collection"
-                : "Save Prompt to Collection"}
-            </Typography> */}
           </Stack>
 
           {!isCreatingCollection && (
             <Stack flexDirection="row" mb={2}>
-              <Stack flexGrow={1} mr={3}>
-                {/* <TextField
-                  fullWidth
-                  placeholder="Search Collections"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                /> */}
-              </Stack>
+              <Stack flexGrow={1} mr={3}></Stack>
               <Stack>
                 <Button
                   variant="contained"
@@ -288,18 +192,10 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                 value={newCollectionName}
                 onChange={(e) => setNewCollectionName(e.target.value)}
               />
-              {/* <TextField
-                label="Description (Optional)"
-                fullWidth
-                multiline
-                rows={3}
-                value={newCollectionDescription}
-                onChange={(e) => setNewCollectionDescription(e.target.value)}
-              /> */}
             </Stack>
           ) : (
             <Stack spacing={2} sx={{ mt: 1 }}>
-              {initialLoading ? (
+              {isLoading ? (
                 <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
                   <CircularProgress />
                 </Box>
@@ -315,6 +211,7 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                   {filteredCollections.map((collection) => (
                     <Card
                       key={collection.id}
+                      onClick={() => handleCollectionSelect(collection.id)}
                       sx={{
                         height: "100%",
                         padding: 0,
@@ -323,8 +220,15 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                         flexDirection: "column",
                         cursor: "pointer",
                         position: "relative",
-                        border: `1px solid #222`,
+                        border:
+                          selectedCollection === collection.id
+                            ? `1px solid ${theme.palette.primary.main}`
+                            : `1px solid #222`,
                         overflow: "hidden",
+                        backgroundColor:
+                          selectedCollection === collection.id
+                            ? "rgba(25, 118, 210, 0.08)"
+                            : "transparent",
                         "&:hover": {
                           border: `1px solid ${theme.palette.primary.main}`,
                         },
@@ -341,14 +245,13 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                           zIndex: 0,
                         },
                         "&:hover::before": {
-                          opacity: 0.2,
+                          opacity: 0.1,
                         },
                         "& > *": {
                           position: "relative",
                           zIndex: 1,
                         },
                       }}
-                      onClick={() => handleCollectionSelect(collection.id)}
                     >
                       <CardContent>
                         <Stack direction="row" spacing={2} alignItems="center">
@@ -374,7 +277,7 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
               <Button
                 variant="outlined"
                 onClick={handleClose}
-                disabled={loading}
+                disabled={createCollectionLoading || saveToCollectionLoading}
               >
                 Cancel
               </Button>
@@ -382,17 +285,21 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                 <Button
                   onClick={handleCreateCollection}
                   variant="contained"
-                  disabled={loading}
+                  disabled={createCollectionLoading}
                 >
-                  {loading ? "Creating..." : "Create Collection"}
+                  {createCollectionLoading ? "Loading..." : "Create Collection"}
                 </Button>
               ) : (
                 <Button
                   onClick={handleSave}
                   variant="contained"
-                  disabled={loading || initialLoading || !selectedCollection}
+                  disabled={
+                    saveToCollectionLoading || isLoading || !selectedCollection
+                  }
                 >
-                  {loading ? "Saving..." : "Save to Collection"}
+                  {saveToCollectionLoading
+                    ? "Loading..."
+                    : "Save to Collection"}
                 </Button>
               )}
             </Stack>
