@@ -12,11 +12,9 @@ import {
   Button,
 } from "@mui/material";
 // import { LoadingButton } from "../components/LoadingButton";
-import {
-  Visibility,
-  VisibilityOff,
-  Google as GoogleIcon,
-} from "@mui/icons-material";
+import { Google as GoogleIcon } from "@mui/icons-material";
+import EyeIcon from "../icons/EyeIcon";
+import HidePasswordIcon from "../icons/HidePasswordIcon";
 
 export function SignUp() {
   const navigate = useNavigate();
@@ -204,7 +202,7 @@ export function SignUp() {
                     edge="end"
                     disabled={loading}
                   >
-                    {showPassword ? <Visibility /> : <VisibilityOff />}
+                    {showPassword ? <EyeIcon /> : <HidePasswordIcon />}
                   </IconButton>
                 </InputAdornment>
               ),
@@ -234,7 +232,7 @@ export function SignUp() {
                     edge="end"
                     disabled={loading}
                   >
-                    {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
+                    {showConfirmPassword ? <EyeIcon /> : <HidePasswordIcon />}
                   </IconButton>
                 </InputAdornment>
               ),

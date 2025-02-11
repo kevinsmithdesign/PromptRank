@@ -32,9 +32,9 @@ import {
   CircularProgress,
 } from "@mui/material";
 
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { Google as GoogleIcon } from "@mui/icons-material";
+import EyeIcon from "../icons/EyeIcon";
+import HidePasswordIcon from "../icons/HidePasswordIcon";
 
 export function Login() {
   const navigate = useNavigate();
@@ -236,7 +236,7 @@ export function Login() {
                     edge="end"
                     disabled={loading}
                   >
-                    {showPassword ? <Visibility /> : <VisibilityOff />}
+                    {showPassword ? <EyeIcon /> : <HidePasswordIcon />}
                   </IconButton>
                 </InputAdornment>
               ),

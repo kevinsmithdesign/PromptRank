@@ -340,8 +340,9 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                       onClick={() => handleCollectionSelect(collection.id)}
                       sx={{
                         height: "100%",
-                        padding: 0,
-                        borderRadius: "8px",
+                        padding: 2,
+                        borderRadius: "16px",
+
                         display: "flex",
                         flexDirection: "column",
                         cursor: "pointer",
@@ -354,7 +355,7 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                         backgroundColor:
                           selectedCollection === collection.id
                             ? "rgba(25, 118, 210, 0.08)"
-                            : "transparent",
+                            : "#222",
                         "&:hover": {
                           border: `1px solid ${theme.palette.primary.main}`,
                         },
