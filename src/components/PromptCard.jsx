@@ -124,7 +124,7 @@ const PromptCard = ({
                         </Typography>
                       )}
                       <Stack>
-                        <Box
+                        {/* <Box
                           onClick={(e) => handleMenuOpen(e, prompt.id)}
                           sx={{
                             display: "inline-flex",
@@ -142,7 +142,7 @@ const PromptCard = ({
                           }}
                         >
                           <MoreVertIcon sx={{ color: "white" }} />
-                        </Box>
+                        </Box> */}
                       </Stack>
                     </Stack>
                     {prompt.category && (
@@ -196,7 +196,7 @@ const PromptCard = ({
         />
       )}
       {/* Menu */}
-      <Menu
+      {/* <Menu
         anchorEl={menuAnchorEl}
         open={Boolean(menuAnchorEl)}
         onClose={handleMenuClose}
@@ -276,7 +276,7 @@ const PromptCard = ({
             </MenuItem>
           </>
         )}
-      </Menu>
+      </Menu> */}
     </>
   );
 };
