@@ -149,7 +149,7 @@ const AiToolsPage = () => {
       <Box sx={{ flexGrow: 1, mb: 8 }}>
         <Grid container spacing={3}>
           {apps.map(({ title, subTitle, description, url }) => (
-            <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 6, lg: 4 }}>
               <Card
                 sx={{
                   height: "100%",
