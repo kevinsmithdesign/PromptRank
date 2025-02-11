@@ -42,7 +42,7 @@ const PromptCard = ({
 }) => {
   return (
     <>
-      <Grid container spacing={3}>
+      <Grid container spacing={3} mb={6}>
         {loading
           ? Array.from(new Array(4)).map((_, index) => (
               <Grid item xs={12} md={6} key={index}>
