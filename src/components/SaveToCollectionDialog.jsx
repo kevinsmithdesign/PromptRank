@@ -14,21 +14,26 @@ import {
   CircularProgress,
   IconButton,
   useTheme,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { auth } from "../../config/firebase";
 import { useCollections } from "../hooks/useCollections";
 
 const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
   const theme = useTheme();
   const [isCreatingCollection, setIsCreatingCollection] = useState(false);
+  const [isEditingCollection, setIsEditingCollection] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [duplicateError, setDuplicateError] = useState("");
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [activeCollectionId, setActiveCollectionId] = useState(null);
 
-  // New collection form states
-  const [newCollectionName, setNewCollectionName] = useState("");
-  const [newCollectionDescription, setNewCollectionDescription] = useState("");
+  // Collection form states
+  const [collectionName, setCollectionName] = useState("");
 
   const {
     collections,
@@ -38,29 +43,135 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
     createCollectionLoading,
     saveToCollection,
     saveToCollectionLoading,
+    updateCollection,
+    deleteCollection,
+    updateCollectionLoading,
+    deleteCollectionLoading,
   } = useCollections();
+
+  const handleMenuOpen = (event, collectionId) => {
+    event.stopPropagation();
+    setActiveCollectionId(collectionId);
+    setMenuAnchorEl(event.currentTarget);
+    console.log("Menu opened for collection:", collectionId);
+  };
+
+  const handleMenuClose = (event) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    setMenuAnchorEl(null);
+  };
 
   const handleCollectionSelect = (collectionId) => {
     setSelectedCollection(collectionId);
   };
 
-  const handleCreateCollection = async () => {
-    if (!newCollectionName.trim()) {
+  const handleEditCollection = (event) => {
+    event.stopPropagation();
+    const collection = collections.find((c) => c.id === activeCollectionId);
+    if (collection) {
+      setCollectionName(collection.name || "");
+      setIsEditingCollection(true);
+      setActiveCollectionId(collection.id);
+    }
+    handleMenuClose();
+    console.log("Editing collection:", collection);
+  };
+
+  const handleDeleteCollection = async (event) => {
+    event.stopPropagation();
+    if (!activeCollectionId) {
+      console.log("No collection selected for deletion");
       return;
     }
 
-    createCollection(
-      {
-        name: newCollectionName,
-        description: newCollectionDescription,
-      },
-      {
-        onSuccess: (newCollection) => {
-          setSelectedCollection(newCollection.id);
-          handleBackToList();
-        },
+    if (window.confirm("Are you sure you want to delete this collection?")) {
+      try {
+        console.log("Deleting collection:", activeCollectionId);
+
+        await deleteCollection(
+          { id: activeCollectionId },
+          {
+            onSuccess: () => {
+              console.log("Delete successful");
+              if (selectedCollection === activeCollectionId) {
+                setSelectedCollection(null);
+              }
+              handleMenuClose();
+            },
+            onError: (error) => {
+              console.error("Error deleting collection:", error);
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Delete failed:", error);
+      } finally {
+        handleMenuClose();
       }
-    );
+    } else {
+      handleMenuClose();
+    }
+  };
+
+  const handleCreateCollection = async () => {
+    if (!collectionName.trim()) {
+      return;
+    }
+
+    try {
+      await createCollection(
+        {
+          name: collectionName,
+        },
+        {
+          onSuccess: (newCollection) => {
+            setSelectedCollection(newCollection.id);
+            handleBackToList();
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error creating collection:", error);
+    }
+  };
+
+  const handleUpdateCollection = async () => {
+    if (!collectionName.trim()) {
+      console.log("Collection name is required");
+      return;
+    }
+
+    if (!activeCollectionId) {
+      console.log("No collection selected for update");
+      return;
+    }
+
+    try {
+      console.log("Updating collection:", {
+        id: activeCollectionId,
+        name: collectionName,
+      });
+
+      await updateCollection(
+        {
+          id: activeCollectionId,
+          name: collectionName.trim(),
+        },
+        {
+          onSuccess: () => {
+            console.log("Update successful");
+            handleBackToList();
+          },
+          onError: (error) => {
+            console.error("Error updating collection:", error);
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Update failed:", error);
+    }
   };
 
   const handleSave = async () => {
@@ -68,7 +179,23 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
       return;
     }
 
-    console.log("Starting save, loading state:", saveToCollectionLoading);
+    // Find the selected collection
+    const selectedCollectionData = collections.find(
+      (c) => c.id === selectedCollection
+    );
+
+    // Check if prompt already exists in collection
+    const isDuplicate = selectedCollectionData?.prompts?.some(
+      (p) => p.id === promptId
+    );
+
+    if (isDuplicate) {
+      setDuplicateError("This prompt is already in the selected collection");
+      setTimeout(() => {
+        setDuplicateError("");
+      }, 3000);
+      return;
+    }
 
     saveToCollection(
       {
@@ -77,20 +204,15 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
       },
       {
         onSuccess: () => {
-          console.log("Save successful");
           onSave(selectedCollection);
           handleClose();
         },
         onError: (error) => {
-          console.log("Save error:", error);
-          if (error.message === "This prompt is already in this collection") {
-            setDuplicateError(
-              `This prompt is already in the selected collection`
-            );
-            setTimeout(() => {
-              setDuplicateError("");
-            }, 3000);
-          }
+          console.error("Error saving to collection:", error);
+          setDuplicateError("Error saving prompt to collection");
+          setTimeout(() => {
+            setDuplicateError("");
+          }, 3000);
         },
       }
     );
@@ -98,16 +220,19 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
 
   const handleBackToList = () => {
     setIsCreatingCollection(false);
-    setNewCollectionName("");
-    setNewCollectionDescription("");
+    setIsEditingCollection(false);
+    setCollectionName("");
+    setActiveCollectionId(null);
   };
 
   const handleClose = () => {
     setSelectedCollection(null);
     setIsCreatingCollection(false);
-    setNewCollectionName("");
-    setNewCollectionDescription("");
+    setIsEditingCollection(false);
+    setCollectionName("");
     setSearchTerm("");
+    setActiveCollectionId(null);
+    setMenuAnchorEl(null);
     onClose();
   };
 
@@ -158,7 +283,7 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
           )}
 
           <Stack direction="row" alignItems="center" spacing={2} mb={1}>
-            {isCreatingCollection && (
+            {(isCreatingCollection || isEditingCollection) && (
               <IconButton
                 onClick={handleBackToList}
                 size="small"
@@ -169,7 +294,7 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
             )}
           </Stack>
 
-          {!isCreatingCollection && (
+          {!isCreatingCollection && !isEditingCollection && (
             <Stack flexDirection="row" mb={2}>
               <Stack flexGrow={1} mr={3}></Stack>
               <Stack>
@@ -183,14 +308,15 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
             </Stack>
           )}
 
-          {isCreatingCollection ? (
+          {isCreatingCollection || isEditingCollection ? (
             <Stack spacing={2} sx={{ mt: 1 }}>
               <TextField
                 label="Collection Name"
                 fullWidth
                 required
-                value={newCollectionName}
-                onChange={(e) => setNewCollectionName(e.target.value)}
+                value={collectionName}
+                onChange={(e) => setCollectionName(e.target.value)}
+                autoFocus
               />
             </Stack>
           ) : (
@@ -259,10 +385,22 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                             <Typography variant="body1">
                               {collection.name}
                             </Typography>
-                            <Typography variant="body2">
-                              {collection.promptCount} prompts
+                            <Typography
+                              variant="body2"
+                              sx={{ color: "rgba(255, 255, 255, 0.7)" }}
+                            >
+                              {Array.isArray(collection.prompts)
+                                ? collection.prompts.length
+                                : 0}{" "}
+                              prompts
                             </Typography>
                           </Box>
+                          <IconButton
+                            onClick={(e) => handleMenuOpen(e, collection.id)}
+                            sx={{ color: "white" }}
+                          >
+                            <MoreVertIcon />
+                          </IconButton>
                         </Stack>
                       </CardContent>
                     </Card>
@@ -271,6 +409,20 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
               )}
             </Stack>
           )}
+
+          <Menu
+            anchorEl={menuAnchorEl}
+            open={Boolean(menuAnchorEl)}
+            onClose={handleMenuClose}
+          >
+            <MenuItem onClick={handleEditCollection}>Edit</MenuItem>
+            <MenuItem
+              onClick={handleDeleteCollection}
+              sx={{ color: "error.main" }}
+            >
+              Delete
+            </MenuItem>
+          </Menu>
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
             <Stack flexDirection="row" gap={2}>
@@ -288,6 +440,16 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                   disabled={createCollectionLoading}
                 >
                   {createCollectionLoading ? "Loading..." : "Create Collection"}
+                </Button>
+              ) : isEditingCollection ? (
+                <Button
+                  onClick={handleUpdateCollection}
+                  variant="contained"
+                  disabled={updateCollectionLoading}
+                >
+                  {updateCollectionLoading
+                    ? "Updating..."
+                    : "Update Collection"}
                 </Button>
               ) : (
                 <Button

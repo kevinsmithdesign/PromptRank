@@ -1,193 +1,214 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import {
   collection,
+  query,
+  where,
   getDocs,
   addDoc,
-  doc,
-  setDoc,
   updateDoc,
-  increment,
-  query,
-  orderBy,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
 import { db, auth } from "../../config/firebase";
 
 export const useCollections = () => {
-  const queryClient = useQueryClient();
+  const [collections, setCollections] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [createCollectionLoading, setCreateCollectionLoading] = useState(false);
+  const [saveToCollectionLoading, setSaveToCollectionLoading] = useState(false);
+  const [updateCollectionLoading, setUpdateCollectionLoading] = useState(false);
+  const [deleteCollectionLoading, setDeleteCollectionLoading] = useState(false);
 
-  // Fetch collections
-  const {
-    data: collections = [],
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["collections"],
-    queryFn: async () => {
-      console.log("Fetching collections...");
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        throw new Error("not-logged-in");
-      }
-      console.log("Current user ID:", currentUser.uid);
-
-      const collectionsRef = collection(
-        db,
-        "users",
-        currentUser.uid,
-        "collections"
+  const fetchCollections = async () => {
+    setIsLoading(true);
+    try {
+      const collectionsRef = collection(db, "collections");
+      const q = query(
+        collectionsRef,
+        where("userId", "==", auth.currentUser?.uid)
       );
-      console.log("Collections reference path:", collectionsRef.path);
+      const querySnapshot = await getDocs(q);
 
-      const q = query(collectionsRef, orderBy("createdAt", "desc"));
-      const snapshot = await getDocs(q);
-
-      console.log("Fetched collections count:", snapshot.docs.length);
-      console.log(
-        "Collections data:",
-        snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
-
-      return snapshot.docs.map((doc) => ({
+      const fetchedCollections = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
+        prompts: doc.data().prompts || [],
       }));
-    },
-    enabled: !!auth.currentUser,
-  });
 
-  // Create new collection
-  const createCollectionMutation = useMutation({
-    mutationFn: async ({ name, description }) => {
-      console.log("Starting collection creation...");
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        throw new Error("You must be logged in to create collections");
+      setCollections(fetchedCollections);
+    } catch (err) {
+      setError(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        fetchCollections();
+      } else {
+        setError({ message: "not-logged-in" });
+        setIsLoading(false);
+        setCollections([]);
       }
-      console.log("Current user ID:", currentUser.uid);
+    });
 
-      // Create the user document first if it doesn't exist
-      const userDocRef = doc(db, "users", currentUser.uid);
-      console.log("User document path:", userDocRef.path);
+    return () => unsubscribe();
+  }, []);
 
-      try {
-        await setDoc(
-          userDocRef,
-          {
-            email: currentUser.email,
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true }
-        );
-        console.log("User document created/updated");
+  const createCollection = async ({ name }, { onSuccess }) => {
+    setCreateCollectionLoading(true);
+    try {
+      const collectionsRef = collection(db, "collections");
+      const newCollection = {
+        name,
+        userId: auth.currentUser?.uid,
+        prompts: [],
+        createdAt: new Date().toISOString(),
+      };
 
-        // Then create the collection
-        const collectionsRef = collection(
-          db,
-          "users",
-          currentUser.uid,
-          "collections"
-        );
-        console.log("Creating collection at path:", collectionsRef.path);
+      const docRef = await addDoc(collectionsRef, newCollection);
+      const createdCollection = { id: docRef.id, ...newCollection };
 
-        const collectionData = {
-          name: name.trim(),
-          description: description.trim(),
-          createdAt: new Date().toISOString(),
-          promptCount: 0,
-          userId: currentUser.uid,
-        };
-        console.log("Collection data to save:", collectionData);
+      setCollections((prev) => [...prev, createdCollection]);
+      onSuccess?.(createdCollection);
+    } catch (err) {
+      setError(err);
+      throw err;
+    } finally {
+      setCreateCollectionLoading(false);
+    }
+  };
 
-        const newCollection = await addDoc(collectionsRef, collectionData);
-        console.log("Collection created with ID:", newCollection.id);
-        console.log("Full collection path:", newCollection.path);
-
-        return {
-          id: newCollection.id,
-          ...collectionData,
-        };
-      } catch (error) {
-        console.error("Error in collection creation:", error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      console.log("Mutation succeeded. New collection:", data);
-      queryClient.setQueryData(["collections"], (old = []) => [data, ...old]);
-    },
-    onError: (error) => {
-      console.error("Mutation failed:", error);
-    },
-  });
-
-  // Save prompt to collection
-  const saveToCollectionMutation = useMutation({
-    mutationFn: async ({ collectionId, promptId }) => {
-      console.log("Starting save to collection...");
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        throw new Error("You must be logged in to save to collections");
+  const updateCollection = async (
+    { id, name, description },
+    { onSuccess, onError }
+  ) => {
+    setUpdateCollectionLoading(true);
+    try {
+      if (!id || !name) {
+        throw new Error("Missing required fields for update");
       }
 
-      // Check if prompt already exists in collection
-      const promptsRef = collection(
-        db,
-        "users",
-        currentUser.uid,
-        "collections",
-        collectionId,
-        "prompts"
+      console.log("Updating collection in Firebase:", {
+        id,
+        name,
+        description,
+      }); // Debug log
+
+      const collectionRef = doc(db, "collections", id);
+      const updateData = {
+        name,
+        description: description || "",
+        updatedAt: new Date().toISOString(),
+      };
+
+      await updateDoc(collectionRef, updateData);
+
+      setCollections((prev) =>
+        prev.map((collection) =>
+          collection.id === id ? { ...collection, ...updateData } : collection
+        )
       );
 
-      const existingPromptsSnapshot = await getDocs(promptsRef);
-      const promptExists = existingPromptsSnapshot.docs.some(
-        (doc) => doc.data().promptId === promptId
+      console.log("Update successful"); // Debug log
+      onSuccess?.();
+    } catch (err) {
+      console.error("Update error:", err); // Debug log
+      onError?.(err);
+      setError(err);
+    } finally {
+      setUpdateCollectionLoading(false);
+    }
+  };
+
+  const deleteCollection = async ({ id }, { onSuccess, onError }) => {
+    setDeleteCollectionLoading(true);
+    try {
+      if (!id) {
+        throw new Error("Missing collection ID for deletion");
+      }
+
+      console.log("Deleting collection from Firebase:", id); // Debug log
+
+      const collectionRef = doc(db, "collections", id);
+      await deleteDoc(collectionRef);
+
+      setCollections((prev) =>
+        prev.filter((collection) => collection.id !== id)
       );
 
-      if (promptExists) {
+      console.log("Delete successful"); // Debug log
+      onSuccess?.();
+    } catch (err) {
+      console.error("Delete error:", err); // Debug log
+      onError?.(err);
+      setError(err);
+    } finally {
+      setDeleteCollectionLoading(false);
+    }
+  };
+
+  const saveToCollection = async (
+    { collectionId, promptId },
+    { onSuccess, onError }
+  ) => {
+    setSaveToCollectionLoading(true);
+    try {
+      const collectionRef = doc(db, "collections", collectionId);
+      const collection = collections.find((c) => c.id === collectionId);
+
+      if (!collection) throw new Error("Collection not found");
+
+      // Check for duplicate
+      if (collection.prompts?.some((p) => p.id === promptId)) {
         throw new Error("This prompt is already in this collection");
       }
 
-      // Add prompt to collection
-      await addDoc(promptsRef, {
-        promptId,
-        addedAt: new Date().toISOString(),
-      });
-
-      // Update prompt count
-      const collectionRef = doc(
-        db,
-        "users",
-        currentUser.uid,
-        "collections",
-        collectionId
-      );
+      // Add prompt to collection's prompts array
       await updateDoc(collectionRef, {
-        promptCount: increment(1),
+        prompts: [
+          ...(collection.prompts || []),
+          { id: promptId, addedAt: new Date().toISOString() },
+        ],
       });
 
-      return { collectionId, promptId };
-    },
-    onSuccess: (data, variables) => {
-      queryClient.setQueryData(["collections"], (old = []) =>
-        old.map((collection) =>
-          collection.id === variables.collectionId
-            ? { ...collection, promptCount: collection.promptCount + 1 }
-            : collection
+      // Update local state
+      setCollections((prev) =>
+        prev.map((c) =>
+          c.id === collectionId
+            ? {
+                ...c,
+                prompts: [
+                  ...(c.prompts || []),
+                  { id: promptId, addedAt: new Date().toISOString() },
+                ],
+              }
+            : c
         )
       );
-    },
-  });
+
+      onSuccess?.();
+    } catch (err) {
+      onError?.(err);
+    } finally {
+      setSaveToCollectionLoading(false);
+    }
+  };
 
   return {
     collections,
     isLoading,
     error,
-    createCollection: createCollectionMutation.mutateAsync,
-    createCollectionLoading: createCollectionMutation.isLoading,
-    createCollectionError: createCollectionMutation.error,
-    saveToCollection: saveToCollectionMutation.mutateAsync,
-    saveToCollectionLoading: saveToCollectionMutation.isLoading,
-    saveToCollectionError: saveToCollectionMutation.error,
+    createCollection,
+    createCollectionLoading,
+    saveToCollection,
+    saveToCollectionLoading,
+    updateCollection,
+    deleteCollection,
+    updateCollectionLoading,
+    deleteCollectionLoading,
   };
 };
