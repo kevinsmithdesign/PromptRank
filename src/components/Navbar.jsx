@@ -193,7 +193,10 @@ const Navbar = () => {
                     background: "#333",
                   },
                 }}
-                onClick={() => navigate("/main/profile")}
+                onClick={() => {
+                  navigate("/main/profile");
+                  handleProfileMenuClose(); // Close the menu after navigating
+                }}
               >
                 <ListItemIcon>
                   <LogoutIcon />

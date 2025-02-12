@@ -130,6 +130,12 @@ const AiToolsPage = () => {
         "DeepSeek is an advanced AI research assistant that helps users find and summarize complex topics efficiently.",
       url: "https://deepseek.com",
     },
+    {
+      title: "Readdy",
+      subTitle: "Update",
+      description: "Update",
+      url: "https://readdy.ai",
+    },
   ];
 
   return (
