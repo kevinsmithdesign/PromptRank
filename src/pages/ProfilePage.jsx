@@ -183,218 +183,90 @@ import {
 } from "@mui/material";
 import UserIcon from "../icons/UserIcon";
 import PromptCard from "../components/PromptCard";
+import EditProfile from "../components/EditProfile";
 
 const ProfilePage = () => {
+  const collections = [
+    { name: "Collection Title", promptCount: 3 },
+    { name: "Collection Title", promptCount: 2 },
+    { name: "Collection Title", promptCount: 6 },
+    { name: "Collection Title", promptCount: 3 },
+    { name: "Collection Title", promptCount: 2 },
+    { name: "Collection Title", promptCount: 6 },
+  ];
+
   return (
     <>
-      <Grid container alignItems="flex-end" mb={2} spacing={3}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Stack>
-            <Typography variant="h4" fontWeight="bold">
-              Prompts
-            </Typography>
-            <Typography variant="body1">Prompts you created</Typography>
-          </Stack>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          {/* <Stack flexDirection="row" justifyContent="flex-end" spacing={2}>
-            <Button
-              variant="contained"
-              onClick={() => setRatingDialogOpen(true)}
-            >
-              asdf
-            </Button>
-          </Stack> */}
-        </Grid>
-      </Grid>
-      <PromptCard />
-      <Grid container alignItems="flex-end" mb={2} spacing={3}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Stack>
-            <Typography variant="h4" fontWeight="bold" mb={1}>
-              Collections
-            </Typography>
-            <Typography variant="body1" mb={0.5}>
-              Collections you've created
-            </Typography>
-          </Stack>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          {/* <Stack flexDirection="row" justifyContent="flex-end" spacing={2}>
-            <Button
-              variant="contained"
-              onClick={() => setRatingDialogOpen(true)}
-            >
-              asdf
-            </Button>
-          </Stack> */}
-        </Grid>
-      </Grid>
-      <Grid container mb={3} spacing={3}>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
-            <Typography variant="h6" color="#fff" fontWeight="bold">
-              Collection Title
-            </Typography>
-            <Typography>Prompt #</Typography>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
-            <Typography variant="h6" color="#fff" fontWeight="bold">
-              Collection Title
-            </Typography>
-            <Typography>Prompt #</Typography>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
-            <Typography variant="h6" color="#fff" fontWeight="bold">
-              Collection Title
-            </Typography>
-            <Typography>Prompt #</Typography>
-          </Card>
-        </Grid>
-      </Grid>
-      <Grid container alignItems="flex-end" mb={2} spacing={3}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Stack>
-            <Typography variant="h4" fontWeight="bold">
-              Edit Profile
-            </Typography>
-          </Stack>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}></Grid>
-      </Grid>
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
-            <Box
-              sx={{
-                height: "100px",
-                width: "100px",
-                borderRadius: "50%",
-                background: "#999",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                mx: "auto",
-                mb: 1,
-              }}
-            >
-              <UserIcon />
-            </Box>
-            <Box sx={{ textAlign: "center", mb: 4 }}>
-              <Typography variant="h6" color="#fff" fontWeight="bold">
-                Username
-              </Typography>
-              <Typography>email@gmail.com</Typography>
-            </Box>
-            <Stack>
-              <Button variant="contained">Update Profile Picture</Button>
-            </Stack>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Card>
-            <Typography color="#fff" mb={3} variant="h5" fontWeight="bold">
-              Personal Information
-            </Typography>
-            <Grid container spacing={4} mb={4}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Typography fontWeight="bold" mb={0.5}>
-                  First Name
-                </Typography>
-                <TextField
-                  placeholder="First Name"
-                  fullWidth
-                  required
-                  // value={newPromptTitle}
-                  // onChange={(e) => setNewPromptTitle(e.target.value)}
-                  // error={!!addFormErrors.title}
-                  // helperText={addFormErrors.title}
-                  // FormHelperTextProps={{
-                  //   sx: { color: "error.main" },
-                  // }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Typography fontWeight="bold" mb={0.5}>
-                  Last Name
-                </Typography>
-                <TextField
-                  placeholder="Last Name"
-                  fullWidth
-                  required
-                  // value={newPromptTitle}
-                  // onChange={(e) => setNewPromptTitle(e.target.value)}
-                  // error={!!addFormErrors.title}
-                  // helperText={addFormErrors.title}
-                  // FormHelperTextProps={{
-                  //   sx: { color: "error.main" },
-                  // }}
-                />
-              </Grid>
-            </Grid>
-            <Grid container spacing={4} mb={4}>
-              <Grid size={{ xs: 12, md: 7 }}>
-                <Typography fontWeight="bold" mb={0.5}>
-                  Email
-                </Typography>
-                <TextField
-                  placeholder="Last Name"
-                  fullWidth
-                  required
-                  // value={newPromptTitle}
-                  // onChange={(e) => setNewPromptTitle(e.target.value)}
-                  // error={!!addFormErrors.title}
-                  // helperText={addFormErrors.title}
-                  // FormHelperTextProps={{
-                  //   sx: { color: "error.main" },
-                  // }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 5 }}>
-                <Typography fontWeight="bold" mb={0.5}>
-                  Phone
-                </Typography>
-                <TextField
-                  placeholder="Last Name"
-                  fullWidth
-                  required
-                  // value={newPromptTitle}
-                  // onChange={(e) => setNewPromptTitle(e.target.value)}
-                  // error={!!addFormErrors.title}
-                  // helperText={addFormErrors.title}
-                  // FormHelperTextProps={{
-                  //   sx: { color: "error.main" },
-                  // }}
-                />
-              </Grid>
-            </Grid>
-            <Grid container spacing={4} mb={4}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Typography fontWeight="bold" mb={0.5}>
+      <Typography variant="h4" fontWeight="bold" mb={1}>
+        Profile
+      </Typography>
+      <Card sx={{ mb: 4 }}>
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Box
+                sx={{
+                  height: "100px",
+                  width: "100px",
+                  borderRadius: "50%",
+                  background: "#999",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mr: 2,
+                }}
+              >
+                <UserIcon />
+              </Box>
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography variant="h5" color="#fff" fontWeight="bold">
                   Username
                 </Typography>
-                <TextField
-                  placeholder="Username"
-                  fullWidth
-                  required
-                  // value={newPromptTitle}
-                  // onChange={(e) => setNewPromptTitle(e.target.value)}
-                  // error={!!addFormErrors.title}
-                  // helperText={addFormErrors.title}
-                  // FormHelperTextProps={{
-                  //   sx: { color: "error.main" },
-                  // }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}></Grid>
-            </Grid>
-          </Card>
+                <Typography variant="h6" color="white">
+                  email@gmail.com
+                </Typography>
+              </Box>
+            </Box>
+          </Grid>
+          <Grid
+            size={{ xs: 12, md: 6 }}
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
+          >
+            <Box>
+              <Button variant="contained">Edit Profile</Button>
+            </Box>
+          </Grid>
         </Grid>
+      </Card>
+
+      {/* <EditProfile />  */}
+
+      <Typography variant="h4" fontWeight="bold" mb={1}>
+        Collections
+      </Typography>
+
+      <Grid container mb={4} spacing={3}>
+        {collections.map(({ name, promptCount }) => (
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Card>
+              <Typography variant="h6" color="#fff" fontWeight="bold">
+                Collection Title
+              </Typography>
+              <Typography>Prompt #</Typography>
+            </Card>
+          </Grid>
+        ))}
       </Grid>
+
+      <Typography variant="h4" fontWeight="bold" mb={1}>
+        Prompts
+      </Typography>
+
+      <PromptCard />
     </>
   );
 };
