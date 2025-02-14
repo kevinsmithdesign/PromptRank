@@ -1,173 +1,4 @@
-// import React, { useState, useEffect } from "react";
-// import {
-//   Box,
-//   Typography,
-//   Card,
-//   CardContent,
-//   Stack,
-//   CircularProgress,
-//   Button,
-// } from "@mui/material";
-// import Grid from "@mui/material/Grid2";
-// import FolderIcon from "@mui/icons-material/Folder";
-// import AddIcon from "@mui/icons-material/Add";
-// import { db, auth } from "../../config/firebase";
-// import { getDocs, collection, query, orderBy } from "firebase/firestore";
-
-// const ProfilePage = () => {
-//   const [collections, setCollections] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-
-//   useEffect(() => {
-//     fetchCollections();
-//   }, []);
-
-//   const fetchCollections = async () => {
-//     try {
-//       setLoading(true);
-//       setError(null);
-
-//       const currentUser = auth.currentUser;
-//       if (!currentUser) {
-//         throw new Error("You must be logged in to view collections");
-//       }
-
-//       const collectionsRef = collection(
-//         db,
-//         "users",
-//         currentUser.uid,
-//         "collections"
-//       );
-//       const q = query(collectionsRef, orderBy("createdAt", "desc"));
-//       const snapshot = await getDocs(q);
-
-//       const collectionsData = snapshot.docs.map((doc) => ({
-//         id: doc.id,
-//         ...doc.data(),
-//       }));
-
-//       setCollections(collectionsData);
-//     } catch (err) {
-//       setError(err.message);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleCreateCollection = () => {
-//     // Implement collection creation logic or navigation
-//   };
-
-//   return (
-//     <>
-//       <Box
-//         sx={{
-//           mb: 2,
-//           display: "flex",
-//           justifyContent: "space-between",
-//           alignItems: "flex-end",
-//         }}
-//       >
-//         <Typography variant="h4" fontWeight="bold">
-//           Profile
-//         </Typography>
-//       </Box>
-
-//       <Card sx={{ mb: 3, p: 3 }}>
-//         <Box>Profile Img</Box>
-//         <Box>Profile Name</Box>
-//         <Box>Profile Username</Box>
-//         <Box>How many you've Rated</Box>
-//         <Box>Ratings Overview</Box>
-//         <Box>Reviews</Box>
-//         <Box>Followers</Box>
-//         <Box>Following</Box>
-//         <Box>Edit Profile Button</Box>
-//       </Card>
-
-//       <Box
-//         sx={{
-//           mb: 3,
-//           display: "flex",
-//           justifyContent: "space-between",
-//           alignItems: "center",
-//         }}
-//       >
-//         <Typography variant="h4" fontWeight="bold">
-//           Prompt Collections
-//         </Typography>
-//       </Box>
-
-//       {loading ? (
-//         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-//           <CircularProgress />
-//         </Box>
-//       ) : error ? (
-//         <Typography color="error" sx={{ textAlign: "center", py: 4 }}>
-//           {error}
-//         </Typography>
-//       ) : collections.length === 0 ? (
-//         <Card sx={{ textAlign: "center", py: 6 }}>
-//           <Typography sx={{ mb: 2 }}>
-//             You haven't created any collections yet
-//           </Typography>
-//           <Button
-//             variant="contained"
-//             startIcon={<AddIcon />}
-//             onClick={handleCreateCollection}
-//           >
-//             Create Your First Collection
-//           </Button>
-//         </Card>
-//       ) : (
-//         <Grid container spacing={3}>
-//           {collections.map((collection) => (
-//             <Grid size={{ xs: 6 }} key={collection.id}>
-//               <Card
-//                 sx={{
-//                   height: "100%",
-//                   cursor: "pointer",
-//                   transition: "transform 0.2s, box-shadow 0.2s",
-//                   "&:hover": {
-//                     transform: "translateY(-4px)",
-//                     boxShadow: (theme) => theme.shadows[4],
-//                   },
-//                 }}
-//               >
-//                 <CardContent>
-//                   <Stack spacing={2}>
-//                     <Stack direction="row" spacing={2} alignItems="center">
-//                       <FolderIcon
-//                         sx={{ color: "primary.main", fontSize: 40 }}
-//                       />
-//                       <Box>
-//                         <Typography variant="h6" sx={{ mb: 0.5 }}>
-//                           {collection.name}
-//                         </Typography>
-//                         <Typography variant="body2" color="text.secondary">
-//                           {collection.promptCount} prompts
-//                         </Typography>
-//                       </Box>
-//                     </Stack>
-//                     {collection.description && (
-//                       <Typography variant="body2" color="text.secondary">
-//                         {collection.description}
-//                       </Typography>
-//                     )}
-//                   </Stack>
-//                 </CardContent>
-//               </Card>
-//             </Grid>
-//           ))}
-//         </Grid>
-//       )}
-//     </>
-//   );
-// };
-
-// export default ProfilePage;
-
+import { useState } from "react";
 import Grid from "@mui/material/Grid2";
 import {
   Container,
@@ -180,20 +11,62 @@ import {
   Alert,
   Box,
   TextField,
+  Dialog,
+  useTheme,
 } from "@mui/material";
 import UserIcon from "../icons/UserIcon";
 import PromptCard from "../components/PromptCard";
-import EditProfile from "../components/EditProfile";
+import { useCollections } from "../hooks/useCollections";
+import { useUserPrompts } from "../hooks/useUserPrompts";
+import { useUser } from "../hooks/useUser";
+import { auth } from "../../config/firebase";
+import { useNavigate } from "react-router-dom";
 
 const ProfilePage = () => {
-  const collections = [
-    { name: "Collection Title", promptCount: 3 },
-    { name: "Collection Title", promptCount: 2 },
-    { name: "Collection Title", promptCount: 6 },
-    { name: "Collection Title", promptCount: 3 },
-    { name: "Collection Title", promptCount: 2 },
-    { name: "Collection Title", promptCount: 6 },
-  ];
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const navigate = useNavigate();
+  const userId = auth.currentUser?.uid;
+
+  const {
+    user,
+    isLoading: userLoading,
+    error: userError,
+    updateUser,
+  } = useUser(userId);
+
+  const {
+    collections,
+    isLoading: collectionsLoading,
+    error: collectionsError,
+  } = useCollections();
+
+  // const {
+  //   data: prompts,
+  //   isLoading: promptsLoading,
+  //   error: promptsError,
+  // } = useUserPrompts(userId);
+
+  const theme = useTheme();
+
+  const {
+    data: prompts,
+    isLoading: promptsLoading,
+    error: promptsError,
+  } = useUserPrompts(userId);
+
+  if (!userId) {
+    return (
+      <Alert severity="warning">Please log in to view your profile.</Alert>
+    );
+  }
+
+  if (userLoading || collectionsLoading || promptsLoading) {
+    return <Typography>Loading...</Typography>;
+  }
+
+  if (userError || collectionsError || promptsError) {
+    return <Alert severity="error">Error loading profile data</Alert>;
+  }
 
   return (
     <>
@@ -220,10 +93,10 @@ const ProfilePage = () => {
               </Box>
               <Box sx={{ flexGrow: 1 }}>
                 <Typography variant="h5" color="#fff" fontWeight="bold">
-                  Username
+                  {user?.displayName || "Username"}
                 </Typography>
                 <Typography variant="h6" color="white">
-                  email@gmail.com
+                  {user?.email || "email@gmail.com"}
                 </Typography>
               </Box>
             </Box>
@@ -237,26 +110,43 @@ const ProfilePage = () => {
             }}
           >
             <Box>
-              <Button variant="contained">Edit Profile</Button>
+              <Button
+                variant="contained"
+                onClick={() => setIsEditDialogOpen(true)}
+              >
+                Edit Profile
+              </Button>
             </Box>
           </Grid>
         </Grid>
       </Card>
 
-      {/* <EditProfile />  */}
+      <EditProfileDialog
+        open={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        user={user}
+        updateUser={updateUser}
+      />
 
       <Typography variant="h4" fontWeight="bold" mb={1}>
         Collections
       </Typography>
 
       <Grid container mb={4} spacing={3}>
-        {collections.map(({ name, promptCount }) => (
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Card>
-              <Typography variant="h6" color="#fff" fontWeight="bold">
-                Collection Title
-              </Typography>
-              <Typography>Prompt #</Typography>
+        {collections.map((collection) => (
+          <Grid key={collection.id} size={{ xs: 12, md: 6 }}>
+            <Card
+              onClick={() => navigate(`/collections/${collection.id}`)}
+              sx={{ cursor: "pointer" }}
+            >
+              <CardContent>
+                <Typography variant="h6" color="#fff" fontWeight="bold">
+                  {collection.name}
+                </Typography>
+                <Typography>
+                  {collection.prompts?.length || 0} Prompts
+                </Typography>
+              </CardContent>
             </Card>
           </Grid>
         ))}
@@ -266,8 +156,98 @@ const ProfilePage = () => {
         Prompts
       </Typography>
 
-      <PromptCard />
+      {promptsLoading ? (
+        <Typography>Loading prompts...</Typography>
+      ) : promptsError ? (
+        <Alert severity="error">
+          Error loading prompts: {promptsError.message}
+        </Alert>
+      ) : prompts?.length === 0 ? (
+        <Typography>No prompts created yet.</Typography>
+      ) : (
+        <PromptCard
+          loading={promptsLoading}
+          promptList={prompts || []}
+          filteredPrompts={[]}
+          searchQuery=""
+          selectedCategory=""
+          handleMenuOpen={() => {}}
+          handleMenuClose={() => {}}
+          menuAnchorEl={null}
+          selectedPromptId={null}
+          handleEditClick={() => {}}
+          handleDeleteClick={() => {}}
+          handleSavePrompt={() => {}}
+          auth={auth}
+          navigate={navigate}
+          theme={theme}
+        />
+      )}
     </>
+  );
+};
+
+// EditProfileDialog component
+const EditProfileDialog = ({ open, onClose, user, updateUser }) => {
+  const [formData, setFormData] = useState({
+    displayName: user?.displayName || "",
+    email: user?.email || "",
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await updateUser.mutateAsync(formData);
+      onClose();
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h6" mb={2}>
+          Edit Profile
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <Stack spacing={2}>
+            <TextField
+              label="Display Name"
+              value={formData.displayName}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  displayName: e.target.value,
+                }))
+              }
+              fullWidth
+            />
+            <TextField
+              label="Email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  email: e.target.value,
+                }))
+              }
+              fullWidth
+            />
+            <Stack direction="row" spacing={2} justifyContent="flex-end">
+              <Button onClick={onClose}>Cancel</Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={updateUser.isLoading}
+              >
+                {updateUser.isLoading ? "Saving..." : "Save"}
+              </Button>
+            </Stack>
+          </Stack>
+        </form>
+      </Box>
+    </Dialog>
   );
 };
 

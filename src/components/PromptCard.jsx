@@ -7,21 +7,12 @@ import {
   Typography,
   Stack,
   Box,
-  Menu,
-  MenuItem,
   Skeleton,
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
-import StarBorderIcon from "@mui/icons-material/StarBorder";
 import { useTheme } from "@mui/material/styles";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 
-import EditIcon from "../icons/EditIcon";
-import DeleteIcon from "../icons/DeleteIcon";
-import SaveIcon from "../icons/SaveIcon";
-import EyeIcon from "../icons/EyeIcon";
 import NoResultsMessage from "./NoResultsMessage";
-import CopyIcon from "../icons/CopyIcon";
 
 const PromptCard = ({
   loading = false, // New loading prop
@@ -123,27 +114,7 @@ const PromptCard = ({
                           {prompt.totalRatings === 1 ? "review" : "reviews"})
                         </Typography>
                       )}
-                      <Stack>
-                        {/* <Box
-                          onClick={(e) => handleMenuOpen(e, prompt.id)}
-                          sx={{
-                            display: "inline-flex",
-                            cursor: "pointer",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: "40px",
-                            height: "40px",
-                            borderRadius: "50%",
-                            transition: "background-color 0.3s ease",
-                            backgroundColor: "transparent",
-                            "&:hover": {
-                              backgroundColor: "rgba(255, 255, 255, 0.1)",
-                            },
-                          }}
-                        >
-                          <MoreVertIcon sx={{ color: "white" }} />
-                        </Box> */}
-                      </Stack>
+                      <Stack></Stack>
                     </Stack>
                     {prompt.category && (
                       <Typography
@@ -195,88 +166,6 @@ const PromptCard = ({
           selectedCategory={selectedCategory}
         />
       )}
-      {/* Menu */}
-      {/* <Menu
-        anchorEl={menuAnchorEl}
-        open={Boolean(menuAnchorEl)}
-        onClose={handleMenuClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-        PaperProps={{
-          sx: {
-            backgroundColor: "#222",
-            color: "white",
-            minWidth: "120px",
-          },
-        }}
-      >
-        {selectedPromptId &&
-        promptList.find((p) => p.id === selectedPromptId)?.authorId ===
-          auth?.currentUser?.uid ? (
-          <>
-            <MenuItem
-              onClick={() =>
-                handleEditClick(
-                  promptList.find((p) => p.id === selectedPromptId)
-                )
-              }
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                "&:hover": {
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                },
-              }}
-            >
-              <EditIcon />
-              Edit
-            </MenuItem>
-            <MenuItem
-              onClick={() => handleDeleteClick(selectedPromptId)}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                color: "#ff4444",
-                "&:hover": {
-                  backgroundColor: "rgba(255, 0, 0, 0.1)",
-                },
-              }}
-            >
-              <DeleteIcon />
-              Delete
-            </MenuItem>
-          </>
-        ) : (
-          <>
-            <MenuItem sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <CopyIcon />
-              Copy Prompt
-            </MenuItem>
-            <MenuItem
-              onClick={() => navigate(`/main/prompts/${selectedPromptId}`)}
-              sx={{ display: "flex", alignItems: "center", gap: 1 }}
-            >
-              <StarBorderIcon />
-              Rank Prompt
-            </MenuItem>
-            <MenuItem
-              onClick={() => handleSavePrompt(selectedPromptId)}
-              sx={{ display: "flex", alignItems: "center", gap: 1 }}
-            >
-              <SaveIcon />
-              Save Prompt
-            </MenuItem>
-          </>
-        )}
-      </Menu> */}
     </>
   );
 };
