@@ -211,6 +211,7 @@ import MainPage from "./pages/MainPage";
 import PromptDetail from "./pages/PromptDetails";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
+import CollectionDetailsPage from "./pages/CollectionDetailsPage";
 
 // Lazy-loaded components
 const PromptsPage = lazy(() => import("./pages/PromptsPage"));
@@ -267,6 +268,8 @@ function App() {
               }
             />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="collections/:id" element={<CollectionDetailsPage />} />
+
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
