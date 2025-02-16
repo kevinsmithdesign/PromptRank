@@ -11,6 +11,7 @@ import {
   Dialog,
   Stack,
   TextField,
+  IconButton,
   useTheme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -18,6 +19,7 @@ import { useCollections } from "../hooks/useCollections";
 import { usePrompts } from "../hooks/usePrompts";
 import PromptCard from "../components/PromptCard";
 import { auth } from "../../config/firebase";
+import BackIcon from "../icons/BackIcon";
 
 const CollectionDetailsPage = () => {
   const { id } = useParams();
@@ -59,10 +61,10 @@ const CollectionDetailsPage = () => {
   };
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Button startIcon={<ArrowBackIcon />} onClick={handleBack} sx={{ mb: 2 }}>
+    <Box>
+      {/* <Button startIcon={<ArrowBackIcon />} onClick={handleBack} sx={{ mb: 2 }}>
         Back to Profile
-      </Button>
+      </Button> */}
 
       <Typography variant="h4" fontWeight="bold" mb={2}>
         {collection.name}
@@ -70,6 +72,20 @@ const CollectionDetailsPage = () => {
 
       <Card sx={{ mb: 4 }}>
         <CardContent>
+          <Box display="flex" flexDirection="row" sx={{ mb: 2 }}>
+            <Box sx={{ flex: 1 }}>
+              <IconButton
+                onClick={() => navigate(-1)}
+                sx={{
+                  background: "#444",
+                  p: 2,
+                  "&:hover": { background: "#333" },
+                }}
+              >
+                <BackIcon />
+              </IconButton>
+            </Box>
+          </Box>
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="h6" color="#fff" fontWeight="bold">
