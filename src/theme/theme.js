@@ -165,6 +165,28 @@ const theme = createTheme({
     //     },
     //   },
     // },
+
+    MuiCheckbox: {
+      styleOverrides: {
+        root: {
+          color: "rgba(255, 255, 255, 0.7)",
+          "&.Mui-checked": {
+            color: "#1976d2",
+          },
+          "&:hover": {
+            backgroundColor: "rgba(25, 118, 210, 0.08)",
+          },
+        },
+      },
+    },
+    MuiFormControlLabel: {
+      styleOverrides: {
+        label: {
+          color: "rgba(255, 255, 255, 0.7)",
+        },
+      },
+    },
+
     MuiCard: {
       styleOverrides: {
         root: {

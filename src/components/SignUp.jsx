@@ -10,11 +10,18 @@ import {
   InputAdornment,
   IconButton,
   Button,
+  FormControlLabel,
+  Checkbox,
+  Link,
+  Tooltip,
+  Dialog,
+  DialogContent,
+  FormHelperText,
 } from "@mui/material";
-// import { LoadingButton } from "../components/LoadingButton";
 import { Google as GoogleIcon } from "@mui/icons-material";
 import EyeIcon from "../icons/EyeIcon";
 import HidePasswordIcon from "../icons/HidePasswordIcon";
+import TermsAndConditions from "./TermsAndConditions";
 
 export function SignUp() {
   const navigate = useNavigate();
@@ -27,9 +34,67 @@ export function SignUp() {
     confirmPassword: "",
     userName: "",
   });
+
+  // Validation states
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false,
+    confirmPassword: false,
+    userName: false,
+  });
+
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    userName: "",
+  });
+
   const [formError, setFormError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsModalOpen, setTermsModalOpen] = useState(false);
+
+  // Validation rules
+  const validateField = (name, value) => {
+    let error = "";
+    switch (name) {
+      case "email":
+        if (!value) {
+          error = "Email is required";
+        } else if (!/\S+@\S+\.\S+/.test(value)) {
+          error = "Please enter a valid email address";
+        }
+        break;
+      case "password":
+        if (!value) {
+          error = "Password is required";
+        } else if (value.length < 6) {
+          error = "Password must be at least 6 characters long";
+        }
+        break;
+      case "confirmPassword":
+        if (!value) {
+          error = "Please confirm your password";
+        } else if (value !== formData.password) {
+          error = "Passwords do not match";
+        }
+        break;
+      default:
+        break;
+    }
+    return error;
+  };
+
+  // Handle blur events
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    setTouched((prev) => ({
+      ...prev,
+      [name]: true,
+    }));
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -37,38 +102,91 @@ export function SignUp() {
       ...prev,
       [name]: value,
     }));
+
+    // Validate on change if field has been touched
+    if (touched[name]) {
+      const error = validateField(name, value);
+      setErrors((prev) => ({
+        ...prev,
+        [name]: error,
+      }));
+    }
+
     setFormError("");
   };
 
   const validateForm = () => {
-    if (!formData.email || !formData.password || !formData.confirmPassword) {
-      setFormError("Please fill in all required fields");
-      return false;
+    // Mark all fields as touched first
+    setTouched({
+      email: true,
+      password: true,
+      confirmPassword: true,
+      userName: true,
+    });
+
+    const newErrors = {};
+    let isValid = true;
+
+    // Required fields check
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    }
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+      isValid = false;
+    }
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Confirm password is required";
+      isValid = false;
     }
 
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      setFormError("Please enter a valid email address");
-      return false;
+    // If we have required fields, do additional validation
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+      isValid = false;
     }
 
-    if (formData.password.length < 6) {
-      setFormError("Password must be at least 6 characters long");
-      return false;
+    if (formData.password && formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters long";
+      isValid = false;
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      setFormError("Passwords do not match");
-      return false;
+    if (
+      formData.confirmPassword &&
+      formData.password !== formData.confirmPassword
+    ) {
+      newErrors.confirmPassword = "Passwords do not match";
+      isValid = false;
     }
 
-    return true;
+    // Check terms acceptance
+    if (!termsAccepted) {
+      setFormError("You must accept the Terms and Conditions to continue");
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+
+    // If we have any errors, set a general form error
+    if (!isValid) {
+      setFormError("Please fill in all required fields correctly");
+    }
+
+    return isValid;
   };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
     setFormError("");
+    setErrors({}); // Clear previous errors
 
-    if (!validateForm()) return;
+    // Run validation
+    if (!validateForm()) {
+      // Scroll to the top where the error message is displayed
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
 
     try {
       await signup({
@@ -79,17 +197,32 @@ export function SignUp() {
     } catch (error) {
       setFormError(error.message);
       console.error("Signup error:", error);
+      // Scroll to the error message
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const handleGoogleSignIn = async () => {
     setFormError("");
+    if (!termsAccepted) {
+      setFormError("You must accept the Terms and Conditions to continue");
+      return;
+    }
     try {
       await signInWithGoogle();
     } catch (error) {
       setFormError(error.message);
       console.error("Google sign-in error:", error);
     }
+  };
+
+  const handleTermsClick = (e) => {
+    e.preventDefault();
+    setTermsModalOpen(true);
+  };
+
+  const handleCloseTermsModal = () => {
+    setTermsModalOpen(false);
   };
 
   return (
@@ -111,16 +244,27 @@ export function SignUp() {
 
       {/* Google Sign-up Button */}
       <Stack mb={3}>
-        <Button
-          variant="outlined"
-          color="secondary"
-          onClick={handleGoogleSignIn}
-          fullWidth
-          loading={loading}
-          startIcon={<GoogleIcon />}
+        <Tooltip
+          title={
+            !termsAccepted
+              ? "Please accept the Terms and Conditions to continue"
+              : ""
+          }
+          arrow
         >
-          Sign Up with Google
-        </Button>
+          <span>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleGoogleSignIn}
+              fullWidth
+              disabled={loading || !termsAccepted}
+              startIcon={<GoogleIcon />}
+            >
+              Sign Up with Google
+            </Button>
+          </span>
+        </Tooltip>
       </Stack>
 
       {/* Divider */}
@@ -159,6 +303,7 @@ export function SignUp() {
             fullWidth
             value={formData.userName}
             onChange={handleInputChange}
+            onBlur={handleBlur}
             disabled={loading}
           />
         </Stack>
@@ -175,7 +320,9 @@ export function SignUp() {
             type="email"
             value={formData.email}
             onChange={handleInputChange}
-            error={!!formError && formError.includes("email")}
+            onBlur={handleBlur}
+            error={touched.email && !!errors.email}
+            helperText={touched.email && errors.email}
             disabled={loading}
           />
         </Stack>
@@ -192,7 +339,9 @@ export function SignUp() {
             required
             value={formData.password}
             onChange={handleInputChange}
-            error={!!formError && formError.includes("password")}
+            onBlur={handleBlur}
+            error={touched.password && !!errors.password}
+            helperText={touched.password && errors.password}
             disabled={loading}
             InputProps={{
               endAdornment: (
@@ -208,8 +357,13 @@ export function SignUp() {
               ),
             }}
           />
+          {!errors.password && (
+            <FormHelperText>
+              Password must be at least 6 characters long
+            </FormHelperText>
+          )}
         </Stack>
-        <Stack mb={4}>
+        <Stack mb={3}>
           <Typography fontWeight="bold" mb={0.5}>
             Confirm Password*
           </Typography>
@@ -222,7 +376,9 @@ export function SignUp() {
             required
             value={formData.confirmPassword}
             onChange={handleInputChange}
-            error={!!formError && formError.includes("match")}
+            onBlur={handleBlur}
+            error={touched.confirmPassword && !!errors.confirmPassword}
+            helperText={touched.confirmPassword && errors.confirmPassword}
             disabled={loading}
             InputProps={{
               endAdornment: (
@@ -239,15 +395,53 @@ export function SignUp() {
             }}
           />
         </Stack>
-        <Button
-          variant="contained"
-          color="primary"
-          type="submit"
-          fullWidth
-          loading={loading}
+
+        {/* Terms and Conditions Checkbox */}
+        <Stack mb={1}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                color="primary"
+                disabled={loading}
+              />
+            }
+            label={
+              <Typography variant="body2">
+                I agree to the{" "}
+                <Link
+                  href="#"
+                  onClick={handleTermsClick}
+                  sx={{ textDecoration: "underline" }}
+                >
+                  Terms and Conditions
+                </Link>
+              </Typography>
+            }
+          />
+        </Stack>
+
+        <Tooltip
+          title={
+            !termsAccepted
+              ? "Please accept the Terms and Conditions to continue"
+              : ""
+          }
+          arrow
         >
-          Sign Up
-        </Button>
+          <span>
+            <Button
+              variant="contained"
+              color="primary"
+              type="submit"
+              fullWidth
+              disabled={loading || !termsAccepted}
+            >
+              Sign Up
+            </Button>
+          </span>
+        </Tooltip>
         <Box
           sx={{
             display: "flex",
@@ -274,6 +468,12 @@ export function SignUp() {
           </Box>
         </Box>
       </Stack>
+
+      {/* Terms and Conditions Dialog */}
+      <TermsAndConditions
+        termsModalOpen={termsModalOpen}
+        handleCloseTermsModal={handleCloseTermsModal}
+      />
     </Box>
   );
 }
