@@ -132,8 +132,9 @@ const AiToolsPage = () => {
     },
     {
       title: "Readdy",
-      subTitle: "Update",
-      description: "Update",
+      subTitle: "AI Design Generator",
+      description:
+        "AI-powered platform that transforms ideas into beautiful design with code in seconds, helping users create designs through advanced AI technology.",
       url: "https://readdy.ai",
     },
   ];

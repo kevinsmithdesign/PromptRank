@@ -15,6 +15,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "../icons/LogoutIcon";
 import HamburgerMenu from "./HamburgerMenu";
+import ProfileIcon from "../icons/ProfileIcon";
 
 const navLinks = [
   { label: "Prompts", path: "/main/prompts" },
@@ -199,7 +200,7 @@ const Navbar = () => {
                 }}
               >
                 <ListItemIcon>
-                  <LogoutIcon />
+                  <ProfileIcon />
                 </ListItemIcon>
                 <ListItemText>Profile</ListItemText>
               </MenuItem>

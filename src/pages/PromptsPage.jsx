@@ -214,7 +214,7 @@ function PromptsPage() {
       </Box>
 
       <Typography variant="body1" mb={2}>
-        Add prompts, rank prompts, and learn about AI tools.
+        Add prompts, rank prompts, create collections, and learn about AI tools.
       </Typography>
 
       {/* Search and Add Section */}
