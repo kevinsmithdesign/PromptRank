@@ -24,6 +24,8 @@ import {
   orderBy,
   increment,
   where,
+  getDoc,
+  arrayUnion,
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 
@@ -35,8 +37,17 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
   const [editText, setEditText] = useState(data.text);
 
   const timeAgo = data.timestamp
-    ? Math.floor((new Date() - new Date(data.timestamp.toDate())) / 60000) +
-      "m ago"
+    ? (() => {
+        const now = new Date();
+        const date = new Date(data.timestamp.toDate());
+        const diffInMinutes = Math.floor((now - date) / 60000);
+
+        if (diffInMinutes < 1) return "just now";
+        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+        if (diffInMinutes < 1440)
+          return `${Math.floor(diffInMinutes / 60)}h ago`;
+        return `${Math.floor(diffInMinutes / 1440)}d ago`;
+      })()
     : "just now";
 
   const getAvatarText = () => {
@@ -46,6 +57,7 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
   };
 
   const isAuthor = currentUser && currentUser.uid === data.userId;
+  const hasUserLiked = data.likedBy?.includes(currentUser?.uid);
 
   return (
     <Box sx={{ marginBottom: 1, marginLeft: data.parentId === "root" ? 0 : 4 }}>
@@ -103,13 +115,13 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
             )}
             <IconButton
               size="small"
-              onClick={() => currentUser && onLike(data.id)}
-              disabled={!currentUser}
+              onClick={() => currentUser && !hasUserLiked && onLike(data.id)}
+              disabled={!currentUser || hasUserLiked}
             >
               <ThumbUpAltIcon
                 sx={{
                   fontSize: "1rem",
-                  color: data.likes > 0 ? "blue" : "gray",
+                  color: hasUserLiked ? "blue" : "gray",
                 }}
               />
             </IconButton>
@@ -278,13 +290,14 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
         ratingId,
         timestamp: serverTimestamp(),
         likes: 0,
+        likedBy: [],
         userId: currentUser.uid,
         userEmail: currentUser.email,
         userDisplayName: currentUser.displayName,
         userPhotoURL: currentUser.photoURL,
       };
 
-      const docRef = await addDoc(collection(db, "comments"), commentData);
+      await addDoc(collection(db, "comments"), commentData);
     } catch (error) {
       console.error("Error adding comment:", error);
     }
@@ -319,8 +332,18 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
 
     try {
       const commentRef = doc(db, "comments", commentId);
+      const commentSnap = await getDoc(commentRef);
+
+      if (!commentSnap.exists()) return;
+
+      // Check if user has already liked this comment
+      const likedBy = commentSnap.data().likedBy || [];
+      if (likedBy.includes(currentUser.uid)) return;
+
+      // Add user to likedBy array and increment likes count
       await updateDoc(commentRef, {
         likes: increment(1),
+        likedBy: arrayUnion(currentUser.uid),
       });
     } catch (error) {
       console.error("Error liking comment:", error);
