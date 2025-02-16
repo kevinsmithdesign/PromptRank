@@ -31,6 +31,7 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
   const [duplicateError, setDuplicateError] = useState("");
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [activeCollectionId, setActiveCollectionId] = useState(null);
+  const [localPromptCounts, setLocalPromptCounts] = useState({});
 
   // Collection form states
   const [collectionName, setCollectionName] = useState("");
@@ -64,7 +65,28 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
   };
 
   const handleCollectionSelect = (collectionId) => {
+    // Check if prompt already exists in collection
+    const selectedCollectionData = collections.find(
+      (c) => c.id === collectionId
+    );
+    const isDuplicate = selectedCollectionData?.prompts?.some(
+      (p) => p.id === promptId
+    );
+
+    if (isDuplicate) {
+      setDuplicateError("This prompt is already in the selected collection");
+      setTimeout(() => {
+        setDuplicateError("");
+      }, 3000);
+      return;
+    }
+
+    // If not a duplicate, update the selection and increment local count
     setSelectedCollection(collectionId);
+    setLocalPromptCounts((prev) => ({
+      ...prev,
+      [collectionId]: (selectedCollectionData?.prompts?.length || 0) + 1,
+    }));
   };
 
   const handleEditCollection = (event) => {
@@ -179,24 +201,6 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
       return;
     }
 
-    // Find the selected collection
-    const selectedCollectionData = collections.find(
-      (c) => c.id === selectedCollection
-    );
-
-    // Check if prompt already exists in collection
-    const isDuplicate = selectedCollectionData?.prompts?.some(
-      (p) => p.id === promptId
-    );
-
-    if (isDuplicate) {
-      setDuplicateError("This prompt is already in the selected collection");
-      setTimeout(() => {
-        setDuplicateError("");
-      }, 3000);
-      return;
-    }
-
     saveToCollection(
       {
         collectionId: selectedCollection,
@@ -233,7 +237,18 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
     setSearchTerm("");
     setActiveCollectionId(null);
     setMenuAnchorEl(null);
+    setLocalPromptCounts({});
     onClose();
+  };
+
+  const getPromptCount = (collection) => {
+    if (selectedCollection === collection.id) {
+      return (
+        localPromptCounts[collection.id] ||
+        (Array.isArray(collection.prompts) ? collection.prompts.length : 0)
+      );
+    }
+    return Array.isArray(collection.prompts) ? collection.prompts.length : 0;
   };
 
   const filteredCollections = collections.filter((collection) =>
@@ -342,7 +357,6 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                         height: "100%",
                         padding: 2,
                         borderRadius: "16px",
-
                         display: "flex",
                         flexDirection: "column",
                         cursor: "pointer",
@@ -390,10 +404,7 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                               variant="body2"
                               sx={{ color: "rgba(255, 255, 255, 0.7)" }}
                             >
-                              {Array.isArray(collection.prompts)
-                                ? collection.prompts.length
-                                : 0}{" "}
-                              prompts
+                              {getPromptCount(collection)} prompts
                             </Typography>
                           </Box>
                           <IconButton
@@ -415,6 +426,21 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
             anchorEl={menuAnchorEl}
             open={Boolean(menuAnchorEl)}
             onClose={handleMenuClose}
+            PaperProps={{
+              elevation: 0,
+              sx: {
+                overflow: "visible",
+                filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                background: "#222",
+                mt: 1.5,
+                "& .MuiAvatar-root": {
+                  width: 32,
+                  height: 32,
+                  ml: -0.5,
+                  mr: 1,
+                },
+              },
+            }}
           >
             <MenuItem onClick={handleEditCollection}>Edit</MenuItem>
             <MenuItem
