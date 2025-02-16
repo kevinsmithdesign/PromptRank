@@ -9,30 +9,27 @@ import {
   Alert,
   Box,
   TextField,
-  Dialog,
   useTheme,
 } from "@mui/material";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import UserIcon from "../icons/UserIcon";
 import PromptCard from "../components/PromptCard";
 import { useCollections } from "../hooks/useCollections";
 import { useUserPrompts } from "../hooks/useUserPrompts";
 import { useUser } from "../hooks/useUser";
-import { auth } from "../../config/firebase";
+import { auth, db } from "../../config/firebase";
+import { doc, updateDoc } from "firebase/firestore";
+import { updateProfile } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
 const ProfilePage = () => {
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("collections");
   const navigate = useNavigate();
   const userId = auth.currentUser?.uid;
   const theme = useTheme();
 
-  const {
-    user,
-    isLoading: userLoading,
-    error: userError,
-    updateUser,
-  } = useUser(userId);
+  const { user, isLoading: userLoading, error: userError } = useUser(userId);
 
   const {
     collections,
@@ -105,13 +102,17 @@ const ProfilePage = () => {
             <Box>
               <Button
                 variant="contained"
-                onClick={() => setIsEditDialogOpen(true)}
+                onClick={() => setIsEditing(!isEditing)}
               >
-                Edit Profile
+                {isEditing ? "Cancel Edit" : "Edit Profile"}
               </Button>
             </Box>
           </Grid>
         </Grid>
+
+        {isEditing && (
+          <EditProfile user={user} onCancel={() => setIsEditing(false)} />
+        )}
       </Card>
 
       <Box
@@ -159,7 +160,6 @@ const ProfilePage = () => {
             {collections.map((collection) => (
               <Grid key={collection.id} size={{ xs: 12, md: 6 }}>
                 <Card
-                  // onClick={() => navigate(`/collections/${collection.id}`)}
                   onClick={() => navigate(`/main/collections/${collection.id}`)}
                   sx={{ cursor: "pointer" }}
                 >
@@ -212,78 +212,271 @@ const ProfilePage = () => {
           )}
         </>
       )}
-
-      <EditProfileDialog
-        open={isEditDialogOpen}
-        onClose={() => setIsEditDialogOpen(false)}
-        user={user}
-        updateUser={updateUser}
-      />
     </>
   );
 };
 
-// EditProfileDialog component
-const EditProfileDialog = ({ open, onClose, user, updateUser }) => {
+// EditProfile component
+const EditProfile = ({ user, onCancel }) => {
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
-    displayName: user?.displayName || "",
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
     email: user?.email || "",
+    phone: user?.phone || "",
+    userName: user?.userName || "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await updateUser.mutateAsync(formData);
-      onClose();
-    } catch (error) {
-      console.error("Error updating profile:", error);
+  const [errors, setErrors] = useState({});
+
+  // Update profile in Firestore
+  const updateProfileMutation = useMutation({
+    mutationFn: async (profileData) => {
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      await updateDoc(userRef, profileData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["user", auth.currentUser.uid],
+      });
+    },
+  });
+
+  // Update Firebase Auth profile
+  const updateAuthProfileMutation = useMutation({
+    mutationFn: async ({ displayName, email }) => {
+      if (displayName) {
+        await updateProfile(auth.currentUser, {
+          displayName: displayName,
+        });
+      }
+      if (email && email !== auth.currentUser.email) {
+        await auth.currentUser.updateEmail(email);
+      }
+    },
+  });
+
+  // Update password
+  const updatePasswordMutation = useMutation({
+    mutationFn: async (newPassword) => {
+      await auth.currentUser.updatePassword(newPassword);
+    },
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear any errors
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const { confirmPassword, newPassword, ...profileData } = formData;
+
+      // Check if passwords match if attempting to change password
+      if (newPassword || confirmPassword) {
+        if (newPassword !== confirmPassword) {
+          setErrors({ confirmPassword: "Passwords do not match" });
+          return;
+        }
+        await updatePasswordMutation.mutateAsync(newPassword);
+      }
+
+      // Update displayName in Firebase Auth if username changed
+      if (profileData.username !== user?.username) {
+        await updateProfile(auth.currentUser, {
+          displayName: profileData.username,
+        });
+      }
+
+      // Only update Firestore with fields that have values
+      const updatedFields = Object.entries(profileData).reduce(
+        (acc, [key, value]) => {
+          if (value !== "") {
+            acc[key] = value;
+          }
+          return acc;
+        },
+        {}
+      );
+
+      if (Object.keys(updatedFields).length > 0) {
+        await updateProfileMutation.mutateAsync(updatedFields);
+      }
+
+      onCancel();
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      setErrors((prev) => ({
+        ...prev,
+        submit: error.message,
+      }));
+    }
+  };
+
+  const isLoading =
+    updateProfileMutation.isPending ||
+    updateAuthProfileMutation.isPending ||
+    updatePasswordMutation.isPending;
+
+  const submitError =
+    updateProfileMutation.error?.message ||
+    updateAuthProfileMutation.error?.message ||
+    updatePasswordMutation.error?.message;
+
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Card>
       <Box sx={{ p: 3 }}>
-        <Typography variant="h6" mb={2}>
-          Edit Profile
+        <Typography color="#fff" mb={3} variant="h5" fontWeight="bold">
+          Personal Information
         </Typography>
         <form onSubmit={handleSubmit}>
-          <Stack spacing={2}>
-            <TextField
-              label="Display Name"
-              value={formData.displayName}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  displayName: e.target.value,
-                }))
-              }
-              fullWidth
-            />
-            <TextField
-              label="Email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  email: e.target.value,
-                }))
-              }
-              fullWidth
-            />
-            <Stack direction="row" spacing={2} justifyContent="flex-end">
-              <Button onClick={onClose}>Cancel</Button>
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={updateUser.isLoading}
-              >
-                {updateUser.isLoading ? "Saving..." : "Save"}
-              </Button>
-            </Stack>
-          </Stack>
+          <Grid container spacing={4} mb={4}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Typography fontWeight="bold" mb={0.5}>
+                First Name
+              </Typography>
+              <TextField
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="First Name"
+                fullWidth
+                error={!!errors.firstName}
+                helperText={errors.firstName}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Typography fontWeight="bold" mb={0.5}>
+                Last Name
+              </Typography>
+              <TextField
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Last Name"
+                fullWidth
+                error={!!errors.lastName}
+                helperText={errors.lastName}
+              />
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={4} mb={4}>
+            <Grid size={{ xs: 12, md: 7 }}>
+              <Typography fontWeight="bold" mb={0.5}>
+                Email
+              </Typography>
+              <TextField
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Email"
+                fullWidth
+                error={!!errors.email}
+                helperText={errors.email}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 5 }}>
+              <Typography fontWeight="bold" mb={0.5}>
+                Phone
+              </Typography>
+              <TextField
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="Phone"
+                fullWidth
+                error={!!errors.phone}
+                helperText={errors.phone}
+              />
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={4} mb={4}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Typography fontWeight="bold" mb={0.5}>
+                Username
+              </Typography>
+              <TextField
+                name="userName"
+                value={formData.userName}
+                onChange={handleChange}
+                placeholder="Username"
+                fullWidth
+                error={!!errors.userName}
+                helperText={errors.userName}
+              />
+            </Grid>
+          </Grid>
+
+          {/* <Typography color="#fff" mb={3} variant="h5" fontWeight="bold">
+            Change Password
+          </Typography>
+          <Grid container spacing={4} mb={4}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Typography fontWeight="bold" mb={0.5}>
+                New Password
+              </Typography>
+              <TextField
+                name="newPassword"
+                type="password"
+                value={formData.newPassword}
+                onChange={handleChange}
+                placeholder="New Password"
+                fullWidth
+                error={!!errors.newPassword}
+                helperText={errors.newPassword}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Typography fontWeight="bold" mb={0.5}>
+                Confirm New Password
+              </Typography>
+              <TextField
+                name="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirm New Password"
+                fullWidth
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+              />
+            </Grid>
+          </Grid> */}
+
+          {submitError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {submitError}
+            </Alert>
+          )}
+
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+            <Button onClick={onCancel} sx={{ mr: 2 }}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="contained" disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save Changes"}
+            </Button>
+          </Box>
         </form>
       </Box>
-    </Dialog>
+    </Card>
   );
 };
 

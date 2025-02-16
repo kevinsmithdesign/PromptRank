@@ -3,12 +3,7 @@ import { Button } from "@mui/material";
 export function LoadingButton({ loading, children, ...props }) {
   return (
     <Button disabled={loading} {...props}>
-      {loading ? (
-        // <CircularProgress size={24} color="inherit" sx={{ mx: 1 }} />
-        <>Loading...</>
-      ) : (
-        children
-      )}
+      {loading ? <>Loading...</> : children}
     </Button>
   );
 }
@@ -296,7 +291,7 @@ export function Login() {
       </Stack>
 
       {/* Password Reset Dialog */}
-      <Dialog
+      {/* <Dialog
         open={resetDialogOpen}
         onClose={handleCloseResetDialog}
         maxWidth="sm"
@@ -362,6 +357,96 @@ export function Login() {
             </>
           )}
         </DialogActions>
+      </Dialog> */}
+
+      <Dialog
+        fullScreen
+        open={resetDialogOpen}
+        onClose={handleCloseResetDialog}
+        sx={{
+          "& .MuiDialog-paper": {
+            backgroundColor: "#111",
+            color: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          },
+        }}
+      >
+        <Box sx={{ maxWidth: "600px", width: "100%", mx: "auto" }}>
+          <DialogContent>
+            <Typography variant="h5" fontWeight="bold" mb={1}>
+              {resetSuccess ? "Password Reset Email Sent" : "Reset Password"}
+            </Typography>
+
+            {resetSuccess ? (
+              <Typography>
+                Please check your email for instructions to reset your password.
+              </Typography>
+            ) : (
+              <>
+                <Typography mb={2}>
+                  Enter your email address and we'll send you instructions to
+                  reset your password.
+                </Typography>
+
+                {resetError && (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    {resetError}
+                  </Alert>
+                )}
+
+                <Stack spacing={2} mb={4}>
+                  <TextField
+                    autoFocus
+                    fullWidth
+                    placeholder="Enter your email"
+                    type="email"
+                    value={resetEmail}
+                    onChange={(e) => {
+                      setResetEmail(e.target.value);
+                      setResetError("");
+                    }}
+                    error={!!resetError}
+                    required
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "0.5rem",
+                      },
+                    }}
+                  />
+                </Stack>
+
+                <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                  <Stack flexDirection="row" gap={2}>
+                    <Button
+                      variant="outlined"
+                      onClick={handleCloseResetDialog}
+                      disabled={resetLoading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={handleResetPassword}
+                      disabled={resetLoading}
+                    >
+                      {resetLoading ? "Sending..." : "Send Reset Link"}
+                    </Button>
+                  </Stack>
+                </Box>
+              </>
+            )}
+
+            {resetSuccess && (
+              <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                <Button variant="contained" onClick={handleCloseResetDialog}>
+                  Close
+                </Button>
+              </Box>
+            )}
+          </DialogContent>
+        </Box>
       </Dialog>
     </Box>
   );
