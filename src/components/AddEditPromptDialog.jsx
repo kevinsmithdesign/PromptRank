@@ -309,6 +309,7 @@ const AddEditPromptDialog = ({
                     background: "#222",
                     height: "auto",
                     minHeight: "120px",
+                    mb: 4,
                   },
                 }}
                 value={editForm.description}
@@ -324,7 +325,7 @@ const AddEditPromptDialog = ({
                   sx: { color: "error.main" },
                 }}
               />
-              <FormControlLabel
+              {/* <FormControlLabel
                 control={
                   <Switch
                     checked={editForm.isVisible}
@@ -337,7 +338,7 @@ const AddEditPromptDialog = ({
                   />
                 }
                 label="Public"
-              />
+              /> */}
             </Stack>
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
               <Stack flexDirection="row" gap={2}>
