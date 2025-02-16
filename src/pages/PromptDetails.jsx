@@ -44,6 +44,7 @@ function PromptDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -155,6 +156,7 @@ function PromptDetail() {
       setTimeout(() => setSuccessMessage(null), 5000);
       queryClient.invalidateQueries(["ratings", id]);
       queryClient.invalidateQueries(["prompt", id]);
+      setSelectedRating(null);
     }
   };
 
@@ -359,14 +361,26 @@ function PromptDetail() {
                       emptyIcon={<StarIcon />}
                     />
                     {rating.userId === auth.currentUser?.uid && (
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        size="small"
-                        onClick={() => handleDeleteRating(rating.id)}
-                      >
-                        Delete
-                      </Button>
+                      <>
+                        <Button
+                          variant="outlined"
+                          onClick={() => {
+                            console.log("Opening dialog with rating:", rating);
+                            setSelectedRating(rating);
+                            setRatingDialogOpen(true);
+                          }}
+                        >
+                          Update Rating
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          onClick={() => handleDeleteRating(rating.id)}
+                        >
+                          Delete Rating
+                        </Button>
+                      </>
                     )}
                   </Stack>
                 </Stack>
@@ -388,15 +402,17 @@ function PromptDetail() {
       {/* Rating Dialog */}
       <RatingDialog
         open={ratingDialogOpen}
-        onClose={() => setRatingDialogOpen(false)}
+        onClose={() => {
+          setRatingDialogOpen(false);
+          setSelectedRating(null);
+        }}
         onSubmit={handleRatingSubmit}
         promptId={id}
         userId={auth.currentUser?.uid}
-        existingRating={userExistingRating}
+        existingRating={selectedRating || userExistingRating}
       />
 
       {/* Delete Confirmation Dialog */}
-
       <Dialog
         fullScreen
         open={deleteDialogOpen}
