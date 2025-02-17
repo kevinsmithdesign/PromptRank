@@ -430,6 +430,9 @@ import AddEditPromptDialog from "../components/AddEditPromptDialog";
 import PromptCard from "../components/PromptCard";
 import SaveToCollectionDialog from "../components/SaveToCollectionDialog";
 import SearchIcon from "../icons/SearchIcon";
+import SettingsIcon from "../icons/SettingsIcon";
+import FilterIcon from "../icons/FilterIcon";
+import FilterCategoriesDialog from "../components/FilterCategoriesDialog";
 
 function PromptsPage() {
   const navigate = useNavigate();
@@ -462,6 +465,7 @@ function PromptsPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [saveToCollectionOpen, setSaveToCollectionOpen] = useState(false);
+  const [openCategoriesFilter, setOpenCategoriesFilter] = useState(false);
 
   // Form States
   const [newPromptData, setNewPromptData] = useState({
@@ -648,32 +652,41 @@ function PromptsPage() {
       {/* Search and Add Section */}
       <Grid container mb={3} spacing={4}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <TextField
-            fullWidth
-            placeholder="Search Prompts and Prompt Categories"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <IconButton edge="start" disabled>
-                    <SearchIcon />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              ".MuiOutlinedInput-root input": {
-                paddingLeft: 0,
-              },
-              "& .MuiInputBase-input": {
-                paddingLeft: 0,
-              },
-              "& .MuiInputAdornment-positionStart": {
-                marginRight: 0,
-              },
-            }}
-          />
+          <Stack flexDirection="row">
+            <TextField
+              fullWidth
+              placeholder="Search Prompts and Prompt Categories"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <IconButton edge="start" disabled>
+                      <SearchIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                ".MuiOutlinedInput-root input": {
+                  paddingLeft: 0,
+                },
+                "& .MuiInputBase-input": {
+                  paddingLeft: 0,
+                },
+                "& .MuiInputAdornment-positionStart": {
+                  marginRight: 0,
+                },
+                mr: 2,
+              }}
+            />
+            <Button
+              variant="contained"
+              onClick={() => setOpenCategoriesFilter(true)}
+            >
+              <FilterIcon />
+            </Button>
+          </Stack>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack flexDirection="row" justifyContent="flex-end">
@@ -861,6 +874,9 @@ function PromptsPage() {
           setSaveToCollectionOpen(false);
         }}
       />
+      {openCategoriesFilter ? <>test</> : <></>}
+
+      <FilterCategoriesDialog open={openCategoriesFilter} />
     </>
   );
 }
