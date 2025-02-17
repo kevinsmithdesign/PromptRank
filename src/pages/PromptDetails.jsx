@@ -15,12 +15,9 @@ import {
   Alert,
   Box,
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
-
 import {
   doc,
   getDoc,
@@ -43,18 +40,20 @@ function PromptDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Dialog states
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [selectedRating, setSelectedRating] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editForm, setEditForm] = useState({
-    category: "",
-    title: "",
-    description: "",
-    isVisible: true,
-  });
-  const [editError, setEditError] = useState(null);
+
+  // Success message state
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  // Edit form states aligned with AddEditPromptDialog
+  const [newCategory, setNewCategory] = useState("");
+  const [newPromptTitle, setNewPromptTitle] = useState("");
+  const [newPromptDescription, setNewPromptDescription] = useState("");
   const [editLoading, setEditLoading] = useState(false);
 
   // Fetch prompt details
@@ -128,8 +127,6 @@ function PromptDetail() {
         })
       );
     },
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
   });
 
   // Delete prompt mutation
@@ -149,7 +146,39 @@ function PromptDetail() {
     },
   });
 
-  // Handle rating submission
+  // Handlers
+  const handleEdit = () => {
+    setNewCategory(prompt.category || "");
+    setNewPromptTitle(prompt.title || "");
+    setNewPromptDescription(prompt.description || "");
+    setEditDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setEditDialogOpen(false);
+  };
+
+  const onSubmitAddPrompt = async () => {
+    setEditLoading(true);
+    try {
+      const promptRef = doc(db, "prompts", id);
+      await updateDoc(promptRef, {
+        category: newCategory,
+        title: newPromptTitle,
+        description: newPromptDescription,
+        updatedAt: new Date().toISOString(),
+      });
+
+      setSuccessMessage("Prompt updated successfully");
+      setEditDialogOpen(false);
+      queryClient.invalidateQueries(["prompt", id]);
+    } catch (error) {
+      setSuccessMessage("Error updating prompt: " + error.message);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   const handleRatingSubmit = async (data) => {
     if (data.success) {
       setSuccessMessage(data.message);
@@ -160,7 +189,6 @@ function PromptDetail() {
     }
   };
 
-  // Handle rating deletion
   const handleDeleteRating = async (ratingId) => {
     try {
       await deleteDoc(doc(db, "ratings", ratingId));
@@ -174,55 +202,12 @@ function PromptDetail() {
     }
   };
 
-  // Navigation and dialog handlers
-  const handleEdit = () => {
-    // Set the edit form data from the current prompt
-    setEditForm({
-      category: prompt.category || "",
-      title: prompt.title || "",
-      description: prompt.description || "",
-      isVisible: prompt.isVisible !== false, // default to true if not set
-    });
-    setEditDialogOpen(true);
-  };
-
-  const handleDelete = () => {
-    setDeleteDialogOpen(true);
-  };
-
-  const handleEditSubmit = async (id) => {
-    setEditLoading(true);
-    setEditError(null);
-    try {
-      const promptRef = doc(db, "prompts", id);
-      await updateDoc(promptRef, {
-        ...editForm,
-        updatedAt: new Date().toISOString(),
-      });
-
-      setSuccessMessage("Prompt updated successfully");
-      setEditDialogOpen(false);
-      queryClient.invalidateQueries(["prompt", id]);
-    } catch (error) {
-      setEditError(error.message);
-    } finally {
-      setEditLoading(false);
-    }
-  };
-
-  const cancelEditing = () => {
-    setEditDialogOpen(false);
-    setEditError(null);
-  };
-
   const confirmDelete = async () => {
     try {
       await deletePromptMutation.mutateAsync();
       setDeleteDialogOpen(false);
-      // Invalidate and refetch all prompts queries
       queryClient.invalidateQueries(["prompts"]);
       queryClient.invalidateQueries(["prompt", id]);
-      // navigate("/main/prompts");
     } catch (error) {
       console.error("Error deleting prompt:", error);
       setSuccessMessage("Error deleting prompt: " + error.message);
@@ -296,7 +281,11 @@ function PromptDetail() {
                 <Button variant="outlined" onClick={handleEdit} sx={{ mr: 2 }}>
                   Edit
                 </Button>
-                <Button variant="outlined" color="error" onClick={handleDelete}>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
                   Delete
                 </Button>
               </>
@@ -365,7 +354,6 @@ function PromptDetail() {
                         <Button
                           variant="outlined"
                           onClick={() => {
-                            console.log("Opening dialog with rating:", rating);
                             setSelectedRating(rating);
                             setRatingDialogOpen(true);
                           }}
@@ -399,17 +387,18 @@ function PromptDetail() {
         ))}
       </Stack>
 
-      {/* Rating Dialog */}
-      <RatingDialog
-        open={ratingDialogOpen}
-        onClose={() => {
-          setRatingDialogOpen(false);
-          setSelectedRating(null);
-        }}
-        onSubmit={handleRatingSubmit}
-        promptId={id}
-        userId={auth.currentUser?.uid}
-        existingRating={selectedRating || userExistingRating}
+      {/* Dialogs */}
+      <AddEditPromptDialog
+        openDialog={editDialogOpen}
+        handleCloseDialog={handleCloseDialog}
+        newCategory={newCategory}
+        setNewCategory={setNewCategory}
+        newPromptTitle={newPromptTitle}
+        setNewPromptTitle={setNewPromptTitle}
+        newPromptDescription={newPromptDescription}
+        setNewPromptDescription={setNewPromptDescription}
+        onSubmitAddPrompt={onSubmitAddPrompt}
+        loading={editLoading}
       />
 
       {/* Delete Confirmation Dialog */}
@@ -460,27 +449,17 @@ function PromptDetail() {
         </Box>
       </Dialog>
 
-      {/* Edit Dialog */}
-      <AddEditPromptDialog
-        editDialogOpen={editDialogOpen}
-        cancelEditing={cancelEditing}
-        editError={editError}
-        editForm={editForm}
-        setEditForm={setEditForm}
-        editLoading={editLoading}
-        handleEditSubmit={handleEditSubmit}
-        editingId={id}
-        // Props needed by the component but not used for editing
-        openDialog={false}
-        handleCloseDialog={() => {}}
-        newCategory=""
-        setNewCategory={() => {}}
-        newPromptTitle=""
-        setNewPromptTitle={() => {}}
-        newPromptDescription=""
-        setNewPromptDescription={() => {}}
-        onSubmitAddPrompt={() => {}}
-        loading={false}
+      {/* Rating Dialog */}
+      <RatingDialog
+        open={ratingDialogOpen}
+        onClose={() => {
+          setRatingDialogOpen(false);
+          setSelectedRating(null);
+        }}
+        onSubmit={handleRatingSubmit}
+        promptId={id}
+        userId={auth.currentUser?.uid}
+        existingRating={selectedRating || userExistingRating}
       />
     </>
   );

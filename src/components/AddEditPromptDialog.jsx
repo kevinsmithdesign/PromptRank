@@ -10,9 +10,6 @@ import {
   Autocomplete,
   Chip,
 } from "@mui/material";
-import { useMutation } from "@tanstack/react-query";
-import { db } from "../../config/firebase";
-import { collection, addDoc } from "firebase/firestore";
 
 const categoryOptions = [
   "Development",
@@ -277,14 +274,7 @@ const AddEditPromptDialog = ({
           <Box
             sx={{ display: "flex", justifyContent: "flex-end", mt: 4, gap: 2 }}
           >
-            <Button
-              variant="outlined"
-              onClick={handleCloseDialog}
-              sx={{
-                color: "#fff",
-                borderColor: "#444",
-              }}
-            >
+            <Button variant="outlined" onClick={handleCloseDialog}>
               Cancel
             </Button>
             <Button
