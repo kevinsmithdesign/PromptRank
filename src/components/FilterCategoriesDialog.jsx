@@ -19,6 +19,7 @@ const FilterCategoriesDialog = ({ open, onClose }) => {
 
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [inputValue, setInputValue] = useState("");
+  const [draggedItem, setDraggedItem] = useState(null);
 
   useEffect(() => {
     if (categories && open) {
@@ -37,6 +38,28 @@ const FilterCategoriesDialog = ({ open, onClose }) => {
       return cat;
     });
     setSelectedCategories(formattedCategories);
+  };
+
+  const handleDragStart = (e, index) => {
+    setDraggedItem(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    if (draggedItem === null) return;
+
+    const newCategories = [...selectedCategories];
+    const item = newCategories[draggedItem];
+    newCategories.splice(draggedItem, 1);
+    newCategories.splice(index, 0, item);
+
+    setDraggedItem(index);
+    setSelectedCategories(newCategories);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
   };
 
   const handleSave = async () => {
@@ -77,7 +100,10 @@ const FilterCategoriesDialog = ({ open, onClose }) => {
           <Typography variant="h5" fontWeight="bold" mb={3}>
             Filter Categories
           </Typography>
-          <Typography>Tailor categories to your preferences</Typography>
+          <Typography mb={2}>
+            Choose up to 10 categories that match your preferences. Delete and
+            replace them anytime.
+          </Typography>
           <Stack spacing={3}>
             <Autocomplete
               multiple
@@ -93,38 +119,7 @@ const FilterCategoriesDialog = ({ open, onClose }) => {
                 if (typeof option === "string") return option;
                 return option.text;
               }}
-              renderTags={(value, getTagProps) => (
-                <Box
-                  sx={{
-                    width: "100%",
-                    minHeight: 45,
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 1,
-                    overflowY: "auto",
-                    maxHeight: "200px",
-                    padding: "8px 0",
-                  }}
-                >
-                  {value.map((option, index) => (
-                    <Chip
-                      {...getTagProps({ index })}
-                      key={option.text || option}
-                      label={option.text || option}
-                      sx={{
-                        backgroundColor: "#333",
-                        color: "#fff",
-                        "& .MuiChip-deleteIcon": {
-                          color: "#fff",
-                          "&:hover": {
-                            color: "#ff4444",
-                          },
-                        },
-                      }}
-                    />
-                  ))}
-                </Box>
-              )}
+              renderTags={() => null}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -142,6 +137,53 @@ const FilterCategoriesDialog = ({ open, onClose }) => {
                 />
               )}
             />
+
+            <Box
+              sx={{
+                width: "100%",
+                minHeight: 45,
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 1,
+                overflowY: "auto",
+                maxHeight: "200px",
+                padding: "8px 0",
+              }}
+            >
+              {selectedCategories.map((option, index) => (
+                <div
+                  key={option.text}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragEnd={handleDragEnd}
+                  style={{
+                    cursor: "grab",
+                    opacity: draggedItem === index ? 0.5 : 1,
+                  }}
+                >
+                  <Chip
+                    label={option.text}
+                    onDelete={() => {
+                      const newCategories = selectedCategories.filter(
+                        (_, i) => i !== index
+                      );
+                      setSelectedCategories(newCategories);
+                    }}
+                    sx={{
+                      backgroundColor: "#333",
+                      color: "#fff",
+                      "& .MuiChip-deleteIcon": {
+                        color: "#fff",
+                        "&:hover": {
+                          color: "#ff4444",
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              ))}
+            </Box>
           </Stack>
 
           <Box
