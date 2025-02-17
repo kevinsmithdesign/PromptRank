@@ -101,8 +101,8 @@ const FilterCategoriesDialog = ({ open, onClose }) => {
             Filter Categories
           </Typography>
           <Typography mb={2}>
-            Choose up to 10 categories that match your preferences. Delete and
-            replace them anytime.
+            Select up to 10 categories that match your preferences. Delete,
+            replace, and rearrange them with drag-and-drop.
           </Typography>
           <Stack spacing={3}>
             <Autocomplete
