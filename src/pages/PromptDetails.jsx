@@ -269,13 +269,16 @@ function PromptDetail() {
       <Grid container alignItems="flex-end" mb={2}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack>
-            <Typography variant="h4" fontWeight="bold">
+            <Typography variant="h4" fontWeight="bold" mb={{ xs: 2, md: 0 }}>
               Prompt Details
             </Typography>
           </Stack>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Stack flexDirection="row" justifyContent="flex-end">
+          <Stack
+            flexDirection="row"
+            justifyContent={{ sm: "flex-start", md: "flex-end" }}
+          >
             {isAuthor ? (
               <>
                 <Button variant="outlined" onClick={handleEdit} sx={{ mr: 2 }}>
@@ -293,6 +296,9 @@ function PromptDetail() {
               <Button
                 variant="contained"
                 onClick={() => setRatingDialogOpen(true)}
+                sx={{
+                  width: { xs: "100%", sm: "auto" },
+                }}
               >
                 {userExistingRating ? "Update Rating" : "Rank Prompt"}
               </Button>

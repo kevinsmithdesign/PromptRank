@@ -288,12 +288,16 @@ function PromptsPage() {
           </Stack>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Stack flexDirection="row" justifyContent="flex-end">
+          <Stack
+            flexDirection="row"
+            justifyContent={{ sm: "flex-start", md: "flex-end" }}
+          >
             <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => setOpenDialog(true)}
               disabled={!auth.currentUser}
+              sx={{ width: { xs: "100%", sm: "auto" } }}
             >
               Add Prompt
             </Button>

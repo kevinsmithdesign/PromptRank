@@ -211,16 +211,18 @@ const PromptDetailCard = ({ prompt }) => {
             </Box>
 
             <Box>
-              <IconButton
-                sx={{
-                  background: "#444",
-                  p: 2,
-                  "&:hover": { background: "#333" },
-                }}
-                onClick={() => setSaveToCollectionOpen(true)}
-              >
-                <SaveIcon />
-              </IconButton>
+              <Tooltip title="Save to Collection">
+                <IconButton
+                  sx={{
+                    background: "#444",
+                    p: 2,
+                    "&:hover": { background: "#333" },
+                  }}
+                  onClick={() => setSaveToCollectionOpen(true)}
+                >
+                  <SaveIcon />
+                </IconButton>
+              </Tooltip>
             </Box>
           </Box>
 
@@ -255,13 +257,12 @@ const PromptDetailCard = ({ prompt }) => {
               {prompt.title}
             </Typography>
 
-            <Box sx={{ position: "relative", mb: 4 }}>
+            <Box sx={{ mb: 4 }}>
               <Typography
                 variant="body1"
                 sx={{
                   color: "rgba(255, 255, 255, 0.8)",
                   lineHeight: 1.7,
-                  pr: 8,
                 }}
               >
                 {prompt.description}
