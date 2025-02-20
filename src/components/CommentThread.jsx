@@ -7,6 +7,7 @@ import {
   TextField,
   Avatar,
   IconButton,
+  InputAdornment,
 } from "@mui/material";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import EditIcon from "@mui/icons-material/Edit";
@@ -66,8 +67,8 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
         sx={{
           padding: 2,
           borderRadius: 2,
-          border: "1px solid #444",
-          backgroundColor: "#222",
+          // border: "1px solid #444",
+          backgroundColor: "#333",
           display: "flex",
           alignItems: "flex-start",
           gap: 2,
@@ -361,6 +362,24 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
             placeholder="Write a comment..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    edge="end"
+                    onClick={() => {
+                      if (newComment.trim()) {
+                        handleAddComment("root", newComment);
+                        setNewComment("");
+                      }
+                    }}
+                    disabled={!newComment.trim()}
+                  >
+                    <SendIcon sx={{ color: "#fff" }} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
             sx={{
               backgroundColor: "#1e1e1e",
               "& .MuiOutlinedInput-root": {
@@ -376,7 +395,7 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
               },
             }}
           />
-          <Button
+          {/* <Button
             sx={{ marginTop: 1 }}
             variant="contained"
             onClick={() => {
@@ -387,7 +406,7 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
             }}
           >
             Post
-          </Button>
+          </Button> */}
         </>
       ) : (
         <Typography variant="body2" color="gray" sx={{ marginBottom: 2 }}>

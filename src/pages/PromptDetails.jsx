@@ -1025,7 +1025,12 @@ function PromptDetail() {
                   </Box>
 
                   {rating.comment && (
-                    <Typography variant="body1">{rating.comment}</Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "rgba(255, 255, 255, 0.8)" }}
+                    >
+                      {rating.comment}
+                    </Typography>
                   )}
 
                   <CommentThread
