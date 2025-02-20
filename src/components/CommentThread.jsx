@@ -351,7 +351,7 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
   };
 
   return (
-    <Box sx={{ padding: 2 }}>
+    <Box sx={{ pt: 2 }}>
       {currentUser ? (
         <>
           <TextField
