@@ -8,11 +8,14 @@ import {
   Avatar,
   IconButton,
   InputAdornment,
+  Stack,
 } from "@mui/material";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SendIcon from "@mui/icons-material/Send";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+
 import {
   collection,
   addDoc,
@@ -67,7 +70,6 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
         sx={{
           padding: 2,
           borderRadius: 2,
-          // border: "1px solid #444",
           backgroundColor: "#333",
           display: "flex",
           alignItems: "flex-start",
@@ -352,68 +354,91 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
   };
 
   return (
-    <Box sx={{ pt: 2 }}>
+    <Box sx={{ pt: 3 }}>
       {currentUser ? (
-        <>
-          <TextField
-            fullWidth
-            variant="outlined"
-            size="small"
-            placeholder="Write a comment..."
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    edge="end"
-                    onClick={() => {
-                      if (newComment.trim()) {
-                        handleAddComment("root", newComment);
-                        setNewComment("");
-                      }
-                    }}
-                    disabled={!newComment.trim()}
-                  >
-                    <SendIcon sx={{ color: "#fff" }} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              backgroundColor: "#1e1e1e",
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: "#444",
+        <Box
+          sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}
+        >
+          <Box>
+            <Box
+              sx={{
+                height: "40px",
+                width: "40px",
+                background: "#eee",
+                borderRadius: "50%",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mr: 2,
+              }}
+            >
+              {currentUser?.photoURL ? (
+                <img
+                  src={currentUser.photoURL}
+                  alt="Profile"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                <AccountCircleIcon sx={{ color: "#666", fontSize: 30 }} />
+              )}
+            </Box>
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              size="small"
+              placeholder="Write a comment..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      edge="end"
+                      onClick={() => {
+                        if (newComment.trim()) {
+                          handleAddComment("root", newComment);
+                          setNewComment("");
+                        }
+                      }}
+                      disabled={!newComment.trim()}
+                    >
+                      <SendIcon sx={{ color: "#fff" }} />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                width: "100%",
+                backgroundColor: "#1e1e1e",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "#444",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#666",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#888",
+                  },
                 },
-                "&:hover fieldset": {
-                  borderColor: "#666",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#888",
-                },
-              },
-            }}
-          />
-          {/* <Button
-            sx={{ marginTop: 1 }}
-            variant="contained"
-            onClick={() => {
-              if (newComment.trim()) {
-                handleAddComment("root", newComment);
-                setNewComment("");
-              }
-            }}
-          >
-            Post
-          </Button> */}
-        </>
+              }}
+            />
+          </Box>
+        </Box>
       ) : (
         <Typography variant="body2" color="gray" sx={{ marginBottom: 2 }}>
           Please sign in to post comments
         </Typography>
       )}
-      <Box sx={{ marginTop: 2 }}>
+      <Box sx={{ marginTop: 3 }}>
         {comments.map((comment) => (
           <Comment
             key={comment.id}
