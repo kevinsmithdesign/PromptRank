@@ -17,10 +17,10 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { auth } from "../../config/firebase";
 import { useCollections } from "../hooks/useCollections";
+import BackIcon from "../icons/BackIcon";
 
 const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
   const theme = useTheme();
@@ -297,28 +297,67 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
             </Alert>
           )}
 
-          <Stack direction="row" alignItems="center" spacing={2} mb={1}>
-            {(isCreatingCollection || isEditingCollection) && (
-              <IconButton
-                onClick={handleBackToList}
-                size="small"
-                sx={{ color: "white", ml: -1 }}
+          <Stack flexDirection="row" sx={{ mb: 4 }}>
+            <Stack sx={{ flex: 1 }}>
+              <Box>
+                <IconButton
+                  // onClick={() => navigate(-1)}
+                  onClick={handleClose}
+                  disabled={createCollectionLoading || saveToCollectionLoading}
+                  sx={{
+                    background: "#444",
+                    p: 2,
+                    "&:hover": { background: "#333" },
+                  }}
+                >
+                  <BackIcon />
+                </IconButton>
+              </Box>
+            </Stack>
+
+            <Stack>
+              <Button
+                variant="contained"
+                onClick={() => setIsCreatingCollection(true)}
               >
-                <ArrowBackIcon />
-              </IconButton>
-            )}
+                Add New Collection
+              </Button>
+            </Stack>
           </Stack>
 
           {!isCreatingCollection && !isEditingCollection && (
-            <Stack flexDirection="row" mb={2}>
-              <Stack flexGrow={1} mr={3}></Stack>
-              <Stack>
-                <Button
-                  variant="contained"
-                  onClick={() => setIsCreatingCollection(true)}
+            <Stack flexDirection="row" mb={4}>
+              <Stack flexGrow={1} mr={3}>
+                <Typography variant="h5" fontWeight="bold">
+                  Add prompt to a collection:
+                </Typography>
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  color="secondary"
+                  mb={1}
                 >
-                  Add New Collection
-                </Button>
+                  Add Prompt Title Here
+                </Typography>
+                <TextField
+                  fullWidth
+                  placeholder="Search collections..."
+                  size="small"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  sx={{
+                    backgroundColor: "#222",
+                    borderRadius: 1,
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: "#333",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "#444",
+                      },
+                    },
+                  }}
+                />
               </Stack>
             </Stack>
           )}
@@ -341,82 +380,125 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
                   <CircularProgress />
                 </Box>
               ) : filteredCollections.length === 0 ? (
-                <Typography variant="body1" sx={{ textAlign: "center", py: 4 }}>
-                  {collections.length === 0
-                    ? "No collections found. Create your first collection!"
-                    : "No matching collections found."}
-                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography
+                    variant="body1"
+                    sx={{ textAlign: "center", mb: 1 }}
+                  >
+                    {collections.length === 0
+                      ? "No collections found. Create your first collection!"
+                      : "No matching collections found."}
+                  </Typography>
+                </Box>
               ) : (
                 <Stack spacing={1}>
                   <Typography fontWeight="bold">Prompt Collections</Typography>
-                  {filteredCollections.map((collection) => (
-                    <Card
-                      key={collection.id}
-                      onClick={() => handleCollectionSelect(collection.id)}
-                      sx={{
-                        height: "100%",
-                        padding: 2,
-                        borderRadius: "16px",
-                        display: "flex",
-                        flexDirection: "column",
-                        cursor: "pointer",
-                        position: "relative",
-                        border:
-                          selectedCollection === collection.id
-                            ? `1px solid ${theme.palette.primary.main}`
-                            : `1px solid #222`,
-                        overflow: "hidden",
-                        backgroundColor:
-                          selectedCollection === collection.id
-                            ? "rgba(25, 118, 210, 0.08)"
-                            : "#222",
+                  {/* Scrollable container for collections */}
+                  <Box
+                    sx={{
+                      maxHeight: "400px",
+                      overflowY: "auto",
+                      pr: 1,
+                      // Customize scrollbar for better visibility
+                      "&::-webkit-scrollbar": {
+                        width: "8px",
+                      },
+                      "&::-webkit-scrollbar-track": {
+                        background: "#333",
+                        borderRadius: "4px",
+                      },
+                      "&::-webkit-scrollbar-thumb": {
+                        background: "#555",
+                        borderRadius: "4px",
                         "&:hover": {
-                          border: `1px solid ${theme.palette.primary.main}`,
+                          background: "#666",
                         },
-                        "&::before": {
-                          content: '""',
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          backgroundColor: theme.palette.primary.main,
-                          opacity: 0,
-                          transition: "opacity 0.3s ease",
-                          zIndex: 0,
-                        },
-                        "&:hover::before": {
-                          opacity: 0.1,
-                        },
-                        "& > *": {
-                          position: "relative",
-                          zIndex: 1,
-                        },
-                      }}
-                    >
-                      <CardContent>
-                        <Stack direction="row" spacing={2} alignItems="center">
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body1">
-                              {collection.name}
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              sx={{ color: "rgba(255, 255, 255, 0.7)" }}
+                      },
+                    }}
+                  >
+                    <Stack spacing={1}>
+                      {filteredCollections.map((collection) => (
+                        <Card
+                          key={collection.id}
+                          onClick={() => handleCollectionSelect(collection.id)}
+                          sx={{
+                            height: "100%",
+                            padding: 2,
+                            borderRadius: "16px",
+                            display: "flex",
+                            flexDirection: "column",
+                            cursor: "pointer",
+                            position: "relative",
+                            border:
+                              selectedCollection === collection.id
+                                ? `1px solid ${theme.palette.primary.main}`
+                                : `1px solid #222`,
+                            overflow: "hidden",
+                            backgroundColor:
+                              selectedCollection === collection.id
+                                ? "rgba(25, 118, 210, 0.08)"
+                                : "#222",
+                            "&:hover": {
+                              border: `1px solid ${theme.palette.primary.main}`,
+                            },
+                            "&::before": {
+                              content: '""',
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                              width: "100%",
+                              height: "100%",
+                              backgroundColor: theme.palette.primary.main,
+                              opacity: 0,
+                              transition: "opacity 0.3s ease",
+                              zIndex: 0,
+                            },
+                            "&:hover::before": {
+                              opacity: 0.1,
+                            },
+                            "& > *": {
+                              position: "relative",
+                              zIndex: 1,
+                            },
+                          }}
+                        >
+                          <CardContent>
+                            <Stack
+                              direction="row"
+                              spacing={2}
+                              alignItems="center"
                             >
-                              {getPromptCount(collection)} prompts
-                            </Typography>
-                          </Box>
-                          <IconButton
-                            onClick={(e) => handleMenuOpen(e, collection.id)}
-                            sx={{ color: "white" }}
-                          >
-                            <MoreVertIcon />
-                          </IconButton>
-                        </Stack>
-                      </CardContent>
-                    </Card>
-                  ))}
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="body1">
+                                  {collection.name}
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  sx={{ color: "rgba(255, 255, 255, 0.7)" }}
+                                >
+                                  {getPromptCount(collection)} prompts
+                                </Typography>
+                              </Box>
+                              <IconButton
+                                onClick={(e) =>
+                                  handleMenuOpen(e, collection.id)
+                                }
+                                sx={{ color: "white" }}
+                              >
+                                <MoreVertIcon />
+                              </IconButton>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </Stack>
+                  </Box>
                 </Stack>
               )}
             </Stack>
@@ -453,13 +535,6 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, onSave }) => {
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
             <Stack flexDirection="row" gap={2}>
-              <Button
-                variant="outlined"
-                onClick={handleClose}
-                disabled={createCollectionLoading || saveToCollectionLoading}
-              >
-                Cancel
-              </Button>
               {isCreatingCollection ? (
                 <Button
                   onClick={handleCreateCollection}
