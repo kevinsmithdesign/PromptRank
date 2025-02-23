@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import {
   Button,
   TextField,
@@ -11,16 +12,18 @@ import {
   IconButton,
   InputAdornment,
   Pagination,
+  Breadcrumbs,
+  Link,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { Add as AddIcon } from "@mui/icons-material";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { auth } from "../../config/firebase";
 import { usePrompts } from "../hooks/usePrompts";
 import AddEditPromptDialog from "../components/AddEditPromptDialog";
 import PromptCard from "../components/PromptCard";
 import SaveToCollectionDialog from "../components/SaveToCollectionDialog";
 import SearchIcon from "../icons/SearchIcon";
-import SettingsIcon from "../icons/SettingsIcon";
 import FilterIcon from "../icons/FilterIcon";
 import FilterCategoriesDialog from "../components/FilterCategoriesDialog";
 import { useCategories } from "../hooks/useCategories";
@@ -28,6 +31,7 @@ import { useCategories } from "../hooks/useCategories";
 function PromptsPage() {
   const navigate = useNavigate();
   const theme = useTheme();
+  const SITE_NAME = "AI Prompts Library"; // Consider moving to config
 
   // Pagination state
   const [page, setPage] = useState(1);
@@ -43,7 +47,6 @@ function PromptsPage() {
     deletePrompt,
     createPromptLoading,
     updatePromptLoading,
-    deletePromptLoading,
   } = usePrompts();
 
   // UI State
@@ -73,6 +76,22 @@ function PromptsPage() {
     isVisible: false,
   });
 
+  // SEO metadata
+  const pageTitle = selectedCategory
+    ? `${selectedCategory} Prompts - ${SITE_NAME}`
+    : searchQuery
+    ? `Search Results for "${searchQuery}" - ${SITE_NAME}`
+    : `Browse AI Prompts - ${SITE_NAME}`;
+
+  const pageDescription = selectedCategory
+    ? `Explore our curated collection of ${selectedCategory} AI prompts. Find and save the best prompts for your needs.`
+    : "Discover and manage AI prompts, create collections, and learn about AI tools. Browse our extensive library of AI prompts for various use cases.";
+
+  const canonicalUrl = new URL(
+    `/prompts${selectedCategory ? `/${selectedCategory.toLowerCase()}` : ""}`,
+    window.location.origin
+  ).toString();
+
   // Filter prompts based on search and category
   const filteredPrompts = prompts.filter((prompt) => {
     const matchesCategory =
@@ -88,11 +107,8 @@ function PromptsPage() {
     return matchesCategory && matchesSearch;
   });
 
-  const {
-    categories: popularCategories = [],
-    isLoading: categoriesLoading,
-    error: categoriesError,
-  } = useCategories();
+  const { categories: popularCategories = [], isLoading: categoriesLoading } =
+    useCategories();
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredPrompts.length / promptsPerPage);
@@ -100,18 +116,17 @@ function PromptsPage() {
   const endIndex = startIndex + promptsPerPage;
   const paginatedPrompts = filteredPrompts.slice(startIndex, endIndex);
 
-  const handlePageChange = (event, newPage) => {
-    setPage(newPage);
-    // Scroll to top when page changes
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   // Reset pagination when filters change
-  React.useEffect(() => {
+  useEffect(() => {
     setPage(1);
   }, [searchQuery, selectedCategory]);
 
-  // Dialog Handlers
+  // Event Handlers
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setNewPromptData({
@@ -135,9 +150,7 @@ function PromptsPage() {
 
   // CRUD Operations
   const handleCreatePrompt = async () => {
-    if (!newPromptData.title || !newPromptData.description) {
-      return;
-    }
+    if (!newPromptData.title || !newPromptData.description) return;
 
     try {
       await createPrompt(newPromptData);
@@ -156,10 +169,7 @@ function PromptsPage() {
     try {
       await updatePrompt({
         id,
-        title: editForm.title,
-        description: editForm.description,
-        category: editForm.category,
-        isVisible: editForm.isVisible,
+        ...editForm,
       });
       setEditDialogOpen(false);
       setSelectedPromptId(null);
@@ -194,43 +204,96 @@ function PromptsPage() {
     setEditDialogOpen(true);
   };
 
-  const handleEditClick = (prompt) => {
-    handleMenuClose();
-    startEditing(prompt);
-  };
-
-  const handleSavePrompt = (promptId) => {
-    setSelectedPromptId(promptId);
-    setSaveToCollectionOpen(true);
-    handleMenuClose();
-  };
-
-  const cancelEditing = () => {
-    setEditDialogOpen(false);
-    setSelectedPromptId(null);
-    setEditForm({
-      title: "",
-      description: "",
-      category: "",
-      isVisible: false,
-    });
-  };
-
-  // const popularCategories = [
-  //   { text: "SEO", path: "/SEO" },
-  //   { text: "Content Creation", path: "/ContentCreation" },
-  //   { text: "Marketing Strategies", path: "/MarketingStrategies" },
-  //   { text: "Web Development", path: "/WebDevelopment" },
-  //   { text: "E-commerce", path: "/Ecommerce" },
-  //   { text: "Social Media Management", path: "/SocialMediaManagement" },
-  //   { text: "Business Planning", path: "/BusinessPlanning" },
-  //   { text: "Financial Planning", path: "/FinancialPlanning" },
-  //   { text: "Resume Builder", path: "/ResumeBuilder" },
-  //   { text: "Side Hustle", path: "/SideHustle" },
-  // ];
-
   return (
     <>
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+
+        {/* Open Graph tags */}
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalUrl} />
+
+        <link rel="canonical" href={canonicalUrl} />
+
+        {/* Prevent indexing of search/paginated results */}
+        {(searchQuery || page > 1) && (
+          <meta name="robots" content="noindex, follow" />
+        )}
+
+        {/* Structured data */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: pageTitle,
+            description: pageDescription,
+            numberOfItems: filteredPrompts.length,
+            url: canonicalUrl,
+            breadcrumb: {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                {
+                  "@type": "ListItem",
+                  position: 1,
+                  name: "Home",
+                  item: window.location.origin,
+                },
+                {
+                  "@type": "ListItem",
+                  position: 2,
+                  name: "Prompts",
+                  item: `${window.location.origin}/prompts`,
+                },
+                ...(selectedCategory
+                  ? [
+                      {
+                        "@type": "ListItem",
+                        position: 3,
+                        name: selectedCategory,
+                        item: canonicalUrl,
+                      },
+                    ]
+                  : []),
+              ],
+            },
+          })}
+        </script>
+      </Helmet>
+
+      {/* Breadcrumbs for better navigation */}
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize="small" />}
+        aria-label="breadcrumb"
+        sx={{ mb: 2 }}
+      >
+        <Link
+          color="inherit"
+          href="/"
+          onClick={(e) => {
+            e.preventDefault();
+            navigate("/");
+          }}
+        >
+          Home
+        </Link>
+        <Link
+          color="inherit"
+          href="/prompts"
+          onClick={(e) => {
+            e.preventDefault();
+            navigate("/prompts");
+          }}
+        >
+          Prompts
+        </Link>
+        {selectedCategory && (
+          <Typography color="text.primary">{selectedCategory}</Typography>
+        )}
+      </Breadcrumbs>
+
       <Box
         sx={{
           mb: 1,
@@ -239,12 +302,12 @@ function PromptsPage() {
           alignItems: "flex-end",
         }}
       >
-        <Typography variant="h4" fontWeight="bold">
+        <Typography variant="h1" fontSize="2rem" fontWeight="bold">
           Prompts
         </Typography>
       </Box>
 
-      <Typography variant="body1" mb={2}>
+      <Typography variant="body1" mb={2} component="p">
         Add prompts, rank prompts, create collections, and learn about AI tools.
       </Typography>
 
@@ -282,6 +345,7 @@ function PromptsPage() {
             <Button
               variant="contained"
               onClick={() => setOpenCategoriesFilter(true)}
+              aria-label="Filter categories"
             >
               <FilterIcon />
             </Button>
@@ -305,7 +369,7 @@ function PromptsPage() {
         </Grid>
       </Grid>
 
-      {/* Categories Scroll */}
+      {/* Categories Section */}
       <Stack
         flexDirection="row"
         gap={1}
@@ -317,25 +381,12 @@ function PromptsPage() {
           "&:active": { cursor: "grabbing" },
           "&::-webkit-scrollbar": { display: "none" },
         }}
-        onMouseDown={(e) => {
-          const ele = e.currentTarget;
-          const startPos = { left: ele.scrollLeft, x: e.clientX };
-
-          const onMouseMove = (e) => {
-            const dx = e.clientX - startPos.x;
-            ele.scrollLeft = startPos.left - dx;
-          };
-
-          const onMouseUp = () => {
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
-          };
-
-          document.addEventListener("mousemove", onMouseMove);
-          document.addEventListener("mouseup", onMouseUp);
-        }}
+        role="tablist"
+        aria-label="Prompt categories"
       >
         <Button
+          role="tab"
+          aria-selected={!selectedCategory}
           sx={{
             background: !selectedCategory ? theme.palette.primary.main : "#222",
             padding: "16px 24px",
@@ -358,6 +409,8 @@ function PromptsPage() {
         {popularCategories.map(({ text, path }) => (
           <Button
             key={path}
+            role="tab"
+            aria-selected={selectedCategory === text}
             sx={{
               background:
                 selectedCategory === text ? theme.palette.primary.main : "#222",
@@ -388,6 +441,81 @@ function PromptsPage() {
         </Alert>
       )}
 
+      {/* Prompts List */}
+      <PromptCard
+        loading={isLoading}
+        filteredPrompts={paginatedPrompts}
+        searchQuery={searchQuery}
+        selectedCategory={selectedCategory}
+        promptList={prompts}
+        handleMenuOpen={handleMenuOpen}
+        handleMenuClose={handleMenuClose}
+        menuAnchorEl={menuAnchorEl}
+        selectedPromptId={selectedPromptId}
+        handleEditClick={startEditing}
+        handleDeleteClick={handleDeletePrompt}
+        handleSavePrompt={(promptId) => {
+          setSelectedPromptId(promptId);
+          setSaveToCollectionOpen(true);
+          handleMenuClose();
+        }}
+        auth={auth}
+        navigate={navigate}
+        theme={theme}
+      />
+
+      {/* Pagination */}
+      {filteredPrompts.length > 0 && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 4, mb: 4 }}>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={handlePageChange}
+            variant="outlined"
+            shape="rounded"
+            color="primary"
+            sx={{
+              "& .MuiPaginationItem-root": {
+                color: "white",
+                borderColor: "rgba(255, 255, 255, 0.3)",
+                "&:hover": {
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  borderColor: "rgba(255, 255, 255, 0.5)",
+                },
+                "&.Mui-selected": {
+                  borderColor: theme.palette.primary.main,
+                },
+              },
+              "& .MuiPaginationItem-icon": {
+                color: "white",
+              },
+            }}
+            aria-label="Prompts pagination"
+          />
+        </Box>
+      )}
+
+      {/* No Results Message */}
+      {!isLoading && filteredPrompts.length === 0 && (
+        <Box
+          sx={{
+            textAlign: "center",
+            py: 4,
+          }}
+        >
+          <Typography variant="h6" component="h2" gutterBottom>
+            No prompts found
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            {searchQuery
+              ? `No results found for "${searchQuery}"`
+              : selectedCategory
+              ? `No prompts found in category "${selectedCategory}"`
+              : "No prompts available"}
+          </Typography>
+        </Box>
+      )}
+
       {/* Dialogs */}
       <AddEditPromptDialog
         openDialog={openDialog}
@@ -406,7 +534,16 @@ function PromptsPage() {
         }
         onSubmitAddPrompt={handleCreatePrompt}
         editDialogOpen={editDialogOpen}
-        cancelEditing={cancelEditing}
+        cancelEditing={() => {
+          setEditDialogOpen(false);
+          setSelectedPromptId(null);
+          setEditForm({
+            title: "",
+            description: "",
+            category: "",
+            isVisible: false,
+          });
+        }}
         loading={createPromptLoading}
         editError={null}
         editForm={editForm}
@@ -415,56 +552,6 @@ function PromptsPage() {
         handleEditSubmit={handleEditPrompt}
         editingId={selectedPromptId}
       />
-
-      {/* Prompts List */}
-      <PromptCard
-        loading={isLoading}
-        filteredPrompts={paginatedPrompts}
-        searchQuery={searchQuery}
-        selectedCategory={selectedCategory}
-        promptList={prompts}
-        handleMenuOpen={handleMenuOpen}
-        handleMenuClose={handleMenuClose}
-        menuAnchorEl={menuAnchorEl}
-        selectedPromptId={selectedPromptId}
-        handleEditClick={handleEditClick}
-        handleDeleteClick={handleDeletePrompt}
-        handleSavePrompt={handleSavePrompt}
-        auth={auth}
-        navigate={navigate}
-        theme={theme}
-      />
-
-      {/* Pagination */}
-      {filteredPrompts.length > 0 && (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 4, mb: 4 }}>
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={handlePageChange}
-            variant="outlined"
-            shape="rounded"
-            color="primary"
-            sx={{
-              "& .MuiPaginationItem-root": {
-                color: "white", // Makes the numbers white
-                borderColor: "rgba(255, 255, 255, 0.3)", // Lighter border for inactive buttons
-                "&:hover": {
-                  backgroundColor: "rgba(255, 255, 255, 0.1)", // Subtle hover effect
-                  borderColor: "rgba(255, 255, 255, 0.5)",
-                },
-                "&.Mui-selected": {
-                  borderColor: theme.palette.primary.main, // Keeps the active state border color
-                },
-              },
-              "& .MuiPaginationItem-icon": {
-                // Styles for next/previous arrows
-                color: "white",
-              },
-            }}
-          />
-        </Box>
-      )}
 
       <SaveToCollectionDialog
         open={saveToCollectionOpen}
@@ -477,6 +564,7 @@ function PromptsPage() {
           setSaveToCollectionOpen(false);
         }}
       />
+
       <FilterCategoriesDialog
         open={openCategoriesFilter}
         onClose={() => setOpenCategoriesFilter(false)}
