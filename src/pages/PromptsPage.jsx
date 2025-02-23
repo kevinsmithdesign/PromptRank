@@ -263,38 +263,7 @@ function PromptsPage() {
         </script>
       </Helmet>
 
-      {/* Breadcrumbs for better navigation */}
-      <Breadcrumbs
-        separator={<NavigateNextIcon fontSize="small" />}
-        aria-label="breadcrumb"
-        sx={{ mb: 2 }}
-      >
-        <Link
-          color="inherit"
-          href="/"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate("/");
-          }}
-        >
-          Home
-        </Link>
-        <Link
-          color="inherit"
-          href="/prompts"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate("/prompts");
-          }}
-        >
-          Prompts
-        </Link>
-        {selectedCategory && (
-          <Typography color="text.primary">{selectedCategory}</Typography>
-        )}
-      </Breadcrumbs>
-
-      <Box
+      {/* <Box
         sx={{
           mb: 1,
           display: "flex",
@@ -309,7 +278,32 @@ function PromptsPage() {
 
       <Typography variant="body1" mb={2} component="p">
         Add prompts, rank prompts, create collections, and learn about AI tools.
-      </Typography>
+      </Typography> */}
+
+      <Box
+        component="header"
+        sx={{
+          mb: 2,
+          display: "flex",
+          flexDirection: "column",
+          gap: 0.5,
+        }}
+      >
+        <Typography
+          component="h1"
+          variant="h4"
+          fontWeight="bold"
+          sx={{
+            fontSize: { xs: "2rem", sm: "2.5rem" },
+          }}
+        >
+          Prompts
+        </Typography>
+        <Typography component="p" variant="subtitle1" color="white">
+          Add prompts, rank prompts, create collections, and learn about AI
+          tools.
+        </Typography>
+      </Box>
 
       {/* Search and Add Section */}
       <Grid container mb={3} spacing={4}>
