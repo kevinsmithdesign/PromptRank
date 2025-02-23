@@ -1,0 +1,5 @@
+User-agent: *
+Disallow:
+Allow: /profile
+
+Sitemap: https://promptrank.io/sitemap.xml

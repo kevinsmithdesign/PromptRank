@@ -489,27 +489,6 @@ function PromptsPage() {
         </Box>
       )}
 
-      {/* No Results Message */}
-      {!isLoading && filteredPrompts.length === 0 && (
-        <Box
-          sx={{
-            textAlign: "center",
-            py: 4,
-          }}
-        >
-          <Typography variant="h6" component="h2" gutterBottom>
-            No prompts found
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            {searchQuery
-              ? `No results found for "${searchQuery}"`
-              : selectedCategory
-              ? `No prompts found in category "${selectedCategory}"`
-              : "No prompts available"}
-          </Typography>
-        </Box>
-      )}
-
       {/* Dialogs */}
       <AddEditPromptDialog
         openDialog={openDialog}
