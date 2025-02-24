@@ -1,16 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset
-      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
-
-
-<url>
-  <loc>https://promptrank.io/</loc>
-  <lastmod>2025-02-17T16:54:48+00:00</lastmod>
-</url>
-
-
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://promptrank.io/</loc>
+    <lastmod>2025-02-23T23:59:21.000Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/login</loc>
+    <lastmod>2025-02-23T23:59:21.000Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/signup</loc>
+    <lastmod>2025-02-23T23:59:21.000Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/main/prompts</loc>
+    <lastmod>2025-02-23T23:59:21.000Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/main/ai-tools</loc>
+    <lastmod>2025-02-23T23:59:21.000Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/main/prompts/0X35gYdyVKPiYJUHssVP</loc>
+    <lastmod>2025-01-29T01:06:33.960Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/main/prompts/1s4XFXvZllyjaW51ta1Z</loc>
+    <lastmod>2025-01-29T01:07:51.305Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/main/prompts/CXNel9fDJutz9NyobE3R</loc>
+    <lastmod>2025-02-17T00:11:58.468Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/main/prompts/DCuvGGio9P6GOgPZDLmT</loc>
+    <lastmod>2025-02-17T00:03:59.653Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/main/prompts/DYNnRkvjJ8G4T7kz9uI6</loc>
+    <lastmod>2025-02-17T00:13:02.976Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/main/prompts/FIJ5yzD1NTYLaHlEY4IA</loc>
+    <lastmod>2025-02-23T23:59:21.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/main/prompts/Z0PCgevzsQLdL1Zj6tIY</loc>
+    <lastmod>2025-02-23T23:59:21.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/main/prompts/hgTVd8BRAmiEPEJieDXT</loc>
+    <lastmod>2025-02-16T19:31:19.144Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/main/prompts/qQWB9DL4V1KpmM53Q2t4</loc>
+    <lastmod>2025-02-17T00:06:41.720Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://promptrank.io/main/prompts/xgkXOhw9bzN7la5t7Fzr</loc>
+    <lastmod>2025-02-23T23:59:21.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>
