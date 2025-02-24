@@ -17,7 +17,6 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { Add as AddIcon } from "@mui/icons-material";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { auth } from "../../config/firebase";
 import { usePrompts } from "../hooks/usePrompts";
 import AddEditPromptDialog from "../components/AddEditPromptDialog";
