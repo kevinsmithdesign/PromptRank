@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
@@ -60,6 +60,12 @@ function PromptsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [saveToCollectionOpen, setSaveToCollectionOpen] = useState(false);
   const [openCategoriesFilter, setOpenCategoriesFilter] = useState(false);
+
+  // Scroll Categories
+  const scrollRef = useRef(null);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
   // Form States
   const [newPromptData, setNewPromptData] = useState({
@@ -202,6 +208,29 @@ function PromptsPage() {
     });
     setSelectedPromptId(prompt.id);
     setEditDialogOpen(true);
+  };
+
+  // Add these handlers in your component
+  const handleMouseDown = (e) => {
+    setIsScrolling(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsScrolling(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsScrolling(false);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isScrolling) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = x - startX; // Adjust multiplier for faster/slower scroll
+    scrollRef.current.scrollLeft = scrollLeft - walk;
   };
 
   return (
@@ -364,7 +393,7 @@ function PromptsPage() {
       </Grid>
 
       {/* Categories Section */}
-      <Stack
+      {/* <Stack
         flexDirection="row"
         gap={1}
         mb={6}
@@ -375,6 +404,26 @@ function PromptsPage() {
           "&:active": { cursor: "grabbing" },
           "&::-webkit-scrollbar": { display: "none" },
         }}
+        role="tablist"
+        aria-label="Prompt categories"
+      > */}
+      <Stack
+        ref={scrollRef}
+        flexDirection="row"
+        gap={1}
+        mb={6}
+        sx={{
+          overflowX: "auto",
+          scrollbarWidth: "none",
+          cursor: isScrolling ? "grabbing" : "grab",
+          "&:active": { cursor: "grabbing" },
+          "&::-webkit-scrollbar": { display: "none" },
+          userSelect: "none", // Prevent text selection while dragging
+        }}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
         role="tablist"
         aria-label="Prompt categories"
       >
