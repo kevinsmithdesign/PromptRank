@@ -105,7 +105,9 @@ const PromptCard = ({
                       <StarIcon sx={{ color: "rgb(250, 175, 0)", mr: 1 }} />
                       <Stack sx={{ flex: 1 }}>
                         <Typography>
-                          {prompt.avgRating?.toFixed(1) || "No ratings"}
+                          {prompt.totalRatings > 0
+                            ? prompt.avgRating.toFixed(1)
+                            : "No ratings"}
                         </Typography>
                       </Stack>
                       {prompt.totalRatings > 0 && (
