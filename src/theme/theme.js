@@ -197,6 +197,57 @@ const theme = createTheme({
         },
       },
     },
+
+    MuiSelect: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          borderRadius: "0.5rem",
+          background: "#222",
+          height: "60px", // Increased to 60px
+          "& .MuiOutlinedInput-notchedOutline": {
+            border: "1px solid #444",
+            borderRadius: "0.5rem",
+          },
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            border: "1px solid #666",
+          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            border: `2px solid ${theme.palette.primary.main} !important`,
+          },
+          "& .MuiOutlinedInput-notchedOutline, &:hover .MuiOutlinedInput-notchedOutline, &.Mui-focused .MuiOutlinedInput-notchedOutline":
+            {
+              transition: "none",
+            },
+          "& .MuiSelect-select": {
+            padding: "0 14px", // Adjusted padding for taller height
+            height: "100%", // Make select content fill the container height
+            display: "flex",
+            alignItems: "center",
+          },
+          "& .MuiSelect-icon": {
+            color: "#fff",
+          },
+        }),
+      },
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          color: "#fff",
+          "&:hover": {
+            backgroundColor: "rgba(255, 255, 255, 0.1)",
+          },
+        },
+      },
+    },
+    MuiPopover: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: "#333",
+          borderRadius: "0.5rem",
+        },
+      },
+    },
   },
 });
 

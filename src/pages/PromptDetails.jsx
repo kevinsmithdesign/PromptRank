@@ -385,7 +385,7 @@ function PromptDetail() {
                 onClick={() => setDialogState({ ...dialogState, rating: true })}
                 sx={{ width: { xs: "100%", sm: "auto" } }}
               >
-                {userExistingRating ? "Update Rating" : "Rank Prompt"}
+                {userExistingRating ? "Update Review" : "Leave Review"}
               </Button>
             )}
           </Stack>
@@ -398,7 +398,7 @@ function PromptDetail() {
       {/* Ratings Section */}
       <Stack spacing={2} sx={{ mt: 4 }}>
         <Typography variant="h5" fontWeight="bold">
-          Ratings {!ratingsLoading && `(${ratings.length})`}
+          Reviews {!ratingsLoading && `(${ratings.length})`}
         </Typography>
 
         {ratings.map((rating) => (

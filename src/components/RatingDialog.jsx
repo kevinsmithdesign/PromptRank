@@ -474,9 +474,9 @@ const RatingDialog = ({
   };
 
   const dialogTitle = existingRating
-    ? "Update Your Rating"
-    : "Rate this Prompt";
-  const submitButtonText = existingRating ? "Update Rating" : "Submit Rating";
+    ? "Update Your Review"
+    : "Review this Prompt";
+  const submitButtonText = existingRating ? "Update Review" : "Submit Review";
 
   return (
     <Dialog
@@ -508,7 +508,7 @@ const RatingDialog = ({
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Box>
               <Typography variant="body1" mb={1}>
-                Rating
+                Select Rating
               </Typography>
               <Rating
                 value={rating}

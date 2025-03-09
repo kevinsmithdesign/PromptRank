@@ -33,7 +33,10 @@ const PromptModelComparison = () => {
       "Llama 3 response: This is my interpretation of your prompt based on my open-source training. I've aimed to be helpful and accurate.",
   };
 
-  // State for the prompt and selected models
+  // Model rank labels (A, B, C, D)
+  const modelRankLabels = ["A", "B", "C", "D"];
+
+  // State for the prompt, selected models, and voting
   const [prompt, setPrompt] = useState(
     "Explain the concept of prompt engineering in AI and how it affects model outputs."
   );
@@ -41,6 +44,7 @@ const PromptModelComparison = () => {
     "claude-3-opus",
     "gpt-4",
   ]);
+  const [selectedWinner, setSelectedWinner] = useState(null);
 
   // Function to add a new model
   const addModel = () => {
@@ -97,7 +101,7 @@ const PromptModelComparison = () => {
                 sx={{ width: "100%" }}
               >
                 <Typography fontWeight="bold" mb={0.5}>
-                  Model
+                  Model {modelRankLabels[index]}
                 </Typography>
                 <Select
                   value={modelId}
@@ -182,6 +186,118 @@ const PromptModelComparison = () => {
         </Box>
       )}
 
+      {/* Voting section */}
+      <Box sx={{ mt: 4, mb: 4, p: 4, bgcolor: "#333", borderRadius: "16px" }}>
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: "bold", color: "#fff", mb: 3 }}
+        >
+          Vote for the Best Response
+        </Typography>
+
+        <Typography variant="body1" color="#ddd" mb={3}>
+          Which model do you think provided the best response to your prompt?
+        </Typography>
+
+        <Grid container spacing={2}>
+          {selectedModels.map((modelId, index) => (
+            <Grid item key={modelId}>
+              <Button
+                variant={selectedWinner === modelId ? "contained" : "outlined"}
+                color="primary"
+                onClick={() => setSelectedWinner(modelId)}
+                sx={{
+                  px: 3,
+                  borderColor: selectedWinner === modelId ? "primary" : "#666",
+                  "&:hover": {
+                    borderColor: "#888",
+                  },
+                }}
+              >
+                Model {modelRankLabels[index]}
+              </Button>
+            </Grid>
+          ))}
+
+          <Grid item>
+            <Button
+              variant={selectedWinner === "tie" ? "contained" : "outlined"}
+              color="primary"
+              onClick={() => setSelectedWinner("tie")}
+              sx={{
+                px: 3,
+                borderColor: selectedWinner === "tie" ? "primary" : "#666",
+                "&:hover": {
+                  borderColor: "#888",
+                },
+              }}
+            >
+              Tie
+            </Button>
+          </Grid>
+
+          <Grid item>
+            <Button
+              variant={selectedWinner === "none" ? "contained" : "outlined"}
+              color="primary"
+              onClick={() => setSelectedWinner("none")}
+              sx={{
+                px: 3,
+                borderColor: selectedWinner === "none" ? "primary" : "#666",
+                "&:hover": {
+                  borderColor: "#888",
+                },
+              }}
+            >
+              None were good
+            </Button>
+          </Grid>
+        </Grid>
+
+        {selectedWinner &&
+          selectedWinner !== "tie" &&
+          selectedWinner !== "none" && (
+            <Alert
+              severity="success"
+              sx={{
+                mt: 3,
+                bgcolor: "rgba(46, 125, 50, 0.15)",
+                "& .MuiAlert-icon": { color: "#4caf50" },
+              }}
+            >
+              You voted for{" "}
+              {availableModels.find((m) => m.id === selectedWinner)?.name}{" "}
+              (Model {modelRankLabels[selectedModels.indexOf(selectedWinner)]})
+            </Alert>
+          )}
+
+        {selectedWinner === "tie" && (
+          <Alert
+            severity="info"
+            sx={{
+              mt: 3,
+              bgcolor: "rgba(2, 136, 209, 0.15)",
+              "& .MuiAlert-icon": { color: "#03a9f4" },
+            }}
+          >
+            You voted that multiple models were equally good
+          </Alert>
+        )}
+
+        {selectedWinner === "none" && (
+          <Alert
+            severity="warning"
+            sx={{
+              mt: 3,
+              bgcolor: "rgba(237, 108, 2, 0.15)",
+              "& .MuiAlert-icon": { color: "#ff9800" },
+            }}
+          >
+            You voted that none of the responses were satisfactory
+          </Alert>
+        )}
+      </Box>
+
       {/* Compare stats section */}
       <Box sx={{ mt: 1, mb: 2 }}>
         <Typography
@@ -202,7 +318,7 @@ const PromptModelComparison = () => {
               >
                 Response Length
               </Typography>
-              {selectedModels.map((modelId) => {
+              {selectedModels.map((modelId, index) => {
                 const model = availableModels.find((m) => m.id === modelId);
                 const length = sampleResponses[modelId].length;
                 return (
@@ -214,7 +330,9 @@ const PromptModelComparison = () => {
                       mb: 1,
                     }}
                   >
-                    <Typography variant="body2">{model.name}</Typography>
+                    <Typography variant="body2">
+                      Model {modelRankLabels[index]} ({model.name})
+                    </Typography>
                     <Typography variant="body2" fontWeight="medium">
                       {length} chars
                     </Typography>
@@ -227,14 +345,14 @@ const PromptModelComparison = () => {
           <Grid item xs={12} md={4}>
             <Card sx={{ background: "#333", p: 4 }}>
               <Typography
-                variant="subtitle2"
+                variant="body1"
                 color="white"
                 fontWeight="bold"
                 mb={2.5}
               >
                 Response Time
               </Typography>
-              {selectedModels.map((modelId) => {
+              {selectedModels.map((modelId, index) => {
                 const model = availableModels.find((m) => m.id === modelId);
                 // Mock response times
                 const times = {
@@ -254,7 +372,9 @@ const PromptModelComparison = () => {
                       mb: 1,
                     }}
                   >
-                    <Typography variant="body2">{model.name}</Typography>
+                    <Typography variant="body2">
+                      Model {modelRankLabels[index]} ({model.name})
+                    </Typography>
                     <Typography variant="body2" fontWeight="medium">
                       {times[modelId]}
                     </Typography>
@@ -267,14 +387,14 @@ const PromptModelComparison = () => {
           <Grid item xs={12} md={4}>
             <Card sx={{ background: "#333", p: 4 }}>
               <Typography
-                variant="subtitle2"
+                variant="body1"
                 color="white"
                 fontWeight="bold"
                 mb={2.5}
               >
                 Token Usage
               </Typography>
-              {selectedModels.map((modelId) => {
+              {selectedModels.map((modelId, index) => {
                 const model = availableModels.find((m) => m.id === modelId);
                 // Mock token usage
                 const tokens = {
@@ -294,7 +414,9 @@ const PromptModelComparison = () => {
                       mb: 1,
                     }}
                   >
-                    <Typography variant="body2">{model.name}</Typography>
+                    <Typography variant="body2">
+                      Model {modelRankLabels[index]} ({model.name})
+                    </Typography>
                     <Typography variant="body2" fontWeight="medium">
                       {tokens[modelId]} tokens
                     </Typography>
