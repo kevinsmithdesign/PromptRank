@@ -73,6 +73,53 @@ const PromptModelComparison = () => {
     setSelectedModels(newSelectedModels);
   };
 
+  // Function to get alert content based on selection
+  const getAlertContent = () => {
+    if (!selectedWinner) return null;
+
+    if (selectedWinner === "tie") {
+      return {
+        severity: "info",
+        message: "You voted that multiple models were equally good",
+        style: {
+          bgcolor: "rgba(2, 136, 209, 0.3)", // Increased opacity for better visibility
+          "& .MuiAlert-icon": { color: "#03a9f4" },
+          color: "#fff", // White text for better contrast
+          fontWeight: "medium",
+        },
+      };
+    }
+
+    if (selectedWinner === "none") {
+      return {
+        severity: "warning",
+        message: "You voted that none of the responses were satisfactory",
+        style: {
+          bgcolor: "rgba(237, 108, 2, 0.3)", // Increased opacity
+          "& .MuiAlert-icon": { color: "#ff9800" },
+          color: "#fff", // White text
+          fontWeight: "medium",
+        },
+      };
+    }
+
+    // For model selection
+    return {
+      severity: "success",
+      message: `You voted for ${
+        availableModels.find((m) => m.id === selectedWinner)?.name
+      } (Model ${modelRankLabels[selectedModels.indexOf(selectedWinner)]})`,
+      style: {
+        bgcolor: "rgba(46, 125, 50, 0.3)", // Increased opacity
+        "& .MuiAlert-icon": { color: "#4caf50" },
+        color: "#fff", // White text
+        fontWeight: "medium",
+      },
+    };
+  };
+
+  const alertContent = getAlertContent();
+
   return (
     <Box sx={{ mx: "auto" }}>
       <Typography
@@ -162,6 +209,8 @@ const PromptModelComparison = () => {
                 bgcolor: "#333",
                 overflow: "auto",
                 borderRadius: "16px",
+                border:
+                  selectedWinner === modelId ? "2px solid #4caf50" : "none", // Highlight selected model
               }}
             >
               <Typography variant="body2">
@@ -188,6 +237,21 @@ const PromptModelComparison = () => {
 
       {/* Voting section */}
       <Box sx={{ mt: 4, mb: 4, p: 4, bgcolor: "#333", borderRadius: "16px" }}>
+        {/* Show alert above the title if there is a selection */}
+        {alertContent && (
+          <Alert
+            severity={alertContent.severity}
+            sx={{
+              mb: 3,
+              ...alertContent.style,
+              fontSize: "1rem", // Larger font size
+              py: 1.5, // More padding
+            }}
+          >
+            {alertContent.message}
+          </Alert>
+        )}
+
         <Typography
           variant="h5"
           sx={{ fontWeight: "bold", color: "#fff", mb: 3 }}
@@ -208,6 +272,7 @@ const PromptModelComparison = () => {
                 onClick={() => setSelectedWinner(modelId)}
                 sx={{
                   px: 3,
+                  py: 1, // Taller buttons
                   borderColor: selectedWinner === modelId ? "primary" : "#666",
                   "&:hover": {
                     borderColor: "#888",
@@ -226,6 +291,7 @@ const PromptModelComparison = () => {
               onClick={() => setSelectedWinner("tie")}
               sx={{
                 px: 3,
+                py: 1,
                 borderColor: selectedWinner === "tie" ? "primary" : "#666",
                 "&:hover": {
                   borderColor: "#888",
@@ -243,6 +309,7 @@ const PromptModelComparison = () => {
               onClick={() => setSelectedWinner("none")}
               sx={{
                 px: 3,
+                py: 1,
                 borderColor: selectedWinner === "none" ? "primary" : "#666",
                 "&:hover": {
                   borderColor: "#888",
@@ -253,53 +320,10 @@ const PromptModelComparison = () => {
             </Button>
           </Grid>
         </Grid>
-
-        {selectedWinner &&
-          selectedWinner !== "tie" &&
-          selectedWinner !== "none" && (
-            <Alert
-              severity="success"
-              sx={{
-                mt: 3,
-                bgcolor: "rgba(46, 125, 50, 0.15)",
-                "& .MuiAlert-icon": { color: "#4caf50" },
-              }}
-            >
-              You voted for{" "}
-              {availableModels.find((m) => m.id === selectedWinner)?.name}{" "}
-              (Model {modelRankLabels[selectedModels.indexOf(selectedWinner)]})
-            </Alert>
-          )}
-
-        {selectedWinner === "tie" && (
-          <Alert
-            severity="info"
-            sx={{
-              mt: 3,
-              bgcolor: "rgba(2, 136, 209, 0.15)",
-              "& .MuiAlert-icon": { color: "#03a9f4" },
-            }}
-          >
-            You voted that multiple models were equally good
-          </Alert>
-        )}
-
-        {selectedWinner === "none" && (
-          <Alert
-            severity="warning"
-            sx={{
-              mt: 3,
-              bgcolor: "rgba(237, 108, 2, 0.15)",
-              "& .MuiAlert-icon": { color: "#ff9800" },
-            }}
-          >
-            You voted that none of the responses were satisfactory
-          </Alert>
-        )}
       </Box>
 
       {/* Compare stats section */}
-      <Box sx={{ mt: 1, mb: 2 }}>
+      <Box sx={{ mt: 4, mb: 2 }}>
         <Typography
           variant="h5"
           sx={{ fontWeight: "bold", color: "#fff", mb: 1.5 }}
