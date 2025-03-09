@@ -156,6 +156,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import BackIcon from "../icons/BackIcon";
 import CopyIcon from "../icons/CopyIcon";
 import SaveIcon from "../icons/SaveIcon";
+import PromptModelComparison from "./PromptModelComparison";
 
 import SaveToCollectionDialog from "./SaveToCollectionDialog";
 
@@ -277,6 +278,7 @@ const PromptDetailCard = ({ prompt }) => {
               Author: {prompt.authorName}
             </Typography>
           </Stack>
+          <PromptModelComparison />
         </CardContent>
       </Card>
 
