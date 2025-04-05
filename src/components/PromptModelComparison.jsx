@@ -45,16 +45,22 @@ const PromptModelComparison = () => {
     "gpt-4",
   ]);
   const [selectedWinner, setSelectedWinner] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedResponses, setGeneratedResponses] = useState({});
+  const [hasGenerated, setHasGenerated] = useState(false);
+  const [generatedModelIds, setGeneratedModelIds] = useState(new Set());
 
   // Function to add a new model
   const addModel = () => {
     if (selectedModels.length < 4) {
-      // Find first available model not already selected
       const availableModel = availableModels.find(
         (model) => !selectedModels.includes(model.id)
       );
       if (availableModel) {
         setSelectedModels([...selectedModels, availableModel.id]);
+        setHasGenerated(false);
+        // Reset generation state when adding a new model
+        setGeneratedModelIds(new Set());
       }
     }
   };
@@ -63,6 +69,9 @@ const PromptModelComparison = () => {
   const removeModel = (modelId) => {
     if (selectedModels.length > 2) {
       setSelectedModels(selectedModels.filter((id) => id !== modelId));
+      setHasGenerated(false);
+      // Reset generation state when removing a model
+      setGeneratedModelIds(new Set());
     }
   };
 
@@ -71,6 +80,47 @@ const PromptModelComparison = () => {
     const newSelectedModels = [...selectedModels];
     newSelectedModels[index] = newModelId;
     setSelectedModels(newSelectedModels);
+    setHasGenerated(false);
+    // Reset generation state when changing a model
+    setGeneratedModelIds(new Set());
+  };
+
+  // Function to simulate response generation
+  const generateResponse = (modelId) => {
+    let text = "";
+    const interval = setInterval(() => {
+      if (text.length < sampleResponses[modelId].length) {
+        text = sampleResponses[modelId].slice(0, text.length + 3);
+        setGeneratedResponses((prev) => ({
+          ...prev,
+          [modelId]: text,
+        }));
+      } else {
+        clearInterval(interval);
+        setGeneratedModelIds((prev) => new Set([...prev, modelId]));
+        if (modelId === selectedModels[selectedModels.length - 1]) {
+          setIsGenerating(false);
+          setHasGenerated(true);
+        }
+      }
+    }, 20);
+  };
+
+  // Check if all current models have been generated
+  const areAllModelsGenerated = selectedModels.every((modelId) =>
+    generatedModelIds.has(modelId)
+  );
+
+  // Function to start response generation
+  const handleGenerate = () => {
+    setIsGenerating(true);
+    setGeneratedResponses({});
+
+    selectedModels.forEach((modelId, index) => {
+      setTimeout(() => {
+        generateResponse(modelId);
+      }, index * 1000);
+    });
   };
 
   // Function to get alert content based on selection
@@ -122,15 +172,43 @@ const PromptModelComparison = () => {
 
   return (
     <Box sx={{ mx: "auto" }}>
-      <Typography
-        variant="h5"
-        component="h1"
-        sx={{ my: 3, fontWeight: "bold", color: "#fff" }}
+      {/* Header section with title and add model button */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 4,
+        }}
       >
-        Prompt Model Comparison
-      </Typography>
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            fontWeight: "bold",
+            color: "#fff",
+            fontSize: { xs: "1.75rem", sm: "2.125rem" },
+          }}
+        >
+          Prompt Model Comparison
+        </Typography>
+        {selectedModels.length < 4 && (
+          <Button
+            variant="contained"
+            startIcon={<span>+</span>}
+            onClick={addModel}
+            color="primary"
+            size="large"
+            sx={{
+              height: "48px",
+              fontSize: "1rem",
+            }}
+          >
+            Add Model
+          </Button>
+        )}
+      </Box>
 
-      {/* Model comparison section */}
       <Grid container spacing={2}>
         {selectedModels.map((modelId, index) => (
           <Grid item xs={12} md={6} key={index}>
@@ -210,30 +288,56 @@ const PromptModelComparison = () => {
                 overflow: "auto",
                 borderRadius: "16px",
                 border:
-                  selectedWinner === modelId ? "2px solid #4caf50" : "none", // Highlight selected model
+                  selectedWinner === modelId ? "2px solid #4caf50" : "none",
               }}
             >
-              <Typography variant="body2">
-                {sampleResponses[modelId]}
+              <Typography
+                variant="body2"
+                sx={{
+                  color:
+                    !generatedResponses[modelId] && !isGenerating
+                      ? "rgba(255,255,255,0.7)"
+                      : "#fff",
+                  lineHeight: 1.6,
+                }}
+              >
+                {isGenerating
+                  ? generatedResponses[modelId] || (
+                      <Box component="span" sx={{ opacity: 0.7 }}>
+                        Generating response...
+                      </Box>
+                    )
+                  : generatedResponses[modelId]
+                  ? generatedResponses[modelId]
+                  : "Click 'Generate Responses' to see how this model would respond to your prompt. Compare different models to find the best one for your needs."}
               </Typography>
             </Box>
           </Grid>
         ))}
       </Grid>
 
-      {/* Add model button */}
-      {selectedModels.length < 4 && (
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-          <Button
-            variant="contained"
-            startIcon={<span>+</span>}
-            onClick={addModel}
-            color="primary"
-          >
-            Add Model
-          </Button>
-        </Box>
-      )}
+      {/* Generate responses button */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
+        <Button
+          variant="contained"
+          onClick={handleGenerate}
+          disabled={
+            isGenerating ||
+            (hasGenerated && generatedResponses[selectedModels[0]])
+          }
+          size="large"
+          sx={{
+            height: "48px",
+            fontSize: "1rem",
+          }}
+        >
+          {isGenerating
+            ? "Generating..."
+            : hasGenerated && generatedResponses[selectedModels[0]]
+            ? "Responses Generated"
+            : "Generate Responses"}
+        </Button>
+      </Box>
 
       {/* Voting section */}
       <Box sx={{ mt: 4, mb: 4, p: 4, bgcolor: "#333", borderRadius: "16px" }}>

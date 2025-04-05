@@ -20,10 +20,13 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  CircularProgress,
+  Select,
 } from "@mui/material";
 import {
   MoreVert as MoreVertIcon,
   Star as StarIcon,
+  Add as AddIcon,
 } from "@mui/icons-material";
 import {
   doc,
@@ -363,10 +366,11 @@ function PromptDetail() {
           <Stack
             flexDirection="row"
             justifyContent={{ sm: "flex-start", md: "flex-end" }}
+            gap={2}
           >
             {isAuthor ? (
               <>
-                <Button variant="outlined" onClick={handleEdit} sx={{ mr: 2 }}>
+                <Button variant="outlined" onClick={handleEdit}>
                   Edit
                 </Button>
                 <Button
