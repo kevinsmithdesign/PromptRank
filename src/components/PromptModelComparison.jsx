@@ -240,10 +240,10 @@ const PromptModelComparison = () => {
                       color: "#fff",
                     },
                     "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#444",
+                      borderColor: "#333",
                     },
                     "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#666",
+                      borderColor: "#444",
                     },
                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                       borderColor: "#1976d2",
@@ -284,11 +284,14 @@ const PromptModelComparison = () => {
               sx={{
                 p: 4,
                 minHeight: 200,
-                bgcolor: "#333",
+                bgcolor: "#222",
+
                 overflow: "auto",
                 borderRadius: "16px",
                 border:
-                  selectedWinner === modelId ? "2px solid #4caf50" : "none",
+                  selectedWinner === modelId
+                    ? "2px solid #4caf50"
+                    : "1px solid #333",
               }}
             >
               <Typography
@@ -340,7 +343,7 @@ const PromptModelComparison = () => {
       </Box>
 
       {/* Voting section */}
-      <Box sx={{ mt: 4, mb: 4, p: 4, bgcolor: "#333", borderRadius: "16px" }}>
+      <Box sx={{ mt: 4, mb: 4, p: 4, bgcolor: "#222", borderRadius: "16px" }}>
         {/* Show alert above the title if there is a selection */}
         {alertContent && (
           <Alert
@@ -437,7 +440,7 @@ const PromptModelComparison = () => {
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ background: "#333", p: 4 }}>
+            <Card sx={{ background: "#222", p: 4 }}>
               <Typography
                 variant="body1"
                 fontWeight="bold"
@@ -471,7 +474,7 @@ const PromptModelComparison = () => {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ background: "#333", p: 4 }}>
+            <Card sx={{ background: "#222", p: 4 }}>
               <Typography
                 variant="body1"
                 color="white"
@@ -513,7 +516,7 @@ const PromptModelComparison = () => {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ background: "#333", p: 4 }}>
+            <Card sx={{ background: "#222", p: 4 }}>
               <Typography
                 variant="body1"
                 color="white"

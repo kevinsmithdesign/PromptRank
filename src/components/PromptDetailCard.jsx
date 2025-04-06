@@ -186,9 +186,9 @@ const PromptDetailCard = ({ prompt }) => {
               <IconButton
                 onClick={() => navigate(-1)}
                 sx={{
-                  background: "#444",
+                  background: "#222",
                   p: 2,
-                  "&:hover": { background: "#333" },
+                  "&:hover": { background: "#111" },
                 }}
               >
                 <BackIcon />
@@ -200,7 +200,7 @@ const PromptDetailCard = ({ prompt }) => {
                 <IconButton
                   onClick={handleCopyDescription}
                   sx={{
-                    background: "#444",
+                    background: "#222",
                     p: 2,
                     "&:hover": { background: "#333" },
                     color: copied ? "success.main" : "primary.main",
@@ -215,7 +215,7 @@ const PromptDetailCard = ({ prompt }) => {
               <Tooltip title="Save to Collection">
                 <IconButton
                   sx={{
-                    background: "#444",
+                    background: "#222",
                     p: 2,
                     "&:hover": { background: "#333" },
                   }}

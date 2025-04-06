@@ -84,7 +84,7 @@ const AddEditPromptDialog = ({
       onClose={handleCloseDialog}
       sx={{
         "& .MuiDialog-paper": {
-          backgroundColor: "#111",
+          backgroundColor: "#000",
           color: "#fff",
         },
       }}
@@ -112,163 +112,183 @@ const AddEditPromptDialog = ({
           <Typography variant="h5" fontWeight="bold" mb={3}>
             Add New Prompt
           </Typography>
-          <Stack spacing={3}>
-            <Autocomplete
-              freeSolo
-              options={categoryOptions}
-              value={newCategory}
-              onChange={handleCategoryChange}
-              onInputChange={(event, value, reason) => {
-                if (reason === "input") {
-                  setNewCategory(value);
-                }
-              }}
-              PopperProps={{
-                sx: {
-                  "& .MuiPaper-root": {
-                    backgroundColor: "#222",
+          <Stack>
+            <Stack mb={3}>
+              {/* <Typography fontWeight="bold" mb={0.5}>
+                Title*
+              </Typography> */}
+              <Autocomplete
+                freeSolo
+                options={categoryOptions}
+                value={newCategory}
+                onChange={handleCategoryChange}
+                onInputChange={(event, value, reason) => {
+                  if (reason === "input") {
+                    setNewCategory(value);
+                  }
+                }}
+                PopperProps={{
+                  sx: {
+                    "& .MuiPaper-root": {
+                      backgroundColor: "#222",
+                    },
                   },
-                },
-              }}
-              ListboxProps={{
-                style: { backgroundColor: "#222" },
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="Select Category"
-                  required
-                  sx={{
-                    backgroundColor: "#222",
-                    borderRadius: 1,
-                    "& .MuiOutlinedInput-root": {
-                      color: "#fff",
-                    },
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#444",
-                    },
-                  }}
-                />
-              )}
-            />
-
-            <Autocomplete
-              multiple
-              options={subcategoryOptions}
-              value={subcategories}
-              onChange={handleBeforeSubcategoryChange}
-              PopperProps={{
-                sx: {
-                  "& .MuiPaper-root": {
-                    backgroundColor: "#222",
-                  },
-                },
-              }}
-              ListboxProps={{
-                style: { backgroundColor: "#222" },
-              }}
-              renderTags={(value, getTagProps) => (
-                <Box
-                  sx={{
-                    width: "100%",
-                    minHeight: 45,
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 1,
-                    overflowY: "auto",
-                    maxHeight: "120px",
-                    padding: "8px 0",
-                    "&::-webkit-scrollbar": {
-                      width: "8px",
-                    },
-                    "&::-webkit-scrollbar-track": {
-                      background: "#333",
-                    },
-                    "&::-webkit-scrollbar-thumb": {
-                      background: "#555",
-                      borderRadius: "4px",
-                    },
-                  }}
-                >
-                  {value.map((option, index) => (
-                    <Chip
-                      {...getTagProps({ index })}
-                      key={option}
-                      label={option}
-                      sx={{
-                        backgroundColor: "#333",
+                }}
+                ListboxProps={{
+                  style: { backgroundColor: "#222" },
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select or Type Category"
+                    required
+                    sx={{
+                      backgroundColor: "#222",
+                      borderRadius: 1,
+                      "& .MuiOutlinedInput-root": {
                         color: "#fff",
-                        margin: "2px",
-                        "& .MuiChip-deleteIcon": {
+                      },
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#444",
+                      },
+                    }}
+                  />
+                )}
+              />
+            </Stack>
+
+            <Stack mb={3}>
+              {/* <Typography fontWeight="bold" mb={0.5}>
+                Title*
+              </Typography> */}
+              <Autocomplete
+                multiple
+                options={subcategoryOptions}
+                value={subcategories}
+                onChange={handleBeforeSubcategoryChange}
+                PopperProps={{
+                  sx: {
+                    "& .MuiPaper-root": {
+                      backgroundColor: "#222",
+                    },
+                  },
+                }}
+                ListboxProps={{
+                  style: { backgroundColor: "#222" },
+                }}
+                renderTags={(value, getTagProps) => (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      minHeight: 45,
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 1,
+                      overflowY: "auto",
+                      maxHeight: "120px",
+                      padding: "8px 0",
+                      "&::-webkit-scrollbar": {
+                        width: "8px",
+                      },
+                      "&::-webkit-scrollbar-track": {
+                        background: "#333",
+                      },
+                      "&::-webkit-scrollbar-thumb": {
+                        background: "#555",
+                        borderRadius: "4px",
+                      },
+                    }}
+                  >
+                    {value.map((option, index) => (
+                      <Chip
+                        {...getTagProps({ index })}
+                        key={option}
+                        label={option}
+                        sx={{
+                          backgroundColor: "#333",
                           color: "#fff",
-                          "&:hover": {
-                            color: "#ff4444",
+                          margin: "2px",
+                          "& .MuiChip-deleteIcon": {
+                            color: "#fff",
+                            "&:hover": {
+                              color: "#ff4444",
+                            },
                           },
-                        },
-                      }}
-                    />
-                  ))}
-                </Box>
-              )}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="Select Subcategories"
-                  required
-                  error={!!subCategoryError}
-                  helperText={subCategoryError}
-                  FormHelperTextProps={{
-                    sx: { color: "#ff4444" },
-                  }}
-                  sx={{
-                    backgroundColor: "#222",
-                    borderRadius: 1,
-                    "& .MuiOutlinedInput-root": {
-                      color: "#fff",
-                      height: "auto",
-                      minHeight: "45px",
-                      alignItems: "flex-start",
-                    },
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#444",
-                    },
-                  }}
-                />
-              )}
-            />
+                        }}
+                      />
+                    ))}
+                  </Box>
+                )}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Select Tags"
+                    required
+                    error={!!subCategoryError}
+                    helperText={subCategoryError}
+                    FormHelperTextProps={{
+                      sx: { color: "#ff4444" },
+                    }}
+                    sx={{
+                      backgroundColor: "#222",
+                      borderRadius: 1,
+                      "& .MuiOutlinedInput-root": {
+                        color: "#fff",
+                        height: "auto",
+                        minHeight: "45px",
+                        alignItems: "flex-start",
+                      },
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#444",
+                      },
+                    }}
+                  />
+                )}
+              />
+            </Stack>
+            <Stack mb={3}>
+              {/* <Typography fontWeight="bold" mb={0.5}>
+                Add Prompt Title*
+              </Typography> */}
 
-            <TextField
-              placeholder="Add Prompt Title"
-              fullWidth
-              required
-              value={newPromptTitle}
-              onChange={(e) => setNewPromptTitle(e.target.value)}
-              sx={{
-                backgroundColor: "#222",
-                borderRadius: 1,
-                "& .MuiOutlinedInput-root": {
-                  color: "#fff",
-                },
-              }}
-            />
+              <TextField
+                placeholder="Add Prompt Title"
+                fullWidth
+                required
+                value={newPromptTitle}
+                onChange={(e) => setNewPromptTitle(e.target.value)}
+                sx={{
+                  backgroundColor: "#222",
+                  borderRadius: 1,
+                  "& .MuiOutlinedInput-root": {
+                    color: "#fff",
+                  },
+                }}
+              />
+            </Stack>
 
-            <TextField
-              placeholder="Add Prompt Description"
-              fullWidth
-              required
-              multiline
-              rows={8}
-              value={newPromptDescription}
-              onChange={(e) => setNewPromptDescription(e.target.value)}
-              sx={{
-                backgroundColor: "#222",
-                borderRadius: 1,
-                "& .MuiOutlinedInput-root": {
-                  color: "#fff",
-                  minHeight: "200px",
-                },
-              }}
-            />
+            <Stack mb={3}>
+              {/* <Typography fontWeight="bold" mb={0.5}>
+                Add Prompt Description*
+              </Typography> */}
+              <TextField
+                placeholder="Add Prompt Description"
+                fullWidth
+                required
+                multiline
+                rows={8}
+                value={newPromptDescription}
+                onChange={(e) => setNewPromptDescription(e.target.value)}
+                sx={{
+                  backgroundColor: "#222",
+                  borderRadius: 1,
+                  "& .MuiOutlinedInput-root": {
+                    color: "#fff",
+                    minHeight: "200px",
+                  },
+                }}
+              />
+            </Stack>
           </Stack>
 
           <Box
