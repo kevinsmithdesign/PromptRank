@@ -388,6 +388,7 @@ function PromptDetail() {
                 variant="contained"
                 onClick={() => setDialogState({ ...dialogState, rating: true })}
                 sx={{ width: { xs: "100%", sm: "auto" } }}
+                disabled={!auth.currentUser}
               >
                 {userExistingRating ? "Update Review" : "Leave Review"}
               </Button>
