@@ -34,7 +34,8 @@ export function SignUp() {
     email: "",
     password: "",
     confirmPassword: "",
-    userName: "",
+    firstName: "",
+    lastName: "",
   });
 
   // Validation states
@@ -42,14 +43,16 @@ export function SignUp() {
     email: false,
     password: false,
     confirmPassword: false,
-    userName: false,
+    firstName: false,
+    lastName: false,
   });
 
   const [errors, setErrors] = useState({
     email: "",
     password: "",
     confirmPassword: "",
-    userName: "",
+    firstName: "",
+    lastName: "",
   });
 
   const [formError, setFormError] = useState("");
@@ -81,6 +84,16 @@ export function SignUp() {
           error = "Please confirm your password";
         } else if (value !== formData.password) {
           error = "Passwords do not match";
+        }
+        break;
+      case "firstName":
+        if (!value) {
+          error = "First name is required";
+        }
+        break;
+      case "lastName":
+        if (!value) {
+          error = "Last name is required";
         }
         break;
       default:
@@ -123,7 +136,8 @@ export function SignUp() {
       email: true,
       password: true,
       confirmPassword: true,
-      userName: true,
+      firstName: true,
+      lastName: true,
     });
 
     const newErrors = {};
@@ -140,6 +154,14 @@ export function SignUp() {
     }
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Confirm password is required";
+      isValid = false;
+    }
+    if (!formData.firstName) {
+      newErrors.firstName = "First name is required";
+      isValid = false;
+    }
+    if (!formData.lastName) {
+      newErrors.lastName = "Last name is required";
       isValid = false;
     }
 
@@ -194,7 +216,7 @@ export function SignUp() {
       await signup({
         email: formData.email,
         password: formData.password,
-        displayName: formData.userName || formData.email.split("@")[0],
+        displayName: `${formData.firstName} ${formData.lastName}`,
       });
     } catch (error) {
       setFormError(error.message);
@@ -296,16 +318,37 @@ export function SignUp() {
       <Stack>
         <Stack mb={3}>
           <Typography fontWeight="bold" mb={0.5}>
-            Username
+            First Name*
           </Typography>
           <TextField
-            name="userName"
+            name="firstName"
             variant="outlined"
-            placeholder="Enter your username"
+            placeholder="Enter your first name"
             fullWidth
-            value={formData.userName}
+            required
+            value={formData.firstName}
             onChange={handleInputChange}
             onBlur={handleBlur}
+            error={touched.firstName && !!errors.firstName}
+            helperText={touched.firstName && errors.firstName}
+            disabled={loading}
+          />
+        </Stack>
+        <Stack mb={3}>
+          <Typography fontWeight="bold" mb={0.5}>
+            Last Name*
+          </Typography>
+          <TextField
+            name="lastName"
+            variant="outlined"
+            placeholder="Enter your last name"
+            fullWidth
+            required
+            value={formData.lastName}
+            onChange={handleInputChange}
+            onBlur={handleBlur}
+            error={touched.lastName && !!errors.lastName}
+            helperText={touched.lastName && errors.lastName}
             disabled={loading}
           />
         </Stack>
