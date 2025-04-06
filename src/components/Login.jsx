@@ -25,6 +25,7 @@ import {
   InputAdornment,
   IconButton,
   CircularProgress,
+  useTheme,
 } from "@mui/material";
 
 import { Google as GoogleIcon } from "@mui/icons-material";
@@ -32,6 +33,7 @@ import EyeIcon from "../icons/EyeIcon";
 import HidePasswordIcon from "../icons/HidePasswordIcon";
 
 export function Login() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const {
     login,
@@ -241,7 +243,7 @@ export function Login() {
             variant="link"
             onClick={() => setResetDialogOpen(true)}
             sx={{
-              color: "#1976d2",
+              color: theme.palette.primary.main,
               textDecoration: "underline",
               cursor: "pointer",
               fontSize: "14px",
@@ -278,7 +280,7 @@ export function Login() {
             variant="text"
             onClick={() => navigate("/signup")}
             sx={{
-              color: "#1976d2",
+              color: theme.palette.primary.main,
               textDecoration: "underline",
               cursor: "pointer",
               fontSize: "14px",

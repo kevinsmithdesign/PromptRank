@@ -281,12 +281,6 @@ const AddEditPromptDialog = ({
               onClick={onSubmitAddPrompt}
               disabled={loading}
               variant="contained"
-              sx={{
-                backgroundColor: "#0088ff",
-                "&:disabled": {
-                  backgroundColor: "#004488",
-                },
-              }}
             >
               {loading ? "Adding..." : "Add Prompt"}
             </Button>

@@ -5,7 +5,7 @@ import { createTheme } from "@mui/material/styles";
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#1976d2", // Default primary color
+      main: "#1E44FF", // Default primary color
     },
     secondary: {
       main: "#999", // Default secondary color
@@ -23,7 +23,7 @@ const theme = createTheme({
       main: "#4caf50",
     },
     background: {
-      default: "#111",
+      default: "#000",
 
       //   paper: "#ffffff",
     },
@@ -112,14 +112,14 @@ const theme = createTheme({
         root: ({ theme }) => ({
           "& .MuiOutlinedInput-root": {
             borderRadius: "0.5rem",
-            background: "#222",
+            background: "#111",
             height: "60px", // Increased to 60px
             "& fieldset": {
-              border: "1px solid #444",
+              border: "1px solid #222",
               borderRadius: "0.5rem",
             },
             "&:hover fieldset": {
-              border: "1px solid #666",
+              border: "1px solid #333",
             },
             "&.Mui-focused fieldset": {
               border: `2px solid ${theme.palette.primary.main} !important`,
@@ -190,7 +190,7 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: "#222",
+          backgroundColor: "#111",
           borderRadius: "16px",
           boxShadow: "none",
           padding: "32px", // Equivalent to theme.spacing(4)
@@ -202,7 +202,7 @@ const theme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           borderRadius: "0.5rem",
-          background: "#222",
+          background: "#111",
           height: "60px", // Increased to 60px
           "& .MuiOutlinedInput-notchedOutline": {
             border: "1px solid #444",

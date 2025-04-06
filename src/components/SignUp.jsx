@@ -17,6 +17,7 @@ import {
   Dialog,
   DialogContent,
   FormHelperText,
+  useTheme,
 } from "@mui/material";
 import { Google as GoogleIcon } from "@mui/icons-material";
 import EyeIcon from "../icons/EyeIcon";
@@ -24,6 +25,7 @@ import HidePasswordIcon from "../icons/HidePasswordIcon";
 import TermsAndConditions from "./TermsAndConditions";
 
 export function SignUp() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const { signup, signInWithGoogle, loading, error: authError } = useAuth();
 
@@ -457,7 +459,7 @@ export function SignUp() {
             variant="text"
             onClick={() => navigate("/login")}
             sx={{
-              color: "#1976d2",
+              color: theme.palette.primary.main,
               textDecoration: "underline",
               cursor: "pointer",
               fontSize: "14px",

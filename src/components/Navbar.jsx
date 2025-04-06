@@ -9,6 +9,7 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
+  useTheme,
 } from "@mui/material";
 import { auth } from "../../config/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -23,6 +24,7 @@ const navLinks = [
 ];
 
 const Navbar = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -98,7 +100,10 @@ const Navbar = () => {
                 to={path}
                 sx={{
                   textDecoration: "none",
-                  color: location.pathname === path ? "#1976d2" : "#fff",
+                  color:
+                    location.pathname === path
+                      ? theme.palette.primary.main
+                      : "#fff",
                   fontWeight: "bold",
                   borderBottom:
                     location.pathname === path ? "2px solid" : "none",

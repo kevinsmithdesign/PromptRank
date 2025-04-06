@@ -456,7 +456,7 @@ function PromptsPage() {
             aria-selected={selectedCategory === text}
             sx={{
               background:
-                selectedCategory === text ? theme.palette.primary.main : "#222",
+                selectedCategory === text ? theme.palette.primary.main : "#111",
               padding: "16px 24px",
               borderRadius: "32px",
               color: "white",
