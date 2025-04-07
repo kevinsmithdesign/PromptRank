@@ -188,7 +188,7 @@ const PromptDetailCard = ({ prompt }) => {
                 sx={{
                   background: "#222",
                   p: 2,
-                  "&:hover": { background: "#111" },
+                  "&:hover": { background: "#333" },
                 }}
               >
                 <BackIcon />
