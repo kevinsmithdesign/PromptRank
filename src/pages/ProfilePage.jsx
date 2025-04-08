@@ -613,7 +613,7 @@ const ProfilePage = () => {
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, md: 6 }}>
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Box
+              {/* <Box
                 sx={{
                   height: "100px",
                   width: "100px",
@@ -626,7 +626,7 @@ const ProfilePage = () => {
                 }}
               >
                 <UserIcon />
-              </Box>
+              </Box> */}
               <Box sx={{ flexGrow: 1 }}>
                 <Typography variant="h5" color="#fff" fontWeight="bold">
                   {user?.displayName || "Username"}
@@ -674,7 +674,10 @@ const ProfilePage = () => {
       >
         <Box
           sx={{
-            background: activeTab === "collections" ? "#1976d2" : "transparent",
+            background:
+              activeTab === "collections"
+                ? theme.palette.primary.main
+                : "transparent",
             py: 2,
             px: 4,
             borderRadius: "8px",
@@ -686,7 +689,10 @@ const ProfilePage = () => {
         </Box>
         <Box
           sx={{
-            background: activeTab === "prompts" ? "#1976d2" : "transparent",
+            background:
+              activeTab === "prompts"
+                ? theme.palette.primary.main
+                : "transparent",
             py: 2,
             px: 4,
             borderRadius: "8px",

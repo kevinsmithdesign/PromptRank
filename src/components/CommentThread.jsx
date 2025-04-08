@@ -64,7 +64,7 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
         sx={{
           padding: 2,
           borderRadius: 2,
-          backgroundColor: "#333",
+          backgroundColor: "#222",
           display: "flex",
           alignItems: "flex-start",
           gap: 2,
