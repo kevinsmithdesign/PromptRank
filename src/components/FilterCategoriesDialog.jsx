@@ -197,10 +197,10 @@ const FilterCategoriesDialog = ({ open, onClose }) => {
               variant="contained"
               disabled={isUpdating}
               sx={{
-                backgroundColor: "#0088ff",
-                "&:hover": {
-                  backgroundColor: "#0077dd",
-                },
+                // backgroundColor: "#0088ff",
+                // "&:hover": {
+                //   backgroundColor: "#0077dd",
+                // },
                 "&:disabled": {
                   backgroundColor: "#004488",
                 },

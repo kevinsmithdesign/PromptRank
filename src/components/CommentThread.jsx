@@ -54,12 +54,6 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
       })()
     : "just now";
 
-  const getAvatarText = () => {
-    if (data.userDisplayName) return data.userDisplayName[0].toUpperCase();
-    if (data.userEmail) return data.userEmail[0].toUpperCase();
-    return "U";
-  };
-
   const isAuthor = currentUser && currentUser.uid === data.userId;
   const hasUserLiked = data.likedBy?.includes(currentUser?.uid);
 
@@ -76,9 +70,26 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
           gap: 2,
         }}
       >
-        <Avatar sx={{ width: 32, height: 32 }} src={data.userPhotoURL || null}>
+        {/* <Avatar sx={{ width: 32, height: 32 }} src={data.userPhotoURL || null}>
           {!data.userPhotoURL && getAvatarText()}
-        </Avatar>
+        </Avatar> */}
+        {/* <img src={data.userPhotoURL} alt="profile image" /> */}
+        <Box
+          sx={{
+            width: 42,
+            height: 42,
+            borderRadius: "50%",
+            backgroundColor: "primary.main",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            fontWeight: "bold",
+            fontSize: 14,
+          }}
+        >
+          {data.userDisplayName.charAt(0)}
+        </Box>
 
         <Box sx={{ width: "100%" }}>
           <Typography variant="body2" fontWeight="bold" mb={0.5}>
