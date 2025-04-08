@@ -26,6 +26,7 @@ const AiToolsPage = () => {
   const categories = [
     "Text Generation",
     "Image Generation",
+    "Video Generation",
     "Code Assistant",
     "Research",
     "Productivity",

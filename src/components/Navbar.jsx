@@ -21,6 +21,7 @@ import ProfileIcon from "../icons/ProfileIcon";
 const navLinks = [
   { label: "Prompts", path: "/main/prompts" },
   { label: "AI Tools", path: "/main/ai-tools" },
+  // { label: "Tutorials", path: "/main/tutorials" },
 ];
 
 const Navbar = () => {
@@ -100,14 +101,21 @@ const Navbar = () => {
                 to={path}
                 sx={{
                   textDecoration: "none",
-                  color:
+                  backgroundColor:
                     location.pathname === path
                       ? theme.palette.primary.main
-                      : "#fff",
+                      : "transparent",
+                  p: "8px 20px",
+                  mr: 1,
+                  color: "white",
+                  borderRadius: "32px",
+                  // location.pathname === path
+                  //   ? theme.palette.primary.main
+                  //   : "#fff",
                   fontWeight: "bold",
-                  borderBottom:
-                    location.pathname === path ? "2px solid" : "none",
-                  mr: 3,
+                  // borderBottom:
+                  //   location.pathname === path ? "2px solid" : "none",
+                  // mr: 3,
                 }}
               >
                 {label}
@@ -127,7 +135,7 @@ const Navbar = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                mr: 2,
+                ml: 4,
               }}
               onClick={handleProfileMenuOpen}
               aria-controls={open ? "account-menu" : undefined}

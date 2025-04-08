@@ -24,6 +24,7 @@ import CollectionDetailsPage from "./pages/CollectionDetailsPage";
 // Lazy-loaded components
 const PromptsPage = lazy(() => import("./pages/PromptsPage"));
 const AiToolsPage = lazy(() => import("./pages/AiToolsPage"));
+const TutorialsPage = lazy(() => import("./pages/TutorialsPage"));
 
 // Create QueryClient instance
 const queryClient = new QueryClient({
@@ -72,6 +73,14 @@ function App() {
               element={
                 <Suspense fallback={<LoadingFallback />}>
                   <AiToolsPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="tutorials"
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <TutorialsPage />
                 </Suspense>
               }
             />

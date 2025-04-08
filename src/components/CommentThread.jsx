@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -9,6 +10,7 @@ import {
   IconButton,
   InputAdornment,
   Stack,
+  useTheme,
 } from "@mui/material";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import EditIcon from "@mui/icons-material/Edit";
@@ -34,6 +36,7 @@ import {
 import { db } from "../../config/firebase";
 
 const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
+  const theme = useTheme();
   const [showReplies, setShowReplies] = useState(false);
   const [replying, setReplying] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -446,7 +449,11 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
         </Box>
       ) : (
         <Typography variant="body2" color="gray" sx={{ marginBottom: 2 }}>
-          Please sign in to post comments
+          Please{" "}
+          <Link to="/login" style={{ color: "#1E44FF" }}>
+            sign in
+          </Link>{" "}
+          to post comments
         </Typography>
       )}
       <Box sx={{ marginTop: 3 }}>
