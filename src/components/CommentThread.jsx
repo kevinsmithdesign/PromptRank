@@ -13,6 +13,7 @@ import {
   useTheme,
 } from "@mui/material";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
+import LikeIcon from "../icons/LikeIcon";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SendIcon from "@mui/icons-material/Send";
@@ -106,52 +107,62 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
               onChange={(e) => setEditText(e.target.value)}
             />
           ) : (
-            <Typography variant="body2" mb={1}>
+            <Typography variant="body2" mb={2}>
               {data.text}
             </Typography>
           )}
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.6,
+            }}
+          >
             <Typography variant="caption" color="#999">
               {timeAgo}
             </Typography>
-            {currentUser && (
-              <Box
-                size="small"
-                onClick={() => setReplying(!replying)}
-                sx={{
-                  fontSize: "0.75rem",
-                  color: "#999",
-                  textTransform: "none",
-                  padding: "0px 5px",
-                  cursor: "pointer",
-                }}
-              >
-                Reply
-              </Box>
-            )}
-            <IconButton
+            <Box sx={{ width: "24px" }}></Box>
+
+            <Box
               size="small"
               onClick={() => currentUser && !hasUserLiked && onLike(data.id)}
               disabled={!currentUser || hasUserLiked}
+              sx={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+              }}
             >
               <ThumbUpAltIcon
                 sx={{
                   fontSize: "1rem",
-                  color: hasUserLiked ? "blue" : "gray",
+                  color: hasUserLiked ? "#fff" : "gray",
                 }}
               />
-            </IconButton>
-            <Typography variant="caption">
+            </Box>
+            <Box variant="caption" color="#fff" sx={{ fontSize: ".8rem" }}>
               {data.likes > 0 ? data.likes : ""}
-            </Typography>
+            </Box>
             {isAuthor && (
               <>
                 <IconButton size="small" onClick={() => setEditing(!editing)}>
-                  <EditIcon sx={{ fontSize: "1rem", color: "gray" }} />
+                  <EditIcon
+                    sx={{
+                      fontSize: "1rem",
+                      color: "#fff",
+                      "&:hover": { color: theme.palette.primary.main },
+                    }}
+                  />
                 </IconButton>
                 <IconButton size="small" onClick={() => onDelete(data.id)}>
-                  <DeleteIcon sx={{ fontSize: "1rem", color: "gray" }} />
+                  <DeleteIcon
+                    sx={{
+                      fontSize: "1rem",
+                      color: "#fff",
+                      "&:hover": { color: theme.palette.error.main },
+                    }}
+                  />
                 </IconButton>
               </>
             )}
@@ -166,6 +177,27 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
                 Save
               </Button>
             )}
+            <Box sx={{ flex: 1 }}></Box>
+            <Box>
+              {currentUser && (
+                <Box
+                  size="small"
+                  onClick={() => setReplying(!replying)}
+                  sx={{
+                    fontSize: "0.75rem",
+                    color: "#fff",
+                    "&:hover": {
+                      color: theme.palette.primary.main,
+                    },
+                    textTransform: "none",
+                    padding: "0px 5px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Reply
+                </Box>
+              )}
+            </Box>
           </Box>
         </Box>
       </Card>
@@ -207,18 +239,19 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
       )}
 
       {data.replyCount > 0 && (
-        <Button
-          size="small"
+        <Box
           onClick={() => setShowReplies(!showReplies)}
           sx={{
             fontSize: "0.75rem",
-            textTransform: "none",
+
             color: "gray",
-            marginLeft: 4,
+            marginLeft: 2.5,
+            cursor: "pointer",
+            mt: 1,
           }}
         >
           {showReplies ? "Hide Replies" : `View Replies (${data.replyCount})`}
-        </Button>
+        </Box>
       )}
 
       {showReplies && data.replies && (
@@ -450,7 +483,7 @@ const CommentThread = ({ promptId, ratingId, currentUser }) => {
       ) : (
         <Typography variant="body2" color="gray" sx={{ marginBottom: 2 }}>
           Please{" "}
-          <Link to="/login" style={{ color: "#1E44FF" }}>
+          <Link to="/login" style={{ color: theme.palette.primary.main }}>
             sign in
           </Link>{" "}
           to post comments

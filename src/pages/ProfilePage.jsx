@@ -666,14 +666,17 @@ const ProfilePage = () => {
         sx={{
           background: "#222",
           display: "flex",
-          width: "300px",
-          p: 2,
-          borderRadius: "12px",
+          width: "267px",
+
+          // p: 2,
+          borderRadius: "8px",
           mb: 2,
         }}
       >
         <Box
           sx={{
+            color: activeTab === "collections" ? "white" : "#444",
+            fontWeight: activeTab === "collections" ? "bold" : "normal",
             background:
               activeTab === "collections"
                 ? theme.palette.primary.main
@@ -689,6 +692,8 @@ const ProfilePage = () => {
         </Box>
         <Box
           sx={{
+            color: activeTab === "prompts" ? "white" : "#444",
+            fontWeight: activeTab === "prompts" ? "bold" : "normal",
             background:
               activeTab === "prompts"
                 ? theme.palette.primary.main
