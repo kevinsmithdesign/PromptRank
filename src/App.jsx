@@ -25,6 +25,7 @@ import CollectionDetailsPage from "./pages/CollectionDetailsPage";
 const PromptsPage = lazy(() => import("./pages/PromptsPage"));
 const AiToolsPage = lazy(() => import("./pages/AiToolsPage"));
 const TutorialsPage = lazy(() => import("./pages/TutorialsPage"));
+const CompareToolsPage = lazy(() => import("./pages/CompareToolsPage"));
 
 // Create QueryClient instance
 const queryClient = new QueryClient({
@@ -73,6 +74,14 @@ function App() {
               element={
                 <Suspense fallback={<LoadingFallback />}>
                   <AiToolsPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="compare-tools"
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <CompareToolsPage />
                 </Suspense>
               }
             />

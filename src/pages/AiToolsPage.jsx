@@ -17,11 +17,13 @@ import Grid from "@mui/material/Grid2";
 import SearchIcon from "../icons/SearchIcon";
 import FilterIcon from "../icons/FilterIcon";
 import { useTheme } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 
 const AiToolsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const theme = useTheme();
+  const navigate = useNavigate();
 
   const categories = [
     "Text Generation",
@@ -509,6 +511,20 @@ const AiToolsPage = () => {
                   mr: 2,
                 }}
               />
+            </Grid>
+            <Grid
+              display="flex"
+              justifyContent="flex-end"
+              size={{ xs: 12, md: 6 }}
+            >
+              <Button
+                disabled
+                variant="contained"
+                color="primary"
+                onClick={() => navigate("/main/compare-tools")}
+              >
+                Compare Tools
+              </Button>
             </Grid>
           </Grid>
           {/* </Stack> */}
