@@ -518,12 +518,11 @@ const AiToolsPage = () => {
               size={{ xs: 12, md: 6 }}
             >
               <Button
-                disabled
                 variant="contained"
                 color="primary"
                 onClick={() => navigate("/main/compare-tools")}
               >
-                Compare Tools
+                {/* Compare Tools */} Add Prompt
               </Button>
             </Grid>
           </Grid>

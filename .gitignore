@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
 dist
 dist-ssr
@@ -23,6 +24,63 @@ dist-ssr
 *.sln
 *.sw?
 
+# Environment and Configuration
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
 config/firebase.js
+config/*.js
+*.config.js
+
+# Security
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+*.der
+*.p7b
+*.p7c
+*.p7m
+*.p7s
+*.p8
+*.p10
+*.p12
+*.pfx
+*.pem
+*.key
+*.crt
+*.cer
+*.der
+*.p7b
+*.p7c
+*.p7m
+*.p7s
+*.p8
+*.p10
+*.p12
+*.pfx
+
+# Build output
+/build
+/dist
+/out
+/.next
+/.nuxt
+/.output
+
+# Cache
+.cache
+.npm
+.eslintcache
+.stylelintcache
+.rpt2_cache
+.rts2_cache_cjs
+.rts2_cache_es
+.rts2_cache_umd
 
 
