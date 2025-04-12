@@ -98,6 +98,35 @@ const TutorialsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const theme = useTheme();
 
+  // Add scroll state
+  const scrollRef = useRef(null);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  // Add scroll handlers
+  const handleMouseDown = (e) => {
+    setIsScrolling(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsScrolling(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsScrolling(false);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isScrolling) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = x - startX;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
   const categories = [
     "Prompt Engineering",
     "Writing Prompts",
@@ -197,16 +226,22 @@ const TutorialsPage = () => {
 
       {/* Category Buttons */}
       <Stack
+        ref={scrollRef}
         flexDirection="row"
         gap={1}
         mb={6}
         sx={{
           overflowX: "auto",
           scrollbarWidth: "none",
-          cursor: "grab",
+          cursor: isScrolling ? "grabbing" : "grab",
           "&:active": { cursor: "grabbing" },
           "&::-webkit-scrollbar": { display: "none" },
+          userSelect: "none", // Prevent text selection while dragging
         }}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
         role="tablist"
         aria-label="Learning categories"
       >
