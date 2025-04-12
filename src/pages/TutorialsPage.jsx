@@ -142,7 +142,7 @@ const TutorialsPage = () => {
   };
 
   return (
-    <Container>
+    <>
       <Box
         component="header"
         sx={{ mb: 2, display: "flex", flexDirection: "column", gap: 0.5 }}
@@ -338,7 +338,7 @@ const TutorialsPage = () => {
             : "Select a category or search for tutorials."}
         </Typography>
       )}
-    </Container>
+    </>
   );
 };
 
