@@ -715,12 +715,12 @@ const ProfilePage = () => {
           <Typography variant="h4" fontWeight="bold" mb={2}>
             Collections
           </Typography>
-          <Grid container mb={4} spacing={3}>
+          <Grid container mb={3} spacing={3}>
             {paginatedCollections.map((collection) => (
               <Grid key={collection.id} size={{ xs: 12, md: 6 }}>
                 <Card
                   onClick={() => navigate(`/main/collections/${collection.id}`)}
-                  sx={{ cursor: "pointer" }}
+                  sx={{ cursor: "pointer", border: `1px solid #222` }}
                 >
                   <CardContent>
                     <Typography variant="h6" color="#fff" fontWeight="bold">

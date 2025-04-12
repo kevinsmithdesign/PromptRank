@@ -21,7 +21,7 @@ import ProfileIcon from "../icons/ProfileIcon";
 const navLinks = [
   { label: "Prompts", path: "/main/prompts" },
   { label: "AI Tools", path: "/main/ai-tools" },
-  // { label: "Tutorials", path: "/main/tutorials" },
+  { label: "Tutorials", path: "/main/tutorials" },
 ];
 
 const Navbar = () => {

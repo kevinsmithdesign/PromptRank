@@ -522,7 +522,7 @@ const AiToolsPage = () => {
                 color="primary"
                 onClick={() => navigate("/main/compare-tools")}
               >
-                {/* Compare Tools */} Add Prompt
+                Compare Tools
               </Button>
             </Grid>
           </Grid>

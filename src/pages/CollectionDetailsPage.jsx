@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid2";
 import {
@@ -7,14 +7,9 @@ import {
   CardContent,
   Alert,
   Box,
-  Button,
-  Dialog,
-  Stack,
-  TextField,
   IconButton,
   useTheme,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useCollections } from "../hooks/useCollections";
 import { usePrompts } from "../hooks/usePrompts";
 import PromptCard from "../components/PromptCard";
@@ -62,10 +57,6 @@ const CollectionDetailsPage = () => {
 
   return (
     <Box>
-      {/* <Button startIcon={<ArrowBackIcon />} onClick={handleBack} sx={{ mb: 2 }}>
-        Back to Profile
-      </Button> */}
-
       <Typography variant="h4" fontWeight="bold" mb={2}>
         {collection.name}
       </Typography>

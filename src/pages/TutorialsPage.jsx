@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Container,
   Box,
@@ -11,9 +11,10 @@ import {
   Card,
   CardContent,
   CardMedia,
-  Grid,
   CircularProgress,
 } from "@mui/material";
+import Grid from "@mui/material/Grid2";
+
 import SearchIcon from "../icons/SearchIcon";
 import { useTheme } from "@mui/material/styles";
 import { useQuery } from "@tanstack/react-query";
@@ -71,6 +72,12 @@ const TutorialsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const theme = useTheme();
 
+  // Add scroll handling state and ref
+  const scrollRef = useRef(null);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
   const categories = [
     "Prompt Engineering",
     "Writing Prompts",
@@ -78,6 +85,10 @@ const TutorialsPage = () => {
     "MidJourney",
     "Claude",
     "Cursor",
+    "Gemini",
+    "DeepSeek",
+    "Grok",
+    "OpenAI",
   ];
 
   const {
@@ -91,6 +102,29 @@ const TutorialsPage = () => {
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     cacheTime: 30 * 60 * 1000, // Keep data in cache for 30 minutes
   });
+
+  // Add these handlers in your component
+  const handleMouseDown = (e) => {
+    setIsScrolling(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsScrolling(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsScrolling(false);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isScrolling) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = x - startX; // Adjust multiplier for faster/slower scroll
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
 
   const handleCategoryClick = (category) => {
     console.log("Category clicked:", category);
@@ -130,7 +164,7 @@ const TutorialsPage = () => {
       </Box>
 
       {/* Search Section */}
-      <Grid container mb={3}>
+      {/* <Grid container mb={3}>
         <Grid size={{ xs: 12, md: 6 }}>
           <form onSubmit={handleSearch}>
             <TextField
@@ -162,20 +196,26 @@ const TutorialsPage = () => {
             />
           </form>
         </Grid>
-      </Grid>
+      </Grid> */}
 
-      {/* Category Buttons */}
+      {/* Category Buttons - Updated with mouse drag handlers */}
       <Stack
+        ref={scrollRef}
         flexDirection="row"
         gap={1}
         mb={6}
         sx={{
           overflowX: "auto",
           scrollbarWidth: "none",
-          cursor: "grab",
+          cursor: isScrolling ? "grabbing" : "grab",
           "&:active": { cursor: "grabbing" },
           "&::-webkit-scrollbar": { display: "none" },
+          userSelect: "none", // Prevent text selection while dragging
         }}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
         role="tablist"
         aria-label="Learning categories"
       >
@@ -241,16 +281,17 @@ const TutorialsPage = () => {
       ) : videos.length > 0 ? (
         <Grid container spacing={3}>
           {videos.map((video) => (
-            <Grid item xs={12} sm={6} md={4} key={video.id.videoId}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={video.id.videoId}>
               <Card
                 sx={{
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
-                  "&:hover": {
-                    transform: "translateY(-4px)",
-                    transition: "transform 0.2s ease-in-out",
-                  },
+                  border: `1px solid #222`,
+                  // "&:hover": {
+                  //   transform: "translateY(-4px)",
+                  //   transition: "transform 0.2s ease-in-out",
+                  // },
                 }}
                 onClick={() =>
                   window.open(
@@ -262,20 +303,25 @@ const TutorialsPage = () => {
               >
                 <CardMedia
                   component="img"
-                  height="140"
+                  height="160"
                   image={video.snippet.thumbnails.medium.url}
                   alt={video.snippet.title}
+                  sx={{ borderRadius: "8px" }}
                 />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography
                     gutterBottom
                     variant="h6"
                     component="h2"
+                    color="white"
+                    fontWeight="bold"
                     sx={{
                       display: "-webkit-box",
+                      lineHeight: 1.3,
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: "vertical",
                       overflow: "hidden",
+                      mb: 2,
                     }}
                   >
                     {video.snippet.title}
@@ -285,6 +331,7 @@ const TutorialsPage = () => {
                     color="text.secondary"
                     sx={{
                       display: "-webkit-box",
+                      color: "white",
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: "vertical",
                       overflow: "hidden",
