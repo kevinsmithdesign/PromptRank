@@ -664,26 +664,27 @@ const ProfilePage = () => {
       {/* Tabs */}
       <Box
         sx={{
-          background: "#222",
+          // background: "#222",
           display: "flex",
           width: "267px",
 
           // p: 2,
-          borderRadius: "8px",
+          borderRadius: "32px",
           mb: 2,
         }}
       >
         <Box
           sx={{
             color: activeTab === "collections" ? "white" : "#444",
-            fontWeight: activeTab === "collections" ? "bold" : "normal",
+            // fontWeight: activeTab === "collections" ? "bold" : "normal",
+            fontWeight: "bold",
             background:
               activeTab === "collections"
                 ? theme.palette.primary.main
                 : "transparent",
             py: 2,
-            px: 4,
-            borderRadius: "8px",
+            px: 3,
+            borderRadius: "32px",
             cursor: "pointer",
           }}
           onClick={() => handleTabChange("collections")}
@@ -693,14 +694,15 @@ const ProfilePage = () => {
         <Box
           sx={{
             color: activeTab === "prompts" ? "white" : "#444",
-            fontWeight: activeTab === "prompts" ? "bold" : "normal",
+            // fontWeight: activeTab === "prompts" ? "bold" : "normal",
+            fontWeight: "bold",
             background:
               activeTab === "prompts"
                 ? theme.palette.primary.main
                 : "transparent",
             py: 2,
-            px: 4,
-            borderRadius: "8px",
+            px: 3,
+            borderRadius: "32px",
             cursor: "pointer",
           }}
           onClick={() => handleTabChange("prompts")}

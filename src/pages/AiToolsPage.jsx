@@ -12,6 +12,8 @@ import {
   TextField,
   InputAdornment,
   IconButton,
+  Alert,
+  AlertTitle,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import SearchIcon from "../icons/SearchIcon";
@@ -20,10 +22,10 @@ import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 
 const AiToolsPage = () => {
+  const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const theme = useTheme();
-  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("view tools");
 
   const categories = [
     "Text Generation",
@@ -400,6 +402,15 @@ const AiToolsPage = () => {
     ],
   };
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === "collections") {
+      setCollectionsPage(1);
+    } else {
+      setPromptsPage(1);
+    }
+  };
+
   return (
     <HelmetProvider>
       <>
@@ -524,6 +535,57 @@ const AiToolsPage = () => {
               >
                 Compare Tools
               </Button> */}
+
+              {/* Tabs */}
+              <Box
+                sx={{
+                  // background: "#222",
+                  display: "flex",
+                  // width: "267px",
+
+                  // p: 2,
+                  borderRadius: "32px",
+                  mb: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    color: activeTab === "view tools" ? "white" : "#444",
+                    fontWeight: "bold",
+                    // fontWeight: activeTab === "view tools" ? "bold" : "normal",
+                    background:
+                      activeTab === "view tools"
+                        ? theme.palette.primary.main
+                        : "transparent",
+                    py: 2,
+                    px: 3,
+                    borderRadius: "32px",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => handleTabChange("view tools")}
+                >
+                  View Tools
+                </Box>
+                <Box
+                  sx={{
+                    color: activeTab === "compare tools" ? "white" : "#444",
+                    fontWeight: "bold",
+                    // fontWeight:
+                    //   activeTab === "compare tools" ? "bold" : "normal",
+                    background:
+                      activeTab === "compare tools"
+                        ? theme.palette.primary.main
+                        : "transparent",
+                    py: 2,
+                    px: 3,
+                    borderRadius: "32px",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => handleTabChange("compare tools")}
+                >
+                  Compare Tools
+                </Box>
+              </Box>
             </Grid>
           </Grid>
           {/* </Stack> */}
@@ -597,71 +659,111 @@ const AiToolsPage = () => {
             ))}
           </Stack>
 
-          <Box sx={{ flexGrow: 1, mb: 8 }}>
-            <Grid
-              container
-              spacing={3}
-              component="section"
-              aria-label="AI Tools Grid"
-            >
-              {filteredApps.map(({ title, subTitle, description, url }) => (
-                <Grid key={title} size={{ xs: 12, sm: 6, md: 6, lg: 4 }}>
-                  <Card
-                    component="article"
-                    sx={{
-                      height: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      p: 5,
-                      border: `1px solid #222`,
-                    }}
-                  >
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Stack
-                        flexDirection="row"
-                        alignItems="center"
-                        mb={2.5}
-                        mt={1}
-                      >
-                        <Stack>
-                          <Typography
-                            component="h2"
-                            color="#fff"
-                            variant="h6"
-                            fontWeight="bold"
-                          >
-                            {title}
-                          </Typography>
-                          <Typography color="#fff" variant="body2">
-                            {subTitle}
-                          </Typography>
-                        </Stack>
-                      </Stack>
-                      <Typography color="#fff" variant="body2" pb={4}>
-                        {description}
-                      </Typography>
-                    </Box>
-
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      color="primary"
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+          {activeTab === "view tools" && (
+            <Box sx={{ flexGrow: 1, mb: 8 }}>
+              <Grid
+                container
+                spacing={3}
+                component="section"
+                aria-label="AI Tools Grid"
+              >
+                {filteredApps.map(({ title, subTitle, description, url }) => (
+                  <Grid key={title} size={{ xs: 12, sm: 6, md: 6, lg: 4 }}>
+                    <Card
+                      component="article"
                       sx={{
-                        mt: "auto",
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        p: 5,
+                        border: `1px solid #222`,
                       }}
-                      aria-label={`Visit ${title} website`}
                     >
-                      Visit Website
-                    </Button>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Stack
+                          flexDirection="row"
+                          alignItems="center"
+                          mb={2.5}
+                          mt={1}
+                        >
+                          <Stack>
+                            <Typography
+                              component="h2"
+                              color="#fff"
+                              variant="h6"
+                              fontWeight="bold"
+                            >
+                              {title}
+                            </Typography>
+                            <Typography color="#fff" variant="body2">
+                              {subTitle}
+                            </Typography>
+                          </Stack>
+                        </Stack>
+                        <Typography color="#fff" variant="body2" pb={4}>
+                          {description}
+                        </Typography>
+                      </Box>
+
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        color="primary"
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                          mt: "auto",
+                        }}
+                        aria-label={`Visit ${title} website`}
+                      >
+                        Visit Website
+                      </Button>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
+          {activeTab === "compare tools" && (
+            <Box sx={{ mt: 4, mb: 8 }}>
+              <Alert
+                severity="info"
+                variant="outlined"
+                sx={{
+                  borderColor: theme.palette.primary.main,
+                  p: 4,
+                  "& .MuiAlert-icon": {
+                    color: theme.palette.primary.main,
+                  },
+                  backgroundColor: "rgba(0, 127, 255, 0.05)",
+                  "& .MuiAlert-message": {
+                    color: "rgba(255, 255, 255, 0.9)",
+                  },
+                  "& ul": {
+                    color: "rgba(255, 255, 255, 0.7)",
+                    "& li": {
+                      marginBottom: "4px",
+                    },
+                  },
+                }}
+              >
+                <AlertTitle sx={{ fontWeight: "bold", color: "#fff" }}>
+                  Coming Soon: AI Tools Comparison
+                </AlertTitle>
+                We're working on an advanced comparison feature that will allow
+                you to:
+                <ul>
+                  <li>Compare AI tools side by side</li>
+                  <li>Analyze features, pricing, and capabilities</li>
+                  <li>Get personalized recommendations based on your needs</li>
+                  <li>View detailed performance metrics and user reviews</li>
+                </ul>
+                Stay tuned for this exciting update!
+              </Alert>
+            </Box>
+          )}
           {/* </Container> */}
         </>
       </>
