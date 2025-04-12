@@ -517,13 +517,13 @@ const AiToolsPage = () => {
               justifyContent="flex-end"
               size={{ xs: 12, md: 6 }}
             >
-              <Button
+              {/* <Button
                 variant="contained"
                 color="primary"
                 onClick={() => navigate("/main/compare-tools")}
               >
                 Compare Tools
-              </Button>
+              </Button> */}
             </Grid>
           </Grid>
           {/* </Stack> */}

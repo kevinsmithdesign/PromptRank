@@ -22,6 +22,16 @@ import { useQuery } from "@tanstack/react-query";
 // Log all available environment variables (only in development)
 console.log("Available env variables:", import.meta.env);
 
+// Add this helper function at the top level
+const decodeHtml = (html) => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(
+    `<!doctype html><body>${html}`,
+    "text/html"
+  );
+  return doc.body.textContent || "";
+};
+
 const fetchYouTubeVideos = async ({ queryKey }) => {
   const [_, category, searchQuery] = queryKey;
 
@@ -64,7 +74,23 @@ const fetchYouTubeVideos = async ({ queryKey }) => {
     throw new Error(data.error.message);
   }
 
-  return data.items;
+  // Log raw data to see what we're getting
+  console.log("Raw video data:", data.items[0]?.snippet);
+
+  // Decode HTML entities in titles and descriptions
+  const decodedItems = data.items.map((item) => ({
+    ...item,
+    snippet: {
+      ...item.snippet,
+      title: decodeHtml(item.snippet.title),
+      description: decodeHtml(item.snippet.description),
+    },
+  }));
+
+  // Log decoded data to verify transformation
+  console.log("Decoded video data:", decodedItems[0]?.snippet);
+
+  return decodedItems;
 };
 
 const TutorialsPage = () => {
@@ -145,7 +171,7 @@ const TutorialsPage = () => {
   };
 
   return (
-    <Container>
+    <>
       <Box
         component="header"
         sx={{ mb: 2, display: "flex", flexDirection: "column", gap: 0.5 }}
@@ -288,10 +314,6 @@ const TutorialsPage = () => {
                   display: "flex",
                   flexDirection: "column",
                   border: `1px solid #222`,
-                  // "&:hover": {
-                  //   transform: "translateY(-4px)",
-                  //   transition: "transform 0.2s ease-in-out",
-                  // },
                 }}
                 onClick={() =>
                   window.open(
@@ -305,10 +327,10 @@ const TutorialsPage = () => {
                   component="img"
                   height="160"
                   image={video.snippet.thumbnails.medium.url}
-                  alt={video.snippet.title}
+                  alt={decodeHtml(video.snippet.title)}
                   sx={{ borderRadius: "8px" }}
                 />
-                <CardContent sx={{ flexGrow: 1 }}>
+                <Box sx={{ flexGrow: 1, mt: 1 }}>
                   <Typography
                     gutterBottom
                     variant="h6"
@@ -324,7 +346,7 @@ const TutorialsPage = () => {
                       mb: 2,
                     }}
                   >
-                    {video.snippet.title}
+                    {decodeHtml(video.snippet.title)}
                   </Typography>
                   <Typography
                     variant="body2"
@@ -337,9 +359,9 @@ const TutorialsPage = () => {
                       overflow: "hidden",
                     }}
                   >
-                    {video.snippet.description}
+                    {decodeHtml(video.snippet.description)}
                   </Typography>
-                </CardContent>
+                </Box>
               </Card>
             </Grid>
           ))}
@@ -351,7 +373,7 @@ const TutorialsPage = () => {
             : "Select a category or search for tutorials."}
         </Typography>
       )}
-    </Container>
+    </>
   );
 };
 
