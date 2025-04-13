@@ -22,6 +22,7 @@ const navLinks = [
   { label: "Prompts", path: "/main/prompts" },
   { label: "AI Tools", path: "/main/ai-tools" },
   { label: "Tutorials", path: "/main/tutorials" },
+  { label: "Blog", path: "/main/blog" },
 ];
 
 const Navbar = () => {
