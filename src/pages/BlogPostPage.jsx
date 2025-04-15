@@ -8,11 +8,11 @@ import {
   Avatar,
   Stack,
   Container,
-  Divider,
+  IconButton,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-
+import BackIcon from "../icons/BackIcon";
 const BlogPostPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -67,13 +67,17 @@ const BlogPostPage = () => {
 
   return (
     <>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate("/main/blog")}
-        sx={{ mb: 4 }}
+      <IconButton
+        onClick={() => navigate(-1)}
+        sx={{
+          background: "#222",
+          p: 2,
+          mb: 2,
+          "&:hover": { background: "#333" },
+        }}
       >
-        Back to Blog
-      </Button>
+        <BackIcon />
+      </IconButton>
 
       <article>
         {/* Header Image */}
@@ -111,7 +115,7 @@ const BlogPostPage = () => {
         </Box>
 
         {/* Article Header */}
-        <Container maxWidth="md" sx={{ mb: 8 }}>
+        <Container sx={{ mb: 8 }}>
           <Stack direction="row" spacing={1} mb={3}>
             <Chip
               label={post.category}
@@ -178,12 +182,10 @@ const BlogPostPage = () => {
               </Typography>
             </Box>
           </Stack>
-
-          <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.1)" }} />
         </Container>
 
         {/* Article Content */}
-        <Container maxWidth="md">
+        <Container>
           <Box
             sx={{
               "& h2": {

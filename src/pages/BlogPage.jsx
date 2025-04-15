@@ -63,7 +63,7 @@ const BlogPage = () => {
       date: "2024-02-18",
       category: "AI Tools",
       readTime: "6 min read",
-      imageUrl: "https://images.unsplash.com/photo-1675557009875-436f598727d3",
+      imageUrl: "https://images.unsplash.com/photo-1677442136019-21780ecad995",
     },
     {
       id: 3,
@@ -74,7 +74,7 @@ const BlogPage = () => {
       date: "2024-02-15",
       category: "AI Tools",
       readTime: "10 min read",
-      imageUrl: "https://images.unsplash.com/photo-1676277791608-ac54612df762",
+      imageUrl: "https://images.unsplash.com/photo-1677442136019-21780ecad995",
     },
   ];
 
@@ -162,6 +162,14 @@ const BlogPage = () => {
             }}
           />
         </Grid>
+        <Grid
+          size={{ xs: 12, md: 6 }}
+          sx={{ display: "flex", justifyContent: "flex-end" }}
+        >
+          <Button variant="contained" color="primary">
+            Create Blog Post
+          </Button>
+        </Grid>
       </Grid>
 
       {/* Categories */}
@@ -238,7 +246,7 @@ const BlogPage = () => {
       </Stack>
 
       {/* Blog Posts Grid */}
-      <Grid container spacing={4}>
+      <Grid container spacing={3}>
         {filteredPosts.map((post) => (
           <Grid key={post.id} size={{ xs: 12, sm: 6, md: 4 }}>
             <Card
@@ -250,7 +258,7 @@ const BlogPage = () => {
                 backgroundColor: "transparent",
                 transition: "transform 0.2s ease-in-out",
                 "&:hover": {
-                  transform: "translateY(-4px)",
+                  //   transform: "translateY(-4px)",
                   cursor: "pointer",
                 },
               }}
@@ -259,8 +267,11 @@ const BlogPage = () => {
               <Box
                 sx={{
                   position: "relative",
-                  paddingTop: "56.25%", // 16:9 aspect ratio
+                  height: "190px",
+                  //   paddingTop: "56.25%", // 16:9 aspect ratio
                   overflow: "hidden",
+                  borderRadius: "8px",
+                  mb: 3,
                 }}
               >
                 <Box
@@ -277,72 +288,71 @@ const BlogPage = () => {
                   }}
                 />
               </Box>
-              <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                <Stack direction="row" spacing={1} mb={2}>
-                  <Chip
-                    label={post.category}
-                    size="small"
-                    sx={{
-                      backgroundColor: theme.palette.primary.main,
-                      color: "white",
-                    }}
-                  />
-                  <Chip
-                    label={post.readTime}
-                    size="small"
-                    sx={{ backgroundColor: "#333", color: "white" }}
-                  />
-                </Stack>
-                <Typography
-                  gutterBottom
-                  variant="h6"
-                  component="h2"
+              {/* <CardContent sx={{ flexGrow: 1, p: 3 }}> */}
+              <Stack direction="row" spacing={1} mb={2}>
+                <Chip
+                  label={post.category}
+                  size="small"
                   sx={{
-                    fontWeight: "bold",
+                    backgroundColor: theme.palette.primary.main,
                     color: "white",
-                    mb: 2,
                   }}
-                >
-                  {post.title}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 3, color: "rgba(255, 255, 255, 0.7)" }}
-                >
-                  {post.excerpt}
-                </Typography>
-                <Stack
-                  direction="row"
-                  spacing={2}
-                  alignItems="center"
-                  sx={{ mt: "auto" }}
-                >
-                  <Avatar
-                    sx={{ width: 32, height: 32 }}
-                    alt={post.author}
-                    src={`https://source.unsplash.com/random/100x100/?portrait,${post.id}`}
-                  />
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ color: "white", fontWeight: "bold" }}
-                    >
-                      {post.author}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{ color: "rgba(255, 255, 255, 0.5)" }}
-                    >
-                      {new Date(post.date).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </CardContent>
+                />
+                <Chip
+                  label={post.readTime}
+                  size="small"
+                  sx={{ backgroundColor: "#333", color: "white" }}
+                />
+              </Stack>
+              <Typography
+                gutterBottom
+                variant="h6"
+                component="h2"
+                sx={{
+                  fontWeight: "bold",
+                  color: "white",
+                  mb: 2,
+                }}
+              >
+                {post.title}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: 3, color: "rgba(255, 255, 255, 0.7)" }}
+              >
+                {post.excerpt}
+              </Typography>
+              <Stack
+                direction="row"
+                spacing={2}
+                alignItems="center"
+                sx={{ mt: "auto" }}
+              >
+                <Avatar
+                  sx={{ width: 48, height: 48 }}
+                  alt={post.author}
+                  src={`https://source.unsplash.com/random/100x100/?portrait,${post.id}`}
+                />
+                <Box>
+                  <Typography
+                    variant="body1"
+                    sx={{ color: "white", fontWeight: "bold", mb: 0.3 }}
+                  >
+                    {post.author}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "rgba(255, 255, 255, 0.5)" }}
+                  >
+                    {new Date(post.date).toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </Typography>
+                </Box>
+              </Stack>
             </Card>
           </Grid>
         ))}
