@@ -16,12 +16,17 @@ import Grid from "@mui/material/Grid2";
 import { useTheme } from "@mui/material/styles";
 import SearchIcon from "../icons/SearchIcon";
 import { useNavigate } from "react-router-dom";
+import CreateBlogPostDialog from "../components/CreateBlogPostDialog";
 
 const BlogPage = () => {
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const navigate = useNavigate();
+
+  // State for blog post modal
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add scroll state for categories
   const scrollRef = useRef(null);
@@ -112,6 +117,29 @@ const BlogPage = () => {
     return matchesCategory && matchesSearch;
   });
 
+  // Handle create modal open/close
+  const handleOpenCreateModal = () => {
+    setCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setCreateModalOpen(false);
+  };
+
+  // Handle blog post submission
+  const handleSubmitBlogPost = (blogData) => {
+    setIsSubmitting(true);
+
+    // Simulate API call with timeout
+    setTimeout(() => {
+      console.log("Blog post data submitted:", blogData);
+      // Here you would typically make an API call to save the blog post
+      setIsSubmitting(false);
+      handleCloseCreateModal();
+      // Optionally refresh the blog posts or show a success message
+    }, 1500);
+  };
+
   return (
     <>
       <Box
@@ -166,7 +194,11 @@ const BlogPage = () => {
           size={{ xs: 12, md: 6 }}
           sx={{ display: "flex", justifyContent: "flex-end" }}
         >
-          <Button variant="contained" color="primary">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleOpenCreateModal}
+          >
             Create Blog Post
           </Button>
         </Grid>
@@ -357,6 +389,14 @@ const BlogPage = () => {
           </Grid>
         ))}
       </Grid>
+
+      {/* Create Blog Post Modal */}
+      <CreateBlogPostDialog
+        open={createModalOpen}
+        handleClose={handleCloseCreateModal}
+        loading={isSubmitting}
+        onSubmit={handleSubmitBlogPost}
+      />
     </>
   );
 };
