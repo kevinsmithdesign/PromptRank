@@ -22,6 +22,7 @@ import SettingsPage from "./pages/SettingsPage";
 import CollectionDetailsPage from "./pages/CollectionDetailsPage";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
+import CreateBlogPostPage from "./pages/CreateBlogPostPage";
 
 // Lazy-loaded components
 const PromptsPage = lazy(() => import("./pages/PromptsPage"));
@@ -99,6 +100,7 @@ function App() {
             <Route path="collections/:id" element={<CollectionDetailsPage />} />
             <Route path="blog" element={<BlogPage />} />
             <Route path="blog/:id" element={<BlogPostPage />} />
+            <Route path="create" element={<CreateBlogPostPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>

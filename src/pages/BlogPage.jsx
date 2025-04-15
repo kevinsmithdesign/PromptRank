@@ -16,7 +16,7 @@ import Grid from "@mui/material/Grid2";
 import { useTheme } from "@mui/material/styles";
 import SearchIcon from "../icons/SearchIcon";
 import { useNavigate } from "react-router-dom";
-import CreateBlogPostDialog from "../components/CreateBlogPostDialog";
+import CreateBlogPostPage from "./CreateBlogPostPage";
 
 const BlogPage = () => {
   const theme = useTheme();
@@ -117,15 +117,6 @@ const BlogPage = () => {
     return matchesCategory && matchesSearch;
   });
 
-  // Handle create modal open/close
-  const handleOpenCreateModal = () => {
-    setCreateModalOpen(true);
-  };
-
-  const handleCloseCreateModal = () => {
-    setCreateModalOpen(false);
-  };
-
   // Handle blog post submission
   const handleSubmitBlogPost = (blogData) => {
     setIsSubmitting(true);
@@ -197,7 +188,7 @@ const BlogPage = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={handleOpenCreateModal}
+            onClick={() => navigate("create")}
           >
             Create Blog Post
           </Button>
@@ -389,14 +380,6 @@ const BlogPage = () => {
           </Grid>
         ))}
       </Grid>
-
-      {/* Create Blog Post Modal */}
-      <CreateBlogPostDialog
-        open={createModalOpen}
-        handleClose={handleCloseCreateModal}
-        loading={isSubmitting}
-        onSubmit={handleSubmitBlogPost}
-      />
     </>
   );
 };
