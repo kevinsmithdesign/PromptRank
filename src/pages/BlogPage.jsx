@@ -16,6 +16,7 @@ import Grid from "@mui/material/Grid2";
 import { useTheme } from "@mui/material/styles";
 import SearchIcon from "../icons/SearchIcon";
 import { useNavigate } from "react-router-dom";
+import { auth } from "../config/firebase";
 import CreateBlogPostPage from "./CreateBlogPostPage";
 
 const BlogPage = () => {
@@ -37,9 +38,9 @@ const BlogPage = () => {
   // Sample categories
   const categories = [
     "Prompt Engineering",
-    "AI Tools",
+    "AI Agents",
     "ChatGPT",
-    "AI News",
+    "Claude",
     "Tutorials",
     "Best Practices",
     "Industry Updates",
@@ -187,10 +188,10 @@ const BlogPage = () => {
         >
           <Button
             variant="contained"
-            color="primary"
-            onClick={() => navigate("create")}
+            onClick={() => navigate("/main/blog/create")}
+            disabled={!auth.currentUser}
           >
-            Create Blog Post
+            Add Blog Post
           </Button>
         </Grid>
       </Grid>

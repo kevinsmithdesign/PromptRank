@@ -493,7 +493,7 @@ const AiToolsPage = () => {
 
           {/* Search Section */}
           {/* <Stack flexDirection="row" mb={3}> */}
-          <Grid container mb={3}>
+          <Grid container mb={2}>
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth

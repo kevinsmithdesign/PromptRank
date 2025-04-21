@@ -99,8 +99,8 @@ function App() {
             <Route path="profile" element={<ProfilePage />} />
             <Route path="collections/:id" element={<CollectionDetailsPage />} />
             <Route path="blog" element={<BlogPage />} />
+            <Route path="blog/create" element={<CreateBlogPostPage />} />
             <Route path="blog/:id" element={<BlogPostPage />} />
-            <Route path="create" element={<CreateBlogPostPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
