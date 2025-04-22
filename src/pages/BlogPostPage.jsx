@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -11,19 +11,60 @@ import {
   IconButton,
   CircularProgress,
   Alert,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import BackIcon from "../icons/BackIcon";
-import { useGetBlogPost } from "../hooks/useBlogQueries";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useGetBlogPost, useDeleteBlogPost } from "../hooks/useBlogQueries";
+import { auth } from "../config/firebase";
 
 const BlogPostPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const theme = useTheme();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Fetch blog post data using React Query
   const { data: post, isLoading, error } = useGetBlogPost(id);
+
+  // Delete mutation
+  const {
+    mutate: deleteBlogPost,
+    isLoading: isDeleting,
+    isSuccess: isDeleteSuccess,
+    error: deleteError,
+  } = useDeleteBlogPost();
+
+  // Check if current user is the author
+  const isAuthor =
+    post && auth.currentUser && post.authorId === auth.currentUser.uid;
+
+  // Handle edit click
+  const handleEditClick = () => {
+    navigate(`/main/blog/edit/${id}`);
+  };
+
+  // Handle delete click
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  // Handle delete confirmation
+  const handleConfirmDelete = () => {
+    deleteBlogPost(id, {
+      onSuccess: () => {
+        navigate("/main/blog");
+      },
+    });
+    setDeleteDialogOpen(false);
+  };
 
   // Handle loading and error states
   if (isLoading) {
@@ -69,17 +110,54 @@ const BlogPostPage = () => {
 
   return (
     <>
-      <IconButton
-        onClick={() => navigate(-1)}
+      <Box
         sx={{
-          background: "#222",
-          p: 2,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
           mb: 2,
-          "&:hover": { background: "#333" },
         }}
       >
-        <BackIcon />
-      </IconButton>
+        <IconButton
+          onClick={() => navigate(-1)}
+          sx={{
+            background: "#222",
+            p: 2,
+            "&:hover": { background: "#333" },
+          }}
+        >
+          <BackIcon />
+        </IconButton>
+
+        {isAuthor && (
+          <Stack direction="row" spacing={1}>
+            <Button
+              startIcon={<EditIcon />}
+              variant="outlined"
+              color="primary"
+              onClick={handleEditClick}
+              sx={{
+                background: "#222",
+                "&:hover": { background: "#333" },
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              startIcon={<DeleteIcon />}
+              variant="outlined"
+              color="error"
+              onClick={handleDeleteClick}
+              sx={{
+                background: "#222",
+                "&:hover": { background: "#333" },
+              }}
+            >
+              Delete
+            </Button>
+          </Stack>
+        )}
+      </Box>
 
       <article>
         {/* Header Image */}
@@ -213,6 +291,31 @@ const BlogPostPage = () => {
           />
         </Container>
       </article>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Delete Blog Post</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this blog post? This action cannot
+            be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
+            disabled={isDeleting}
+            startIcon={isDeleting && <CircularProgress size={16} />}
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
