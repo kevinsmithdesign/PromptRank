@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Button,
   TextField,
   Typography,
-  Stack,
   Box,
   Autocomplete,
   Chip,
@@ -11,8 +10,12 @@ import {
   Paper,
   Divider,
   Container,
+  Alert,
+  CircularProgress,
+  Snackbar,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import BackIcon from "../icons/BackIcon";
 import FormatBoldIcon from "@mui/icons-material/FormatBold";
 import FormatItalicIcon from "@mui/icons-material/FormatItalic";
@@ -25,24 +28,83 @@ import LinkIcon from "@mui/icons-material/Link";
 import { useNavigate } from "react-router-dom";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
+import LinkExtension from "@tiptap/extension-link";
+import ImageExtension from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
+import { useCreateBlogPost } from "../hooks/useBlogQueries";
+import { auth } from "../config/firebase";
 
 const CreateBlogPostPage = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [tags, setTags] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [category, setCategory] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [skipImageUpload, setSkipImageUpload] = useState(false); // Add this to bypass image upload
+  const fileInputRef = useRef(null);
+  const [wordCount, setWordCount] = useState(0);
+  const [isEditorEmpty, setIsEditorEmpty] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [showError, setShowError] = useState(false);
+
+  // React Query mutation hook
+  const {
+    mutate: createBlogPost,
+    isLoading: isSubmitting,
+    isSuccess,
+    isError,
+    error,
+  } = useCreateBlogPost();
+
+  // Check auth status
+  useEffect(() => {
+    const checkAuth = () => {
+      if (!auth.currentUser) {
+        console.warn("User not authenticated");
+      } else {
+        console.log("User authenticated:", auth.currentUser.uid);
+      }
+    };
+
+    checkAuth();
+    // Listen for auth state changes
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        console.warn("User signed out");
+      } else {
+        console.log("User signed in:", user.uid);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Handle successful post creation
+  useEffect(() => {
+    if (isSuccess) {
+      console.log("Post creation successful, navigating to blog page");
+      navigate("/main/blog");
+    }
+  }, [isSuccess, navigate]);
+
+  // Handle error display
+  useEffect(() => {
+    if (isError && error) {
+      console.error("Error creating post:", error);
+      setErrorMsg(error.message || "Failed to publish post. Please try again.");
+      setShowError(true);
+    }
+  }, [isError, error]);
 
   // TipTap editor setup
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Link.configure({
+      LinkExtension.configure({
         openOnClick: false,
       }),
-      Image.configure({
+      ImageExtension.configure({
         HTMLAttributes: {
           class: "max-w-full h-auto rounded-lg",
         },
@@ -53,12 +115,23 @@ const CreateBlogPostPage = () => {
     ],
     content: "",
     onUpdate: ({ editor }) => {
-      const text = editor.state.doc.textContent;
+      const text = editor.getText();
       setWordCount(text.trim() === "" ? 0 : text.trim().split(/\s+/).length);
+      setIsEditorEmpty(editor.isEmpty);
     },
   });
 
-  const [wordCount, setWordCount] = useState(0);
+  // Available categories - matching the ones in the BlogPage
+  const categoryOptions = [
+    "Prompt Engineering",
+    "AI Agents",
+    "ChatGPT",
+    "Claude",
+    "Tutorials",
+    "Best Practices",
+    "Industry Updates",
+    "Tips & Tricks",
+  ];
 
   const tagOptions = [
     "promptengineering",
@@ -71,21 +144,76 @@ const CreateBlogPostPage = () => {
   ];
 
   const handleSubmit = () => {
-    setIsSubmitting(true);
-    const content = editor.getHTML();
+    console.log("Submit button clicked");
 
-    setTimeout(() => {
-      console.log("Blog post data submitted:", {
-        title,
+    if (!auth.currentUser) {
+      console.error("Not authenticated");
+      setErrorMsg("You must be logged in to create a blog post");
+      setShowError(true);
+      return;
+    }
+
+    if (!title.trim()) {
+      console.error("Title is required");
+      setErrorMsg("Please enter a title for your blog post");
+      setShowError(true);
+      return;
+    }
+
+    if (!editor || editor.isEmpty) {
+      console.error("Content is required");
+      setErrorMsg("Please add some content to your blog post");
+      setShowError(true);
+      return;
+    }
+
+    try {
+      // Get content from editor
+      const content = editor.getHTML();
+      console.log("Content:", content.substring(0, 100) + "...");
+
+      // Extract first paragraph for excerpt (limit to 150 chars)
+      const textContent = editor.getText();
+      const excerpt =
+        textContent.substring(0, 150) + (textContent.length > 150 ? "..." : "");
+
+      // Calculate read time (average reading speed: 200 words per minute)
+      const readTime = Math.max(1, Math.ceil(wordCount / 200)) + " min read";
+
+      // Prepare blog data
+      const blogData = {
+        title: title.trim(),
         content,
-        tags,
+        excerpt,
+        category: category || categoryOptions[0], // Default to first category if none selected
+        tags: tags.length > 0 ? tags : ["uncategorized"],
+        readTime,
+        author: auth.currentUser.displayName || "Anonymous",
+        authorId: auth.currentUser.uid,
+        authorPhotoURL: auth.currentUser.photoURL || null,
+      };
+
+      console.log("Submitting blog post:", {
+        ...blogData,
+        content: blogData.content.substring(0, 100) + "...",
       });
-      setIsSubmitting(false);
-      navigate("/main/blog");
-    }, 1500);
+
+      // Submit the blog post using React Query mutation
+      // Only pass the image file if we're not skipping image upload
+      createBlogPost({
+        blogData,
+        imageFile: skipImageUpload ? null : imageFile,
+      });
+    } catch (err) {
+      console.error("Exception during submit:", err);
+      setErrorMsg(err.message || "An unexpected error occurred");
+      setShowError(true);
+    }
   };
 
   const addLink = () => {
+    if (!editor) return;
+
     const url = window.prompt("Enter URL:");
     if (url) {
       editor.chain().focus().setLink({ href: url }).run();
@@ -93,23 +221,62 @@ const CreateBlogPostPage = () => {
   };
 
   const addImage = () => {
+    if (!editor) return;
+
     const url = window.prompt("Enter image URL:");
     if (url) {
       editor.chain().focus().setImage({ src: url }).run();
     }
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Only accept image files
+    if (!file.type.startsWith("image/")) {
+      setErrorMsg("Please upload an image file");
+      setShowError(true);
+      return;
+    }
+
+    console.log("Image file selected:", file.name);
+    setImageFile(file);
+
+    // Create a preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
+  };
+
+  const openFileDialog = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleCloseError = () => {
+    setShowError(false);
+  };
+
   if (!editor) {
-    return null;
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "50vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
     <Container maxWidth="md">
       {/* Header */}
       <Box sx={{ display: "flex", alignItems: "center", mb: 4, pt: 2 }}>
-        {/* <IconButton onClick={() => navigate("/main/blog")} sx={{ mr: 2 }}>
-          <ArrowBackIcon />
-        </IconButton> */}
         <IconButton
           onClick={() => navigate(-1)}
           sx={{
@@ -128,10 +295,133 @@ const CreateBlogPostPage = () => {
           variant="contained"
           color="primary"
           onClick={handleSubmit}
-          disabled={isSubmitting || !title || editor.isEmpty}
+          disabled={isSubmitting || !title.trim() || isEditorEmpty}
         >
-          {isSubmitting ? "Publishing..." : "Publish"}
+          {isSubmitting ? (
+            <>
+              <CircularProgress size={20} sx={{ mr: 1 }} />
+              Publishing...
+            </>
+          ) : (
+            "Publish"
+          )}
         </Button>
+      </Box>
+
+      {/* Error alert */}
+      <Snackbar
+        open={showError}
+        autoHideDuration={6000}
+        onClose={handleCloseError}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseError}
+          severity="error"
+          sx={{ width: "100%" }}
+        >
+          {errorMsg}
+        </Alert>
+      </Snackbar>
+
+      {/* Error display */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          Error creating blog post: {error.message || "Please try again"}
+        </Alert>
+      )}
+
+      {/* Loading indicator */}
+      {isSubmitting && (
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
+          <CircularProgress size={24} sx={{ mr: 1 }} />
+          <Typography>Publishing your blog post...</Typography>
+        </Box>
+      )}
+
+      {/* Auth status warning */}
+      {!auth.currentUser && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          You need to be logged in to publish a post.
+        </Alert>
+      )}
+
+      {/* Featured Image Upload */}
+      <Box sx={{ mb: 4 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 1,
+          }}
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: "medium" }}>
+            Featured Image
+          </Typography>
+
+          {/* CORS Workaround Option */}
+          <FormControlLabel
+            control={
+              <Switch
+                checked={skipImageUpload}
+                onChange={(e) => setSkipImageUpload(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Use default image (CORS workaround)"
+            sx={{ "& .MuiTypography-root": { fontSize: "0.8rem" } }}
+          />
+        </Box>
+
+        {imagePreview && !skipImageUpload ? (
+          <Box sx={{ position: "relative", mb: 2 }}>
+            <Box
+              component="img"
+              src={imagePreview}
+              alt="Featured image preview"
+              sx={{
+                width: "100%",
+                height: "200px",
+                objectFit: "cover",
+                borderRadius: "8px",
+              }}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              sx={{
+                position: "absolute",
+                bottom: "10px",
+                right: "10px",
+                backgroundColor: "rgba(0,0,0,0.7)",
+              }}
+              onClick={openFileDialog}
+            >
+              Change Image
+            </Button>
+          </Box>
+        ) : (
+          !skipImageUpload && (
+            <Button
+              variant="outlined"
+              startIcon={<ImageIcon />}
+              onClick={openFileDialog}
+              sx={{ mb: 2, p: 2, borderStyle: "dashed" }}
+              fullWidth
+            >
+              Upload Featured Image
+            </Button>
+          )
+        )}
+
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: "none" }}
+          accept="image/*"
+          onChange={handleImageUpload}
+        />
       </Box>
 
       {/* Title */}
@@ -141,6 +431,8 @@ const CreateBlogPostPage = () => {
         required
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        error={!title.trim() && showError}
+        helperText={!title.trim() && showError ? "Title is required" : ""}
         sx={{
           mb: 3,
           backgroundColor: "#222",
@@ -152,6 +444,32 @@ const CreateBlogPostPage = () => {
             borderColor: "#444",
           },
         }}
+      />
+
+      {/* Category Selection */}
+      <Autocomplete
+        options={categoryOptions}
+        value={category}
+        onChange={(_, newValue) => setCategory(newValue)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            placeholder="Select a category"
+            variant="outlined"
+            fullWidth
+            sx={{
+              mb: 3,
+              backgroundColor: "#222",
+              borderRadius: 1,
+              "& .MuiOutlinedInput-root": {
+                color: "#fff",
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#444",
+              },
+            }}
+          />
+        )}
       />
 
       {/* Editor Toolbar */}
@@ -179,9 +497,10 @@ const CreateBlogPostPage = () => {
             size="small"
             variant="text"
             sx={{
-              color: editor.isActive("heading", { level: 1 })
-                ? "#2196f3"
-                : "white",
+              color:
+                editor.isActive && editor.isActive("heading", { level: 1 })
+                  ? "#2196f3"
+                  : "white",
               minWidth: "36px",
               fontSize: "1rem",
               fontWeight: "bold",
@@ -197,9 +516,10 @@ const CreateBlogPostPage = () => {
             size="small"
             variant="text"
             sx={{
-              color: editor.isActive("heading", { level: 2 })
-                ? "#2196f3"
-                : "white",
+              color:
+                editor.isActive && editor.isActive("heading", { level: 2 })
+                  ? "#2196f3"
+                  : "white",
               minWidth: "36px",
               fontSize: "0.9rem",
               fontWeight: "bold",
@@ -215,9 +535,10 @@ const CreateBlogPostPage = () => {
             size="small"
             variant="text"
             sx={{
-              color: editor.isActive("heading", { level: 3 })
-                ? "#2196f3"
-                : "white",
+              color:
+                editor.isActive && editor.isActive("heading", { level: 3 })
+                  ? "#2196f3"
+                  : "white",
               minWidth: "36px",
               fontSize: "0.8rem",
               fontWeight: "bold",
@@ -232,42 +553,72 @@ const CreateBlogPostPage = () => {
           <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
           <IconButton
             size="small"
-            sx={{ color: editor.isActive("bold") ? "#2196f3" : "white" }}
+            sx={{
+              color:
+                editor.isActive && editor.isActive("bold")
+                  ? "#2196f3"
+                  : "white",
+            }}
             onClick={() => editor.chain().focus().toggleBold().run()}
           >
             <FormatBoldIcon />
           </IconButton>
           <IconButton
             size="small"
-            sx={{ color: editor.isActive("italic") ? "#2196f3" : "white" }}
+            sx={{
+              color:
+                editor.isActive && editor.isActive("italic")
+                  ? "#2196f3"
+                  : "white",
+            }}
             onClick={() => editor.chain().focus().toggleItalic().run()}
           >
             <FormatItalicIcon />
           </IconButton>
           <IconButton
             size="small"
-            sx={{ color: editor.isActive("bulletList") ? "#2196f3" : "white" }}
+            sx={{
+              color:
+                editor.isActive && editor.isActive("bulletList")
+                  ? "#2196f3"
+                  : "white",
+            }}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
           >
             <FormatListBulletedIcon />
           </IconButton>
           <IconButton
             size="small"
-            sx={{ color: editor.isActive("orderedList") ? "#2196f3" : "white" }}
+            sx={{
+              color:
+                editor.isActive && editor.isActive("orderedList")
+                  ? "#2196f3"
+                  : "white",
+            }}
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
           >
             <FormatListNumberedIcon />
           </IconButton>
           <IconButton
             size="small"
-            sx={{ color: editor.isActive("blockquote") ? "#2196f3" : "white" }}
+            sx={{
+              color:
+                editor.isActive && editor.isActive("blockquote")
+                  ? "#2196f3"
+                  : "white",
+            }}
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
           >
             <FormatQuoteIcon />
           </IconButton>
           <IconButton
             size="small"
-            sx={{ color: editor.isActive("codeBlock") ? "#2196f3" : "white" }}
+            sx={{
+              color:
+                editor.isActive && editor.isActive("codeBlock")
+                  ? "#2196f3"
+                  : "white",
+            }}
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
           >
             <CodeIcon />
@@ -278,7 +629,12 @@ const CreateBlogPostPage = () => {
           </IconButton>
           <IconButton
             size="small"
-            sx={{ color: editor.isActive("link") ? "#2196f3" : "white" }}
+            sx={{
+              color:
+                editor.isActive && editor.isActive("link")
+                  ? "#2196f3"
+                  : "white",
+            }}
             onClick={addLink}
           >
             <LinkIcon />
@@ -290,6 +646,8 @@ const CreateBlogPostPage = () => {
       <Box
         sx={{
           mb: 4,
+          border: isEditorEmpty && showError ? "1px solid red" : "none",
+          borderRadius: "4px",
           "& .ProseMirror": {
             minHeight: "400px",
             outline: "none",
@@ -372,6 +730,11 @@ const CreateBlogPostPage = () => {
         }}
       >
         <EditorContent editor={editor} />
+        {isEditorEmpty && showError && (
+          <Typography color="error" sx={{ mt: 1, ml: 1 }}>
+            Content is required
+          </Typography>
+        )}
       </Box>
 
       {/* Tags */}
@@ -404,7 +767,7 @@ const CreateBlogPostPage = () => {
             <TextField
               {...params}
               variant="outlined"
-              placeholder="Add tags..."
+              placeholder="Add tags... (max 5)"
               size="small"
               sx={{
                 backgroundColor: "#222",
@@ -434,7 +797,11 @@ const CreateBlogPostPage = () => {
         <Typography variant="body2" color="text.secondary">
           {wordCount} words
         </Typography>
-        <Button variant="outlined" onClick={() => navigate("/main/blog")}>
+        <Button
+          variant="outlined"
+          onClick={() => navigate("/main/blog")}
+          disabled={isSubmitting}
+        >
           Cancel
         </Button>
       </Box>
