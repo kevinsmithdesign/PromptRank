@@ -20,6 +20,20 @@ import SearchIcon from "../icons/SearchIcon";
 import FilterIcon from "../icons/FilterIcon";
 import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
+import ChatGptIcon from "../icons/AiToolIcons/ChatGptIcon";
+import ClaudeIcon from "../icons/AiToolIcons/ClaudeIcon";
+import DeepSeekIcon from "../icons/AiToolIcons/DeepSeek";
+import GemeniIcon from "../icons/AiToolIcons/GemeniIcon";
+import LlamaIcon from "../icons/AiToolIcons/LlamaIcon";
+import GrokIcon from "../icons/AiToolIcons/GrokIcon";
+import MidJourneyIcon from "../icons/AiToolIcons/MidJourneyIcon";
+import CopilotIcon from "../icons/AiToolIcons/CopilotIcon";
+import BoltIcon from "../icons/AiToolIcons/BlotIcon";
+import WindsurfIcon from "../icons/AiToolIcons/WindsurfIcon";
+import PreplexityIcon from "../icons/AiToolIcons/PreplexityIcon";
+import JasperIcon from "../icons/AiToolIcons/JasperIcon";
+import CursorIcon from "../icons/AiToolIcons/CursorIcon";
+import ReaddyIcon from "../icons/AiToolIcons/ReaddyIcon";
 
 const AiToolsPage = () => {
   const theme = useTheme();
@@ -55,6 +69,8 @@ const AiToolsPage = () => {
       rating: 4.8,
       releaseDate: "2022-11-30",
       operatingSystem: "Web-based",
+      // bgColor: "#10A37F",
+      logo: <ChatGptIcon />,
     },
     {
       title: "Claude",
@@ -74,6 +90,7 @@ const AiToolsPage = () => {
       rating: 4.7,
       releaseDate: "2023-03-14",
       operatingSystem: "Web-based",
+      logo: <ClaudeIcon />,
     },
     {
       title: "DeepSeek",
@@ -92,6 +109,7 @@ const AiToolsPage = () => {
       rating: 4.5,
       releaseDate: "2023-09-01",
       operatingSystem: "Web-based",
+      logo: <DeepSeekIcon />,
     },
     {
       title: "Gemini",
@@ -106,6 +124,7 @@ const AiToolsPage = () => {
       rating: 4.6,
       releaseDate: "2023-12-06",
       operatingSystem: "Cross-platform",
+      logo: <GemeniIcon />,
     },
     {
       title: "Llama",
@@ -125,6 +144,7 @@ const AiToolsPage = () => {
       rating: 4.6,
       releaseDate: "2023-07-18",
       operatingSystem: "Cross-platform",
+      logo: <LlamaIcon />,
     },
     {
       title: "Grok",
@@ -144,20 +164,7 @@ const AiToolsPage = () => {
       rating: 4.4,
       releaseDate: "2023-11-04",
       operatingSystem: "Web-based",
-    },
-    {
-      title: "You.com",
-      subTitle: "AI-Powered Search Engine",
-      description:
-        "Search platform that integrates AI to provide summarized results and creative tools.",
-      url: "https://you.com",
-      provider: "You.com",
-      category: "Text Generation",
-      features: ["AI Search", "Content Generation", "Web Analysis"],
-      pricing: "Free",
-      rating: 4.4,
-      releaseDate: "2023-01-15",
-      operatingSystem: "Web-based",
+      logo: <GrokIcon />,
     },
     {
       title: "MidJourney",
@@ -172,6 +179,7 @@ const AiToolsPage = () => {
       rating: 4.9,
       releaseDate: "2022-07-12",
       operatingSystem: "Web-based",
+      logo: <MidJourneyIcon />,
     },
     {
       title: "DALL-E 3",
@@ -186,21 +194,22 @@ const AiToolsPage = () => {
       rating: 4.8,
       releaseDate: "2023-10-03",
       operatingSystem: "Web-based",
+      logo: <ChatGptIcon />,
     },
-    {
-      title: "Stable Diffusion",
-      subTitle: "Open Source Image Generation",
-      description:
-        "Powerful open-source image generation model with a strong community and flexible custom models.",
-      url: "https://stablediffusionweb.com",
-      provider: "Stability AI",
-      category: "Image Generation",
-      features: ["Open Source", "Custom Models", "Community Support"],
-      pricing: "Free",
-      rating: 4.7,
-      releaseDate: "2022-08-22",
-      operatingSystem: "Cross-platform",
-    },
+    // {
+    //   title: "Stable Diffusion",
+    //   subTitle: "Open Source Image Generation",
+    //   description:
+    //     "Powerful open-source image generation model with a strong community and flexible custom models.",
+    //   url: "https://stablediffusionweb.com",
+    //   provider: "Stability AI",
+    //   category: "Image Generation",
+    //   features: ["Open Source", "Custom Models", "Community Support"],
+    //   pricing: "Free",
+    //   rating: 4.7,
+    //   releaseDate: "2022-08-22",
+    //   operatingSystem: "Cross-platform",
+    // },
     {
       title: "Copilot",
       subTitle: "AI Programming Assistant",
@@ -214,23 +223,85 @@ const AiToolsPage = () => {
       rating: 4.8,
       releaseDate: "2023-06-21",
       operatingSystem: "Cross-platform",
+      logo: <CopilotIcon />,
     },
     {
-      title: "Claude in Slack",
-      subTitle: "Team AI Assistant",
+      title: "Lovable",
+      subTitle: "AI-Powered Full-Stack App Builder",
       description:
-        "Anthropic's AI integrated into Slack for team collaboration, document analysis, and writing assistance.",
-      url: "https://www.anthropic.com/index/slack",
-      provider: "Anthropic",
-      category: "Text Generation",
-      features: ["Team Integration", "Document Analysis", "Writing Assistance"],
-      pricing: "Paid",
+        "Lovable helps users turn natural language prompts into full-stack apps, including UI, logic, and integrations, all in one place.",
+      url: "https://lovable.dev",
+      provider: "Lovable",
+      category: "App Builder",
+      features: [
+        "Natural Language to App",
+        "Full-Stack Development",
+        "Figma Integration",
+        "Built-in Authentication",
+        "Stripe Payments Integration",
+      ],
+      pricing: "Freemium",
       rating: 4.6,
-      releaseDate: "2023-07-11",
+      releaseDate: "2024-02-01",
       operatingSystem: "Web-based",
+      bgColor: "#222",
     },
     {
-      title: "Perplexity AI",
+      title: "Bolt.new",
+      subTitle: "AI-Powered Web App Builder",
+      description:
+        "Bolt lets users create full-stack apps fast using simple prompts, handling setup, code generation, and deployment with ease.",
+      url: "https://bolt.new",
+      provider: "Bolt",
+      category: "App Builder",
+      features: [
+        "Prompt-Based App Generation",
+        "Full-Stack Code Generation",
+        "Web and Mobile App Support",
+        "Rapid Prototyping",
+      ],
+      pricing: "Freemium",
+      rating: 4.5,
+      releaseDate: "2024-03-15",
+      operatingSystem: "Web-based",
+      logo: <BoltIcon />,
+    },
+    {
+      title: "Windsurf",
+      subTitle: "AI-Powered Code Editor",
+      description:
+        "Windsurf is a modern IDE with built-in AI that assists with coding, understands large codebases, and boosts dev productivity.",
+      url: "https://windsurf.com",
+      provider: "Windsurf",
+      category: "Code Assistant",
+      features: [
+        "AI Agentic IDE",
+        "Real-Time Code Suggestions",
+        "Deep Codebase Understanding",
+        "Cross-Platform Support",
+      ],
+      pricing: "Free",
+      rating: 4.7,
+      releaseDate: "2023-11-20",
+      operatingSystem: "Cross-platform",
+      logo: <WindsurfIcon />,
+    },
+    // {
+    //   title: "Claude in Slack",
+    //   subTitle: "Team AI Assistant",
+    //   description:
+    //     "Anthropic's AI integrated into Slack for team collaboration, document analysis, and writing assistance.",
+    //   url: "https://www.anthropic.com/index/slack",
+    //   provider: "Anthropic",
+    //   category: "Text Generation",
+    //   features: ["Team Integration", "Document Analysis", "Writing Assistance"],
+    //   pricing: "Paid",
+    //   rating: 4.6,
+    //   releaseDate: "2023-07-11",
+    //   operatingSystem: "Web-based",
+    // },
+    {
+      title: "Perplexity",
       subTitle: "AI Research Assistant",
       description:
         "Research-focused AI that provides real-time information synthesis with cited sources.",
@@ -246,39 +317,40 @@ const AiToolsPage = () => {
       rating: 4.5,
       releaseDate: "2023-04-18",
       operatingSystem: "Web-based",
+      logo: <PreplexityIcon />,
     },
-    {
-      title: "AutoGPT",
-      subTitle: "Autonomous AI Agent",
-      description:
-        "Experimental AI system that can execute complex tasks autonomously by breaking them into subtasks.",
-      url: "https://github.com/Torantulino/Auto-GPT",
-      provider: "Open Source",
-      category: "Text Generation",
-      features: [
-        "Task Automation",
-        "Autonomous Operation",
-        "Complex Problem Solving",
-      ],
-      pricing: "Free",
-      rating: 4.3,
-      releaseDate: "2023-04-07",
-      operatingSystem: "Cross-platform",
-    },
-    {
-      title: "Whisper",
-      subTitle: "Speech Recognition",
-      description:
-        "OpenAI's speech recognition system that accurately transcribes and translates audio in multiple languages.",
-      url: "https://openai.com/research/whisper",
-      provider: "OpenAI",
-      category: "Text Generation",
-      features: ["Transcription", "Translation", "Multi-language Support"],
-      pricing: "Open Source",
-      rating: 4.7,
-      releaseDate: "2022-09-21",
-      operatingSystem: "Cross-platform",
-    },
+    // {
+    //   title: "AutoGPT",
+    //   subTitle: "Autonomous AI Agent",
+    //   description:
+    //     "Experimental AI system that can execute complex tasks autonomously by breaking them into subtasks.",
+    //   url: "https://github.com/Torantulino/Auto-GPT",
+    //   provider: "Open Source",
+    //   category: "Text Generation",
+    //   features: [
+    //     "Task Automation",
+    //     "Autonomous Operation",
+    //     "Complex Problem Solving",
+    //   ],
+    //   pricing: "Free",
+    //   rating: 4.3,
+    //   releaseDate: "2023-04-07",
+    //   operatingSystem: "Cross-platform",
+    // },
+    // {
+    //   title: "Whisper",
+    //   subTitle: "Speech Recognition",
+    //   description:
+    //     "OpenAI's speech recognition system that accurately transcribes and translates audio in multiple languages.",
+    //   url: "https://openai.com/research/whisper",
+    //   provider: "OpenAI",
+    //   category: "Text Generation",
+    //   features: ["Transcription", "Translation", "Multi-language Support"],
+    //   pricing: "Open Source",
+    //   rating: 4.7,
+    //   releaseDate: "2022-09-21",
+    //   operatingSystem: "Cross-platform",
+    // },
     {
       title: "Jasper",
       subTitle: "AI Content Creation",
@@ -292,6 +364,7 @@ const AiToolsPage = () => {
       rating: 4.6,
       releaseDate: "2021-01-01",
       operatingSystem: "Web-based",
+      logo: <JasperIcon />,
     },
     {
       title: "Cursor",
@@ -306,6 +379,7 @@ const AiToolsPage = () => {
       rating: 4.5,
       releaseDate: "2023-02-07",
       operatingSystem: "Desktop",
+      logo: <CursorIcon />,
     },
     {
       title: "Readdy",
@@ -320,6 +394,7 @@ const AiToolsPage = () => {
       rating: 4.4,
       releaseDate: "2023-08-15",
       operatingSystem: "Web-based",
+      logo: <ReaddyIcon />,
     },
   ];
 
@@ -667,62 +742,76 @@ const AiToolsPage = () => {
                 component="section"
                 aria-label="AI Tools Grid"
               >
-                {filteredApps.map(({ title, subTitle, description, url }) => (
-                  <Grid key={title} size={{ xs: 12, sm: 6, md: 6, lg: 4 }}>
-                    <Card
-                      component="article"
-                      sx={{
-                        height: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                        p: 5,
-                        border: `1px solid #222`,
-                      }}
-                    >
-                      <Box sx={{ flexGrow: 1 }}>
-                        <Stack
-                          flexDirection="row"
-                          alignItems="center"
-                          mb={2.5}
-                          mt={1}
-                        >
-                          <Stack>
-                            <Typography
-                              component="h2"
-                              color="#fff"
-                              variant="h6"
-                              fontWeight="bold"
-                            >
-                              {title}
-                            </Typography>
-                            <Typography color="#fff" variant="body2">
-                              {subTitle}
-                            </Typography>
-                          </Stack>
-                        </Stack>
-                        <Typography color="#fff" variant="body2" pb={4}>
-                          {description}
-                        </Typography>
-                      </Box>
-
-                      <Button
-                        variant="contained"
-                        fullWidth
-                        color="primary"
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                {filteredApps.map(
+                  ({ title, subTitle, description, url, bgColor, logo }) => (
+                    <Grid key={title} size={{ xs: 12, sm: 6, md: 6, lg: 4 }}>
+                      <Card
+                        component="article"
                         sx={{
-                          mt: "auto",
+                          height: "100%",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "space-between",
+                          p: 5,
+                          border: `1px solid #222`,
                         }}
-                        aria-label={`Visit ${title} website`}
                       >
-                        Visit Website
-                      </Button>
-                    </Card>
-                  </Grid>
-                ))}
+                        <Box sx={{ flexGrow: 1 }}>
+                          <Stack flexDirection="row">
+                            <Box
+                              sx={{
+                                background: bgColor,
+                                height: "52px",
+                                width: "52px",
+                                borderRadius: "8px",
+                                mr: 2,
+                              }}
+                            >
+                              {logo}
+                            </Box>
+                            <Stack
+                              flexDirection="row"
+                              alignItems="center"
+                              mb={2}
+                            >
+                              <Stack>
+                                <Typography
+                                  component="h2"
+                                  color="#fff"
+                                  variant="h6"
+                                  fontWeight="bold"
+                                >
+                                  {title}
+                                </Typography>
+                                <Typography color="#fff" variant="body2">
+                                  {subTitle}
+                                </Typography>
+                              </Stack>
+                            </Stack>
+                          </Stack>
+                          <Typography color="#fff" variant="body2" pb={4}>
+                            {description}
+                          </Typography>
+                        </Box>
+
+                        <Button
+                          variant="contained"
+                          fullWidth
+                          color="primary"
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{
+                            mt: "auto",
+                          }}
+                          aria-label={`Visit ${title} website`}
+                        >
+                          Visit Website
+                        </Button>
+                      </Card>
+                    </Grid>
+                  )
+                )}
               </Grid>
             </Box>
           )}

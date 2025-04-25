@@ -314,7 +314,7 @@ const EditBlogPostPage = () => {
   }
 
   return (
-    <Container maxWidth="md">
+    <>
       {/* Header */}
       <Box sx={{ display: "flex", alignItems: "center", mb: 4, pt: 2 }}>
         <IconButton
@@ -852,7 +852,7 @@ const EditBlogPostPage = () => {
           Cancel
         </Button>
       </Box>
-    </Container>
+    </>
   );
 };
 
