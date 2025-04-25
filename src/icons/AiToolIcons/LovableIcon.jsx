@@ -1,9 +1,8 @@
-// import React from "react";
+import React from "react";
+import LovableImg from "./LovableImg.png";
 
-// const LovableIcon = () => {
-//   return (
+const LovableIcon = () => {
+  return <img src={LovableImg} alt="Lovable logo" />;
+};
 
-//   );
-// };
-
-// export default LovableIcon;
+export default LovableIcon;

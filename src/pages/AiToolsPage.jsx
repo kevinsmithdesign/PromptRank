@@ -34,6 +34,7 @@ import PreplexityIcon from "../icons/AiToolIcons/PreplexityIcon";
 import JasperIcon from "../icons/AiToolIcons/JasperIcon";
 import CursorIcon from "../icons/AiToolIcons/CursorIcon";
 import ReaddyIcon from "../icons/AiToolIcons/ReaddyIcon";
+import LovableIcon from "../icons/AiToolIcons/LovableIcon";
 
 const AiToolsPage = () => {
   const theme = useTheme();
@@ -244,7 +245,8 @@ const AiToolsPage = () => {
       rating: 4.6,
       releaseDate: "2024-02-01",
       operatingSystem: "Web-based",
-      bgColor: "#222",
+      // bgColor: "#222",
+      logo: <LovableIcon />,
     },
     {
       title: "Bolt.new",
