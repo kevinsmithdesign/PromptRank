@@ -76,25 +76,27 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
       >
         {/* <Avatar sx={{ width: 32, height: 32 }} src={data.userPhotoURL || null}>
           {!data.userPhotoURL && getAvatarText()}
-        </Avatar> */}
+        </Avatar> 
         {/* <img src={data.userPhotoURL} alt="profile image" /> */}
-        <Box
-          sx={{
-            width: 42,
-            height: 42,
-            borderRadius: "50%",
-            backgroundColor: "primary.main",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            fontWeight: "bold",
-            fontSize: 14,
-          }}
-        >
-          {data.userDisplayName.charAt(0)}
-        </Box>
 
+        <Box>
+          <Box
+            sx={{
+              width: 42,
+              height: 42,
+              borderRadius: "50%",
+              backgroundColor: "primary.main",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "white",
+              fontWeight: "bold",
+              fontSize: 14,
+            }}
+          >
+            {data.userDisplayName.charAt(0)}
+          </Box>
+        </Box>
         <Box sx={{ width: "100%" }}>
           <Typography variant="body2" fontWeight="bold" mb={0.5}>
             {data.userDisplayName || data.userEmail || "Anonymous User"}

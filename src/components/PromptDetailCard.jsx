@@ -39,106 +39,106 @@ const PromptDetailCard = ({ prompt }) => {
   return (
     <>
       <Card>
-        <CardContent>
-          <Box display="flex" flexDirection="row" sx={{ mb: 2 }}>
-            <Box sx={{ flex: 1 }}>
+        {/* <CardContent> */}
+        <Box display="flex" flexDirection="row" sx={{ mb: 2 }}>
+          <Box sx={{ flex: 1 }}>
+            <IconButton
+              onClick={() => navigate(-1)}
+              sx={{
+                background: "#222",
+                p: 2,
+                "&:hover": { background: "#333" },
+              }}
+            >
+              <BackIcon />
+            </IconButton>
+          </Box>
+
+          <Box sx={{ mr: 1 }}>
+            <Tooltip title={copied ? "Copied!" : "Copy prompt"}>
               <IconButton
-                onClick={() => navigate(-1)}
+                onClick={handleCopyDescription}
+                sx={{
+                  background: "#222",
+                  p: 2,
+                  "&:hover": { background: "#333" },
+                  color: copied ? "success.main" : "primary.main",
+                }}
+              >
+                {copied ? <CheckCircleIcon fontSize="small" /> : <CopyIcon />}
+              </IconButton>
+            </Tooltip>
+          </Box>
+
+          <Box>
+            <Tooltip title="Save to Collection">
+              <IconButton
                 sx={{
                   background: "#222",
                   p: 2,
                   "&:hover": { background: "#333" },
                 }}
+                onClick={() => setSaveToCollectionOpen(true)}
               >
-                <BackIcon />
+                <SaveIcon />
               </IconButton>
-            </Box>
-
-            <Box sx={{ mr: 1 }}>
-              <Tooltip title={copied ? "Copied!" : "Copy prompt"}>
-                <IconButton
-                  onClick={handleCopyDescription}
-                  sx={{
-                    background: "#222",
-                    p: 2,
-                    "&:hover": { background: "#333" },
-                    color: copied ? "success.main" : "primary.main",
-                  }}
-                >
-                  {copied ? <CheckCircleIcon fontSize="small" /> : <CopyIcon />}
-                </IconButton>
-              </Tooltip>
-            </Box>
-
-            <Box>
-              <Tooltip title="Save to Collection">
-                <IconButton
-                  sx={{
-                    background: "#222",
-                    p: 2,
-                    "&:hover": { background: "#333" },
-                  }}
-                  onClick={() => setSaveToCollectionOpen(true)}
-                >
-                  <SaveIcon />
-                </IconButton>
-              </Tooltip>
-            </Box>
+            </Tooltip>
           </Box>
+        </Box>
 
-          <Stack>
-            <Stack direction="row" alignItems="center" mb={4}>
-              <StarIcon sx={{ color: "rgb(250, 175, 0)" }} />
-              <Stack sx={{ ml: 1, mr: 1 }}>
-                <Typography fontWeight="bold">
-                  {prompt.avgRating.toFixed(1)}
-                </Typography>
-              </Stack>
-              <Typography color="#999">
-                {prompt.totalRatings}{" "}
-                {prompt.totalRatings === 1 ? "Review" : "Reviews"}
+        <Stack>
+          <Stack direction="row" alignItems="center" mb={4}>
+            <StarIcon sx={{ color: "rgb(250, 175, 0)" }} />
+            <Stack sx={{ ml: 1, mr: 1 }}>
+              <Typography fontWeight="bold">
+                {prompt.avgRating.toFixed(1)}
               </Typography>
             </Stack>
-
-            {prompt.category && (
-              <Typography
-                variant="body2"
-                sx={{
-                  textTransform: "uppercase",
-                  fontWeight: "bold",
-                  color: "#999",
-                }}
-              >
-                {prompt.category}
-              </Typography>
-            )}
-
-            <Typography variant="h4" fontWeight="bold" mb={2} color="white">
-              {prompt.title}
+            <Typography color="#999">
+              {prompt.totalRatings}{" "}
+              {prompt.totalRatings === 1 ? "Review" : "Reviews"}
             </Typography>
+          </Stack>
 
-            <Box sx={{ mb: 4 }}>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: "rgba(255, 255, 255, 0.8)",
-                  lineHeight: 1.7,
-                }}
-              >
-                {prompt.description}
-              </Typography>
-            </Box>
+          {prompt.category && (
+            <Typography
+              variant="body2"
+              sx={{
+                textTransform: "uppercase",
+                fontWeight: "bold",
+                color: "#999",
+              }}
+            >
+              {prompt.category}
+            </Typography>
+          )}
 
-            {/* <Typography variant="caption" sx={{ color: "#999" }}>
+          <Typography variant="h4" fontWeight="bold" mb={2} color="white">
+            {prompt.title}
+          </Typography>
+
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="body1"
+              sx={{
+                color: "rgba(255, 255, 255, 0.8)",
+                lineHeight: 1.7,
+              }}
+            >
+              {prompt.description}
+            </Typography>
+          </Box>
+
+          {/* <Typography variant="caption" sx={{ color: "#999" }}>
               Created: {new Date(prompt.createdAt).toLocaleDateString()}
             </Typography>
 
             <Typography variant="caption" sx={{ color: "#999" }}>
               Author: {prompt.authorName}
             </Typography> */}
-          </Stack>
-          <PromptModelComparison />
-        </CardContent>
+        </Stack>
+        <PromptModelComparison />
+        {/* </CardContent> */}
       </Card>
 
       <SaveToCollectionDialog

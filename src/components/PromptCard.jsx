@@ -100,63 +100,63 @@ const PromptCard = ({
                   }}
                   onClick={() => navigate(`/main/prompts/${prompt.id}`)}
                 >
-                  <CardContent sx={{ p: 1 }}>
-                    <Stack flexDirection="row" alignItems="center" mb={2}>
-                      <StarIcon sx={{ color: "rgb(250, 175, 0)", mr: 1 }} />
-                      <Stack sx={{ flex: 1 }}>
-                        <Typography>
-                          {prompt.totalRatings > 0
-                            ? prompt.avgRating.toFixed(1)
-                            : "No ratings"}
-                        </Typography>
-                      </Stack>
-                      {prompt.totalRatings > 0 && (
-                        <Typography color="#999" fontSize="0.875rem">
-                          ({prompt.totalRatings}{" "}
-                          {prompt.totalRatings === 1 ? "review" : "reviews"})
-                        </Typography>
-                      )}
-                      <Stack></Stack>
+                  {/* <CardContent sx={{ p: 1 }}> */}
+                  <Stack flexDirection="row" alignItems="center" mb={2}>
+                    <StarIcon sx={{ color: "rgb(250, 175, 0)", mr: 1 }} />
+                    <Stack sx={{ flex: 1 }}>
+                      <Typography>
+                        {prompt.totalRatings > 0
+                          ? prompt.avgRating.toFixed(1)
+                          : "No ratings"}
+                      </Typography>
                     </Stack>
-                    {prompt.category && (
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          textTransform: "uppercase",
-                          fontWeight: "bold",
-                          color: "#999",
-                          mb: 0.5,
-                        }}
-                      >
-                        {prompt.category}
+                    {prompt.totalRatings > 0 && (
+                      <Typography color="#999" fontSize="0.875rem">
+                        ({prompt.totalRatings}{" "}
+                        {prompt.totalRatings === 1 ? "review" : "reviews"})
                       </Typography>
                     )}
+                    <Stack></Stack>
+                  </Stack>
+                  {prompt.category && (
                     <Typography
-                      variant="h5"
-                      fontWeight="bold"
-                      color="#fff"
-                      mb={2}
+                      variant="body2"
+                      sx={{
+                        textTransform: "uppercase",
+                        fontWeight: "bold",
+                        color: "#999",
+                        mb: 0.5,
+                      }}
                     >
-                      {prompt?.title}
+                      {prompt.category}
                     </Typography>
-                    <Box sx={{ position: "relative" }}>
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 3,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          mb: 1,
-                          lineHeight: 1.5,
-                          color: "rgba(255, 255, 255, 0.8)",
-                          position: "relative",
-                        }}
-                      >
-                        {prompt?.description}
-                      </Typography>
-                    </Box>
-                  </CardContent>
+                  )}
+                  <Typography
+                    variant="h5"
+                    fontWeight="bold"
+                    color="#fff"
+                    mb={2}
+                  >
+                    {prompt?.title}
+                  </Typography>
+                  <Box sx={{ position: "relative" }}>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        mb: 1,
+                        lineHeight: 1.5,
+                        color: "rgba(255, 255, 255, 0.8)",
+                        position: "relative",
+                      }}
+                    >
+                      {prompt?.description}
+                    </Typography>
+                  </Box>
+                  {/* </CardContent> */}
                 </Card>
               </Grid>
             ))}

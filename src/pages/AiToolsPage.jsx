@@ -602,7 +602,7 @@ const AiToolsPage = () => {
             </Grid>
             <Grid
               display="flex"
-              justifyContent="flex-end"
+              justifyContent={{ md: "flex-end" }}
               size={{ xs: 12, md: 6 }}
             >
               {/* <Button
@@ -622,6 +622,7 @@ const AiToolsPage = () => {
 
                   // p: 2,
                   borderRadius: "32px",
+                  mt: { xs: 2, mt: 0 },
                   mb: 2,
                 }}
               >

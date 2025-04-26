@@ -273,8 +273,9 @@ const BlogPage = () => {
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
+
                   border: "1px solid #222",
-                  backgroundColor: "transparent",
+                  backgroundColor: "#111",
                   transition: "transform 0.2s ease-in-out",
                   "&:hover": {
                     cursor: "pointer",

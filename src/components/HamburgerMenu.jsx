@@ -54,8 +54,8 @@ const HamburgerMenu = ({ menuOpen, setMenuOpen, hamburgerRef }) => {
   return (
     <Box
       sx={{
-        width: "40px",
-        height: "40px",
+        width: "48px",
+        height: "48px",
         borderRadius: "50%",
         display: "flex",
         alignItems: "center",

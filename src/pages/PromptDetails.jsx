@@ -409,19 +409,19 @@ function PromptDetail() {
 
         {ratings.map((rating) => (
           <Card key={rating.id}>
-            <CardContent>
-              <RatingCard
-                rating={rating}
-                isCurrentUser={rating.userId === auth.currentUser?.uid}
-                onEdit={(rating) => {
-                  setSelectedRating(rating);
-                  setDialogState({ ...dialogState, rating: true });
-                }}
-                onDelete={handleDeleteRating}
-                promptId={id}
-                currentUser={auth.currentUser}
-              />
-            </CardContent>
+            {/* <CardContent> */}
+            <RatingCard
+              rating={rating}
+              isCurrentUser={rating.userId === auth.currentUser?.uid}
+              onEdit={(rating) => {
+                setSelectedRating(rating);
+                setDialogState({ ...dialogState, rating: true });
+              }}
+              onDelete={handleDeleteRating}
+              promptId={id}
+              currentUser={auth.currentUser}
+            />
+            {/* </CardContent> */}
           </Card>
         ))}
       </Stack>

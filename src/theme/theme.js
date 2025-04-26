@@ -195,7 +195,7 @@ const theme = createTheme({
           boxShadow: "none",
           padding: "24px", // default for mobile
           [`@media (min-width:600px)`]: {
-            padding: "32px",
+            padding: "40px",
           },
         },
       },

@@ -82,7 +82,11 @@ const Navbar = () => {
         <Stack flexDirection="row" alignItems="center" sx={{ pt: 3, pb: 8 }}>
           {/* Logo */}
           <Stack flexGrow={1}>
-            <Typography variant="h5" fontWeight="bold">
+            <Typography
+              variant="h5"
+              fontWeight="bold"
+              sx={{ fontSize: "26px" }}
+            >
               PromptRank
             </Typography>
           </Stack>
@@ -128,8 +132,8 @@ const Navbar = () => {
           <Stack>
             <Box
               sx={{
-                height: "40px",
-                width: "40px",
+                height: "48px",
+                width: "48px",
                 background: "#eee",
                 borderRadius: "50%",
                 cursor: "pointer",
@@ -169,7 +173,7 @@ const Navbar = () => {
             <Box
               ref={hamburgerRef}
               onClick={handleNavMenuOpen}
-              sx={{ cursor: "pointer" }}
+              sx={{ cursor: "pointer", ml: 1.5 }}
             >
               <HamburgerMenu menuOpen={isNavMenuOpen} />
             </Box>
@@ -259,7 +263,8 @@ const Navbar = () => {
             elevation: 0,
             sx: {
               mt: 1.5,
-              background: "#222",
+              background: "#111",
+              border: "1px solid #222",
               // width: "200px",
               filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
             },
@@ -274,9 +279,13 @@ const Navbar = () => {
               to={path}
               onClick={handleNavMenuClose}
               sx={{
-                color: location.pathname === path ? "#1976d2" : "#fff",
+                background:
+                  location.pathname === path
+                    ? theme.palette.primary.main
+                    : "transparent",
+                color: "#fff",
                 "&:hover": {
-                  background: "#333",
+                  background: "#222",
                 },
               }}
             >
