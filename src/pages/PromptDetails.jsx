@@ -356,6 +356,7 @@ function PromptDetail() {
               fontWeight="bold"
               sx={{
                 fontSize: { xs: "2rem", sm: "2.5rem" },
+                mb: { xs: 2, md: 0 },
               }}
             >
               Prompt Details

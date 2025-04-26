@@ -193,7 +193,10 @@ const theme = createTheme({
           backgroundColor: "#111",
           borderRadius: "16px",
           boxShadow: "none",
-          padding: "32px", // Equivalent to theme.spacing(4)
+          padding: "24px", // default for mobile
+          [`@media (min-width:600px)`]: {
+            padding: "32px",
+          },
         },
       },
     },

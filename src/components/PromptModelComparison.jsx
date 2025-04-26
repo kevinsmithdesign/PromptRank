@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Alert } from "@mui/material";
 import { Button } from "@mui/material";
-import { Card, CardContent } from "@mui/material";
+import { Card, CardContent, Stack } from "@mui/material";
 import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { TextField, Typography, Grid, Box, IconButton } from "@mui/material";
 import { Divider } from "@mui/material";
@@ -172,42 +172,45 @@ const PromptModelComparison = () => {
 
   return (
     <Box sx={{ mx: "auto" }}>
-      {/* Header section with title and add model button */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 4,
-        }}
-      >
-        <Typography
-          variant="h4"
-          component="h1"
-          sx={{
-            fontWeight: "bold",
-            color: "#fff",
-            fontSize: { xs: "1.75rem", sm: "2.125rem" },
-          }}
-        >
-          Prompt Model Comparison
-        </Typography>
-        {selectedModels.length < 4 && (
-          <Button
-            variant="contained"
-            startIcon={<span>+</span>}
-            onClick={addModel}
-            color="primary"
-            size="large"
+      <Grid container spacing={2} alignItems="center" mb={3}>
+        <Grid item xs={12} md={8}>
+          <Typography
+            variant="h4"
+            component="h1"
             sx={{
-              height: "48px",
-              fontSize: "1rem",
+              fontWeight: "bold",
+              color: "#999",
+              fontSize: { xs: "1.75rem", sm: "2rem" },
             }}
           >
-            Add Model
-          </Button>
-        )}
-      </Box>
+            Prompt Model Comparison
+          </Typography>
+        </Grid>
+        <Grid
+          item
+          xs={12}
+          md={4}
+          display="flex"
+          justifyContent={{ xs: "flex-start", md: "flex-end" }}
+        >
+          {selectedModels.length < 4 && (
+            <Button
+              variant="contained"
+              startIcon={<span>+</span>}
+              onClick={addModel}
+              color="primary"
+              size="large"
+              sx={{
+                height: "48px",
+
+                width: { xs: "100%", sm: "auto" },
+              }}
+            >
+              Add Model
+            </Button>
+          )}
+        </Grid>
+      </Grid>
 
       <Grid container spacing={2}>
         {selectedModels.map((modelId, index) => (
@@ -332,6 +335,7 @@ const PromptModelComparison = () => {
           sx={{
             height: "48px",
             fontSize: "1rem",
+            width: { xs: "100%", sm: "auto" },
           }}
         >
           {isGenerating
@@ -370,9 +374,9 @@ const PromptModelComparison = () => {
           Which model do you think provided the best response to your prompt?
         </Typography>
 
-        <Grid container spacing={2}>
+        <Stack flexDirection={{ xs: "column", md: "row" }} gap={2}>
           {selectedModels.map((modelId, index) => (
-            <Grid item key={modelId}>
+            <Stack key={modelId}>
               <Button
                 variant={selectedWinner === modelId ? "contained" : "outlined"}
                 color="primary"
@@ -380,6 +384,7 @@ const PromptModelComparison = () => {
                 sx={{
                   px: 3,
                   py: 1, // Taller buttons
+                  width: { xs: "100%", sm: "auto" },
                   borderColor: selectedWinner === modelId ? "primary" : "#666",
                   "&:hover": {
                     borderColor: "#888",
@@ -388,10 +393,10 @@ const PromptModelComparison = () => {
               >
                 Model {modelRankLabels[index]}
               </Button>
-            </Grid>
+            </Stack>
           ))}
 
-          <Grid item>
+          <Stack>
             <Button
               variant={selectedWinner === "tie" ? "contained" : "outlined"}
               color="primary"
@@ -399,6 +404,7 @@ const PromptModelComparison = () => {
               sx={{
                 px: 3,
                 py: 1,
+                width: { xs: "100%", sm: "auto" },
                 borderColor: selectedWinner === "tie" ? "primary" : "#666",
                 "&:hover": {
                   borderColor: "#888",
@@ -407,9 +413,9 @@ const PromptModelComparison = () => {
             >
               Tie
             </Button>
-          </Grid>
+          </Stack>
 
-          <Grid item>
+          <Stack>
             <Button
               variant={selectedWinner === "none" ? "contained" : "outlined"}
               color="primary"
@@ -418,6 +424,7 @@ const PromptModelComparison = () => {
                 px: 3,
                 py: 1,
                 borderColor: selectedWinner === "none" ? "primary" : "#666",
+                width: { xs: "100%", sm: "auto" },
                 "&:hover": {
                   borderColor: "#888",
                 },
@@ -425,8 +432,8 @@ const PromptModelComparison = () => {
             >
               None were good
             </Button>
-          </Grid>
-        </Grid>
+          </Stack>
+        </Stack>
       </Box>
 
       {/* Compare stats section */}
@@ -439,7 +446,7 @@ const PromptModelComparison = () => {
         </Typography>
 
         <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} lg={4}>
             <Card sx={{ background: "#222", p: 4 }}>
               <Typography
                 variant="body1"
@@ -473,7 +480,7 @@ const PromptModelComparison = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} lg={4}>
             <Card sx={{ background: "#222", p: 4 }}>
               <Typography
                 variant="body1"
@@ -515,7 +522,7 @@ const PromptModelComparison = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} lg={4}>
             <Card sx={{ background: "#222", p: 4 }}>
               <Typography
                 variant="body1"
