@@ -12,6 +12,7 @@ import {
   CardContent,
   CardMedia,
   CircularProgress,
+  Skeleton,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 
@@ -299,9 +300,44 @@ const TutorialsPage = () => {
 
       {/* Videos Grid */}
       {isLoading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-          <CircularProgress />
-        </Box>
+        <Grid container spacing={3}>
+          {[0, 1, 2, 3, 4, 5].map((index) => (
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+              <Card
+                sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  border: "1px solid #222",
+                }}
+              >
+                <Skeleton
+                  variant="rectangular"
+                  width="100%"
+                  height={160}
+                  sx={{ borderRadius: "8px" }}
+                />
+                <Box sx={{ flexGrow: 1, mt: 1 }}>
+                  <Skeleton
+                    variant="text"
+                    width="90%"
+                    sx={{ mb: 2, borderRadius: "10px" }}
+                  />
+                  <Skeleton
+                    variant="text"
+                    width="90%"
+                    sx={{ borderRadius: "10px", mb: 0.5 }}
+                  />
+                  <Skeleton
+                    variant="text"
+                    width="80%"
+                    sx={{ borderRadius: "10px" }}
+                  />
+                </Box>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
       ) : error ? (
         <Typography color="error">{error.message}</Typography>
       ) : videos.length > 0 ? (
