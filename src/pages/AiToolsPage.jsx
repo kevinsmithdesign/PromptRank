@@ -398,6 +398,27 @@ const AiToolsPage = () => {
       operatingSystem: "Web-based",
       logo: <ReaddyIcon />,
     },
+    {
+      title: "Aura",
+      subTitle: "AI Design Generator",
+      description:
+        "AI-powered design platform that creates beautiful designs in seconds and exports to HTML or Figma. Generate professional UI designs, layouts, and components through simple prompts.",
+      url: "https://aurachat.io",
+      provider: "Aura",
+      category: "Design Generation",
+      features: [
+        "Design Generation",
+        "HTML Export",
+        "Figma Export",
+        "Prompt Builder",
+        "UI Components",
+      ],
+      pricing: "Freemium",
+      rating: 4.3,
+      releaseDate: "2024-01-20",
+      operatingSystem: "Web-based",
+      logo: "", // find logo
+    },
   ];
 
   const filteredApps = apps.filter(
