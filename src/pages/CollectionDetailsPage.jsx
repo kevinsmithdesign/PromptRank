@@ -116,8 +116,6 @@ const CollectionDetailsPage = () => {
           handleDeleteClick={() => {}}
           handleSavePrompt={() => {}}
           auth={auth}
-          navigate={navigate}
-          theme={theme}
         />
       )}
     </Box>

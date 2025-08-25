@@ -503,8 +503,6 @@ function PromptsPage() {
           handleMenuClose();
         }}
         auth={auth}
-        navigate={navigate}
-        theme={theme}
       />
 
       {/* Pagination */}

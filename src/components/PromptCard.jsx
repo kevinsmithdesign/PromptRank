@@ -28,9 +28,9 @@ const PromptCard = ({
   handleDeleteClick,
   handleSavePrompt,
   auth,
-  navigate = useNavigate(),
-  theme = useTheme(),
 }) => {
+  const navigate = useNavigate();
+  const theme = useTheme();
   return (
     <>
       <Grid container spacing={3} mb={6}>

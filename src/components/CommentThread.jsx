@@ -276,6 +276,7 @@ const Comment = ({ data, onReply, onLike, onEdit, onDelete, currentUser }) => {
 };
 
 const CommentThread = ({ promptId, ratingId, currentUser }) => {
+  const theme = useTheme();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
 

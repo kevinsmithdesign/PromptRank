@@ -784,8 +784,6 @@ const ProfilePage = () => {
                 handleDeleteClick={() => {}}
                 handleSavePrompt={() => {}}
                 auth={auth}
-                navigate={navigate}
-                theme={theme}
               />
               {prompts.length > 0 && (
                 <Box
