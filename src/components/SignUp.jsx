@@ -33,31 +33,24 @@ export function SignUp() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    confirmPassword: "",
-    firstName: "",
-    lastName: "",
+    fullName: "",
   });
 
   // Validation states
   const [touched, setTouched] = useState({
     email: false,
     password: false,
-    confirmPassword: false,
-    firstName: false,
-    lastName: false,
+    fullName: false,
   });
 
   const [errors, setErrors] = useState({
     email: "",
     password: "",
-    confirmPassword: "",
-    firstName: "",
-    lastName: "",
+    fullName: "",
   });
 
   const [formError, setFormError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
 
@@ -77,23 +70,15 @@ export function SignUp() {
           error = "Password is required";
         } else if (value.length < 6) {
           error = "Password must be at least 6 characters long";
+        } else if (value.length < 8) {
+          error = "For better security, use at least 8 characters";
         }
         break;
-      case "confirmPassword":
+      case "fullName":
         if (!value) {
-          error = "Please confirm your password";
-        } else if (value !== formData.password) {
-          error = "Passwords do not match";
-        }
-        break;
-      case "firstName":
-        if (!value) {
-          error = "First name is required";
-        }
-        break;
-      case "lastName":
-        if (!value) {
-          error = "Last name is required";
+          error = "Full name is required";
+        } else if (value.trim().split(' ').length < 2) {
+          error = "Please enter your full name (first and last name)";
         }
         break;
       default:
@@ -135,9 +120,7 @@ export function SignUp() {
     setTouched({
       email: true,
       password: true,
-      confirmPassword: true,
-      firstName: true,
-      lastName: true,
+      fullName: true,
     });
 
     const newErrors = {};
@@ -151,17 +134,15 @@ export function SignUp() {
     if (!formData.password) {
       newErrors.password = "Password is required";
       isValid = false;
-    }
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Confirm password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters long";
       isValid = false;
     }
-    if (!formData.firstName) {
-      newErrors.firstName = "First name is required";
+    if (!formData.fullName) {
+      newErrors.fullName = "Full name is required";
       isValid = false;
-    }
-    if (!formData.lastName) {
-      newErrors.lastName = "Last name is required";
+    } else if (formData.fullName.trim().split(' ').length < 2) {
+      newErrors.fullName = "Please enter your full name (first and last name)";
       isValid = false;
     }
 
@@ -216,7 +197,7 @@ export function SignUp() {
       await signup({
         email: formData.email,
         password: formData.password,
-        displayName: `${formData.firstName} ${formData.lastName}`,
+        displayName: formData.fullName.trim(),
       });
     } catch (error) {
       setFormError(error.message);
@@ -318,37 +299,19 @@ export function SignUp() {
       <Stack>
         <Stack mb={3}>
           <Typography fontWeight="bold" mb={0.5}>
-            First Name*
+            Full Name*
           </Typography>
           <TextField
-            name="firstName"
+            name="fullName"
             variant="outlined"
-            placeholder="Enter your first name"
+            placeholder="Enter your full name"
             fullWidth
             required
-            value={formData.firstName}
+            value={formData.fullName}
             onChange={handleInputChange}
             onBlur={handleBlur}
-            error={touched.firstName && !!errors.firstName}
-            helperText={touched.firstName && errors.firstName}
-            disabled={loading}
-          />
-        </Stack>
-        <Stack mb={3}>
-          <Typography fontWeight="bold" mb={0.5}>
-            Last Name*
-          </Typography>
-          <TextField
-            name="lastName"
-            variant="outlined"
-            placeholder="Enter your last name"
-            fullWidth
-            required
-            value={formData.lastName}
-            onChange={handleInputChange}
-            onBlur={handleBlur}
-            error={touched.lastName && !!errors.lastName}
-            helperText={touched.lastName && errors.lastName}
+            error={touched.fullName && !!errors.fullName}
+            helperText={touched.fullName && errors.fullName}
             disabled={loading}
           />
         </Stack>
@@ -403,42 +366,10 @@ export function SignUp() {
             }}
           />
           {!errors.password && (
-            <FormHelperText>
-              Password must be at least 6 characters long
+            <FormHelperText sx={{ color: "rgba(255, 255, 255, 0.6)" }}>
+              Use at least 8 characters for better security
             </FormHelperText>
           )}
-        </Stack>
-        <Stack mb={3}>
-          <Typography fontWeight="bold" mb={0.5}>
-            Confirm Password*
-          </Typography>
-          <TextField
-            name="confirmPassword"
-            type={showConfirmPassword ? "text" : "password"}
-            variant="outlined"
-            placeholder="Confirm your password"
-            fullWidth
-            required
-            value={formData.confirmPassword}
-            onChange={handleInputChange}
-            onBlur={handleBlur}
-            error={touched.confirmPassword && !!errors.confirmPassword}
-            helperText={touched.confirmPassword && errors.confirmPassword}
-            disabled={loading}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    edge="end"
-                    disabled={loading}
-                  >
-                    {showConfirmPassword ? <EyeIcon /> : <HidePasswordIcon />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
         </Stack>
 
         {/* Terms and Conditions Checkbox */}
