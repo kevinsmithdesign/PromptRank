@@ -82,11 +82,11 @@ const Navbar = () => {
       <Container>
         <Stack flexDirection="row" alignItems="center" sx={{ pt: 3, pb: 8 }}>
           {/* Logo */}
-          <Stack flexGrow={1}>
+          <Stack>
             <Typography
               variant="h5"
               fontWeight="bold"
-              sx={{ fontSize: "26px" }}
+              sx={{ fontSize: "32px" }}
             >
               PromptRank
             </Typography>
@@ -97,35 +97,37 @@ const Navbar = () => {
             sx={{
               display: { xs: "none", md: "flex" }, // Hide on mobile & tablet
               flexDirection: "row",
+              justifyContent: "center",
+              flex: 1,
             }}
           >
             {navLinks.map(({ label, path }) => (
-              <Typography
+              <Button
                 key={path}
-                variant="body1"
                 component={Link}
                 to={path}
                 sx={{
-                  textDecoration: "none",
                   backgroundColor:
                     location.pathname === path
                       ? theme.palette.primary.main
                       : "transparent",
-                  p: "8px 20px",
+                  padding: "8px 20px",
                   mr: 1,
                   color: "white",
                   borderRadius: "32px",
-                  // location.pathname === path
-                  //   ? theme.palette.primary.main
-                  //   : "#fff",
                   fontWeight: "bold",
-                  // borderBottom:
-                  //   location.pathname === path ? "2px solid" : "none",
-                  // mr: 3,
+                  textTransform: "none",
+                  minHeight: "auto",
+                  "&:hover": {
+                    backgroundColor:
+                      location.pathname === path
+                        ? theme.palette.primary.dark
+                        : "rgba(255, 255, 255, 0.1)",
+                  },
                 }}
               >
                 {label}
-              </Typography>
+              </Button>
             ))}
           </Stack>
 
@@ -164,35 +166,45 @@ const Navbar = () => {
               </Box>
             ) : (
               /* Sign Up / Log In buttons - Only show when not authenticated */
-              <Stack 
-                direction="row" 
-                spacing={1} 
-                sx={{ 
-                  ml: 4,
-                  display: { xs: "none", md: "flex" } // Hide on mobile, show on desktop
+              <Stack
+                direction="row"
+                spacing={1.5}
+                sx={{
+                  ml: 2,
+                  display: { xs: "none", md: "flex" }, // Hide on mobile, show on desktop
                 }}
               >
                 <Button
-                  variant="outlined"
-                  size="small"
                   onClick={() => navigate("/login")}
                   sx={{
+                    backgroundColor: "transparent",
+                    padding: "8px 20px",
+                    mr: 1,
                     color: "white",
-                    borderColor: "rgba(255, 255, 255, 0.3)",
+                    borderRadius: "32px",
+                    fontWeight: "bold",
+                    textTransform: "none",
+                    minHeight: "auto",
+                    border: "1px solid rgba(255, 255, 255, 0.3)",
                     "&:hover": {
-                      borderColor: "rgba(255, 255, 255, 0.5)",
                       backgroundColor: "rgba(255, 255, 255, 0.1)",
+                      borderColor: "rgba(255, 255, 255, 0.5)",
                     },
                   }}
                 >
                   Log In
                 </Button>
                 <Button
-                  variant="contained"
-                  size="small"
                   onClick={() => navigate("/signup")}
                   sx={{
                     backgroundColor: theme.palette.primary.main,
+                    padding: "8px 20px",
+                    mr: 1,
+                    color: "white",
+                    borderRadius: "32px",
+                    fontWeight: "bold",
+                    textTransform: "none",
+                    minHeight: "auto",
                     "&:hover": {
                       backgroundColor: theme.palette.primary.dark,
                     },
@@ -332,7 +344,7 @@ const Navbar = () => {
               {label}
             </MenuItem>
           ))}
-          
+
           {/* Authentication options for mobile */}
           {!isAuthenticated && (
             <>
@@ -367,7 +379,7 @@ const Navbar = () => {
               </MenuItem>
             </>
           )}
-          
+
           {/* Profile options for mobile when authenticated */}
           {isAuthenticated && (
             <>
