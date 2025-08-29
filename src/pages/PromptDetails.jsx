@@ -387,9 +387,15 @@ function PromptDetail() {
             ) : (
               <Button
                 variant="contained"
-                onClick={() => setDialogState({ ...dialogState, rating: true })}
+                onClick={() => {
+                  if (auth.currentUser) {
+                    setDialogState({ ...dialogState, rating: true });
+                  } else {
+                    // Prompt user to log in or sign up
+                    navigate("/login");
+                  }
+                }}
                 sx={{ width: { xs: "100%", sm: "auto" } }}
-                disabled={!auth.currentUser}
               >
                 {userExistingRating ? "Update Review" : "Leave Review"}
               </Button>

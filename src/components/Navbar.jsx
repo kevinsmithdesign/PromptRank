@@ -9,6 +9,7 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
+  Button,
   useTheme,
 } from "@mui/material";
 import { auth } from "../../config/firebase";
@@ -128,40 +129,79 @@ const Navbar = () => {
             ))}
           </Stack>
 
-          {/* Profile Dropdown */}
+          {/* Authentication Section */}
           <Stack>
-            <Box
-              sx={{
-                height: "48px",
-                width: "48px",
-                background: "#eee",
-                borderRadius: "50%",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                ml: 4,
-              }}
-              onClick={handleProfileMenuOpen}
-              aria-controls={open ? "account-menu" : undefined}
-              aria-haspopup="true"
-              aria-expanded={open ? "true" : undefined}
-            >
-              {auth.currentUser?.photoURL ? (
-                <img
-                  src={auth.currentUser.photoURL}
-                  alt="Profile"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    borderRadius: "50%",
-                    objectFit: "cover",
+            {isAuthenticated ? (
+              /* Profile Dropdown - Only show when authenticated */
+              <Box
+                sx={{
+                  height: "48px",
+                  width: "48px",
+                  background: "#eee",
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  ml: 4,
+                }}
+                onClick={handleProfileMenuOpen}
+              >
+                {auth.currentUser?.photoURL ? (
+                  <img
+                    src={auth.currentUser.photoURL}
+                    alt="Profile"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <AccountCircleIcon sx={{ color: "#666", fontSize: 30 }} />
+                )}
+              </Box>
+            ) : (
+              /* Sign Up / Log In buttons - Only show when not authenticated */
+              <Stack 
+                direction="row" 
+                spacing={1} 
+                sx={{ 
+                  ml: 4,
+                  display: { xs: "none", md: "flex" } // Hide on mobile, show on desktop
+                }}
+              >
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => navigate("/login")}
+                  sx={{
+                    color: "white",
+                    borderColor: "rgba(255, 255, 255, 0.3)",
+                    "&:hover": {
+                      borderColor: "rgba(255, 255, 255, 0.5)",
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    },
                   }}
-                />
-              ) : (
-                <AccountCircleIcon sx={{ color: "#666", fontSize: 30 }} />
-              )}
-            </Box>
+                >
+                  Log In
+                </Button>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => navigate("/signup")}
+                  sx={{
+                    backgroundColor: theme.palette.primary.main,
+                    "&:hover": {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </Stack>
+            )}
           </Stack>
 
           {/* Mobile Nav Toggle */}
@@ -292,6 +332,75 @@ const Navbar = () => {
               {label}
             </MenuItem>
           ))}
+          
+          {/* Authentication options for mobile */}
+          {!isAuthenticated && (
+            <>
+              <MenuItem
+                onClick={() => {
+                  navigate("/login");
+                  handleNavMenuClose();
+                }}
+                sx={{
+                  color: "#fff",
+                  "&:hover": {
+                    background: "#222",
+                  },
+                }}
+              >
+                Log In
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  navigate("/signup");
+                  handleNavMenuClose();
+                }}
+                sx={{
+                  color: "#fff",
+                  backgroundColor: theme.palette.primary.main,
+                  "&:hover": {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
+                }}
+              >
+                Sign Up
+              </MenuItem>
+            </>
+          )}
+          
+          {/* Profile options for mobile when authenticated */}
+          {isAuthenticated && (
+            <>
+              <MenuItem
+                onClick={() => {
+                  navigate("/main/profile");
+                  handleNavMenuClose();
+                }}
+                sx={{
+                  color: "#fff",
+                  "&:hover": {
+                    background: "#222",
+                  },
+                }}
+              >
+                Profile
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleLogout();
+                  handleNavMenuClose();
+                }}
+                sx={{
+                  color: "#fff",
+                  "&:hover": {
+                    background: "#222",
+                  },
+                }}
+              >
+                Logout
+              </MenuItem>
+            </>
+          )}
         </Menu>
       </Container>
     </Box>

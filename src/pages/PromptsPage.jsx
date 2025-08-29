@@ -382,8 +382,14 @@ function PromptsPage() {
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => setOpenDialog(true)}
-              disabled={!auth.currentUser}
+              onClick={() => {
+                if (auth.currentUser) {
+                  setOpenDialog(true);
+                } else {
+                  // Prompt user to log in or sign up
+                  navigate("/login");
+                }
+              }}
               sx={{ width: { xs: "100%", sm: "auto" } }}
             >
               Add Prompt

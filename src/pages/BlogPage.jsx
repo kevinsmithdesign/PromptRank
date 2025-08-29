@@ -159,8 +159,14 @@ const BlogPage = () => {
         >
           <Button
             variant="contained"
-            onClick={() => navigate("/main/blog/create")}
-            disabled={!auth.currentUser}
+            onClick={() => {
+              if (auth.currentUser) {
+                navigate("/main/blog/create");
+              } else {
+                // Prompt user to log in or sign up
+                navigate("/login");
+              }
+            }}
           >
             Add Blog Post
           </Button>
