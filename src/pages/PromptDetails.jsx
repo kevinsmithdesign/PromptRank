@@ -408,14 +408,12 @@ function PromptDetail() {
       <PromptDetailCard prompt={prompt} />
 
       {/* Ratings Section */}
-      <Stack spacing={2} sx={{ mt: 4 }}>
-        <Typography variant="h5" fontWeight="bold">
-          Reviews {!ratingsLoading && `(${ratings.length})`}
-        </Typography>
-
+      <Stack spacing={2} sx={{ mt: 1 }}>
         {ratings.map((rating) => (
           <Card key={rating.id}>
-            {/* <CardContent> */}
+            <Typography variant="h6" fontWeight="bold" color="white" mb={4}>
+              Reviews {!ratingsLoading && `(${ratings.length})`}
+            </Typography>
             <RatingCard
               rating={rating}
               isCurrentUser={rating.userId === auth.currentUser?.uid}

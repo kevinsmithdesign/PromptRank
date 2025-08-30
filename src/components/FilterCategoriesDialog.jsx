@@ -11,15 +11,50 @@ import {
   Chip,
   CircularProgress,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useCategories } from "../hooks/useCategories";
 
 const FilterCategoriesDialog = ({ open, onClose }) => {
   const { categories, isLoading, error, updateCategories, isUpdating } =
     useCategories();
+  const theme = useTheme();
 
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [inputValue, setInputValue] = useState("");
   const [draggedItem, setDraggedItem] = useState(null);
+  
+  // Predefined categories that users can select from
+  const availableCategories = [
+    "SEO Ranking",
+    "Content Creation", 
+    "Marketing Strategies",
+    "Web Development",
+    "E-commerce",
+    "Social Media Management",
+    "Business Planning",
+    "Financial Planning",
+    "Resume Builder",
+    "Side Hustle",
+    "UI Design",
+    "UX Design",
+    "Frontend",
+    "Backend",
+    "Database",
+    "Performance",
+    "Security",
+    "Testing",
+    "Analytics",
+    "Email Marketing",
+    "Customer Service",
+    "Project Management",
+    "Data Analysis",
+    "AI & Machine Learning",
+    "Copywriting",
+    "Branding",
+    "Sales",
+    "Leadership",
+    "Productivity",
+    "Health & Wellness"
+  ];
 
   useEffect(() => {
     if (categories && open) {
@@ -38,6 +73,24 @@ const FilterCategoriesDialog = ({ open, onClose }) => {
       return cat;
     });
     setSelectedCategories(formattedCategories);
+  };
+
+  const handleCategoryToggle = (categoryText) => {
+    const isSelected = selectedCategories.some(cat => cat.text === categoryText);
+    
+    if (isSelected) {
+      // Remove category
+      setSelectedCategories(prev => prev.filter(cat => cat.text !== categoryText));
+    } else {
+      // Add category (max 10)
+      if (selectedCategories.length < 10) {
+        const newCategory = {
+          text: categoryText,
+          path: `/${categoryText.replace(/\s+/g, "")}`
+        };
+        setSelectedCategories(prev => [...prev, newCategory]);
+      }
+    }
   };
 
   const handleDragStart = (e, index) => {
@@ -85,7 +138,7 @@ const FilterCategoriesDialog = ({ open, onClose }) => {
 
   return (
     <Dialog
-      fullScreen
+      // fullScreen
       open={open}
       onClose={onClose}
       sx={{
@@ -101,89 +154,119 @@ const FilterCategoriesDialog = ({ open, onClose }) => {
             Filter Categories
           </Typography>
           <Typography mb={2}>
-            Select up to 10 categories that match your preferences. Delete,
-            replace, and rearrange them with drag-and-drop.
+            Add up to 10 categories that match your preferences. Select from suggestions below or type your own custom categories.
           </Typography>
+          
           <Stack spacing={3}>
+            {/* Add Category Input */}
             <Autocomplete
-              multiple
               freeSolo
-              options={categories}
-              value={selectedCategories}
-              onChange={handleCategoryChange}
-              inputValue={inputValue}
-              onInputChange={(event, newInputValue) => {
-                setInputValue(newInputValue);
+              options={availableCategories}
+              value={null}
+              onChange={(event, value) => {
+                if (value && selectedCategories.length < 10) {
+                  handleCategoryToggle(value);
+                }
               }}
-              getOptionLabel={(option) => {
-                if (typeof option === "string") return option;
-                return option.text;
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && event.target.value.trim()) {
+                  event.preventDefault();
+                  const customCategory = event.target.value.trim();
+                  if (customCategory && selectedCategories.length < 10) {
+                    handleCategoryToggle(customCategory);
+                    event.target.value = '';
+                  }
+                }
               }}
-              renderTags={() => null}
+              PopperProps={{
+                sx: {
+                  "& .MuiPaper-root": {
+                    backgroundColor: "#222",
+                  },
+                },
+              }}
+              ListboxProps={{
+                style: { backgroundColor: "#222" },
+              }}
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  placeholder="Select or type to add new categories"
+                  placeholder="Type a category name or select from suggestions"
+                  helperText={`${selectedCategories.length}/10 categories selected`}
+                  FormHelperTextProps={{
+                    sx: { color: "#aaa" },
+                  }}
                   sx={{
                     backgroundColor: "#222",
                     borderRadius: 1,
                     "& .MuiOutlinedInput-root": {
                       color: "#fff",
-                      height: "auto",
-                      minHeight: "45px",
-                      alignItems: "flex-start",
+                    },
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#444",
                     },
                   }}
                 />
               )}
             />
 
-            <Box
-              sx={{
-                width: "100%",
-                minHeight: 45,
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 1,
-                overflowY: "auto",
-                maxHeight: "200px",
-                padding: "8px 0",
-              }}
-            >
-              {selectedCategories.map((option, index) => (
-                <div
-                  key={option.text}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDragEnd={handleDragEnd}
-                  style={{
-                    cursor: "grab",
-                    opacity: draggedItem === index ? 0.5 : 1,
+            {/* Selected Categories - Draggable */}
+            {selectedCategories.length > 0 && (
+              <>
+                <Typography variant="h6" fontWeight="bold" mb={1}>
+                  Your Selected Categories (drag to reorder)
+                </Typography>
+                <Box
+                  sx={{
+                    width: "100%",
+                    minHeight: 45,
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 1,
+                    overflowY: "auto",
+                    maxHeight: "150px",
+                    padding: "8px",
+                    border: "1px solid #444",
+                    borderRadius: 1,
+                    backgroundColor: "#111",
                   }}
                 >
-                  <Chip
-                    label={option.text}
-                    onDelete={() => {
-                      const newCategories = selectedCategories.filter(
-                        (_, i) => i !== index
-                      );
-                      setSelectedCategories(newCategories);
-                    }}
-                    sx={{
-                      backgroundColor: "#333",
-                      color: "#fff",
-                      "& .MuiChip-deleteIcon": {
-                        color: "#fff",
-                        "&:hover": {
-                          color: "#ff4444",
-                        },
-                      },
-                    }}
-                  />
-                </div>
-              ))}
-            </Box>
+                  {selectedCategories.map((option, index) => (
+                    <div
+                      key={option.text}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragEnd={handleDragEnd}
+                      style={{
+                        cursor: "grab",
+                        opacity: draggedItem === index ? 0.5 : 1,
+                      }}
+                    >
+                      <Chip
+                        label={option.text}
+                        onDelete={() => {
+                          const newCategories = selectedCategories.filter(
+                            (_, i) => i !== index
+                          );
+                          setSelectedCategories(newCategories);
+                        }}
+                        sx={{
+                          backgroundColor: theme.palette.primary.main,
+                          color: "#fff",
+                          "& .MuiChip-deleteIcon": {
+                            color: "#fff",
+                            "&:hover": {
+                              color: "#ff4444",
+                            },
+                          },
+                        }}
+                      />
+                    </div>
+                  ))}
+                </Box>
+              </>
+            )}
           </Stack>
 
           <Box
@@ -197,10 +280,6 @@ const FilterCategoriesDialog = ({ open, onClose }) => {
               variant="contained"
               disabled={isUpdating}
               sx={{
-                // backgroundColor: "#0088ff",
-                // "&:hover": {
-                //   backgroundColor: "#0077dd",
-                // },
                 "&:disabled": {
                   backgroundColor: "#004488",
                 },

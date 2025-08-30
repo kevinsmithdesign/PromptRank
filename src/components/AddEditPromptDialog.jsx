@@ -114,9 +114,6 @@ const AddEditPromptDialog = ({
           </Typography>
           <Stack>
             <Stack mb={3}>
-              {/* <Typography fontWeight="bold" mb={0.5}>
-                Title*
-              </Typography> */}
               <Autocomplete
                 freeSolo
                 options={categoryOptions}

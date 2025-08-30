@@ -39,7 +39,6 @@ const PromptDetailCard = ({ prompt }) => {
   return (
     <>
       <Card>
-        {/* <CardContent> */}
         <Box display="flex" flexDirection="row" sx={{ mb: 2 }}>
           <Box sx={{ flex: 1 }}>
             <IconButton
@@ -129,16 +128,15 @@ const PromptDetailCard = ({ prompt }) => {
             </Typography>
           </Box>
 
-          {/* <Typography variant="caption" sx={{ color: "#999" }}>
-              Created: {new Date(prompt.createdAt).toLocaleDateString()}
-            </Typography>
+          <Typography variant="caption" sx={{ color: "#999" }}>
+            Created: {new Date(prompt.createdAt).toLocaleDateString()}
+          </Typography>
 
-            <Typography variant="caption" sx={{ color: "#999" }}>
-              Author: {prompt.authorName}
-            </Typography> */}
+          <Typography variant="caption" sx={{ color: "#999" }}>
+            Author: {prompt.authorName}
+          </Typography>
         </Stack>
-        <PromptModelComparison />
-        {/* </CardContent> */}
+        {/* <PromptModelComparison /> */}
       </Card>
 
       <SaveToCollectionDialog
