@@ -41,7 +41,7 @@ const CreateBlogPostPage = () => {
   const [category, setCategory] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
-  const [skipImageUpload, setSkipImageUpload] = useState(false); // Add this to bypass image upload
+  const [imageUploadStatus, setImageUploadStatus] = useState('idle'); // Track upload status: 'idle', 'uploading', 'success', 'failed'
   const fileInputRef = useRef(null);
   const [wordCount, setWordCount] = useState(0);
   const [isEditorEmpty, setIsEditorEmpty] = useState(true);
@@ -84,6 +84,7 @@ const CreateBlogPostPage = () => {
   useEffect(() => {
     if (isSuccess) {
       console.log("Post creation successful, navigating to blog page");
+      setImageUploadStatus('success');
       navigate("/main/blog");
     }
   }, [isSuccess, navigate]);
@@ -94,8 +95,12 @@ const CreateBlogPostPage = () => {
       console.error("Error creating post:", error);
       setErrorMsg(error.message || "Failed to publish post. Please try again.");
       setShowError(true);
+      // Reset image upload status on error
+      if (imageUploadStatus === 'uploading') {
+        setImageUploadStatus('failed');
+      }
     }
-  }, [isError, error]);
+  }, [isError, error, imageUploadStatus]);
 
   // TipTap editor setup
   const editor = useEditor({
@@ -199,10 +204,14 @@ const CreateBlogPostPage = () => {
       });
 
       // Submit the blog post using React Query mutation
-      // Only pass the image file if we're not skipping image upload
+      // Set uploading status if there's an image
+      if (imageFile) {
+        setImageUploadStatus('uploading');
+      }
+      
       createBlogPost({
         blogData,
-        imageFile: skipImageUpload ? null : imageFile,
+        imageFile: imageFile,
       });
     } catch (err) {
       console.error("Exception during submit:", err);
@@ -240,8 +249,16 @@ const CreateBlogPostPage = () => {
       return;
     }
 
+    // Check file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg("Image file must be smaller than 5MB");
+      setShowError(true);
+      return;
+    }
+
     console.log("Image file selected:", file.name);
     setImageFile(file);
+    setImageUploadStatus('idle');
 
     // Create a preview URL
     const previewUrl = URL.createObjectURL(file);
@@ -360,21 +377,20 @@ const CreateBlogPostPage = () => {
             Featured Image
           </Typography>
 
-          {/* CORS Workaround Option */}
-          <FormControlLabel
-            control={
-              <Switch
-                checked={skipImageUpload}
-                onChange={(e) => setSkipImageUpload(e.target.checked)}
-                color="primary"
-              />
-            }
-            label="Use default image (CORS workaround)"
-            sx={{ "& .MuiTypography-root": { fontSize: "0.8rem" } }}
-          />
+          {/* Image Upload Status */}
+          {imageUploadStatus === 'uploading' && (
+            <Typography variant="body2" color="primary" sx={{ mb: 1 }}>
+              Uploading image...
+            </Typography>
+          )}
+          {imageUploadStatus === 'failed' && (
+            <Typography variant="body2" color="warning.main" sx={{ mb: 1 }}>
+              Image upload failed. Using default image instead.
+            </Typography>
+          )}
         </Box>
 
-        {imagePreview && !skipImageUpload ? (
+        {imagePreview ? (
           <Box sx={{ position: "relative", mb: 2 }}>
             <Box
               component="img"
@@ -402,17 +418,16 @@ const CreateBlogPostPage = () => {
             </Button>
           </Box>
         ) : (
-          !skipImageUpload && (
-            <Button
-              variant="outlined"
-              startIcon={<ImageIcon />}
-              onClick={openFileDialog}
-              sx={{ mb: 2, p: 2, borderStyle: "dashed" }}
-              fullWidth
-            >
-              Upload Featured Image
-            </Button>
-          )
+          <Button
+            variant="outlined"
+            startIcon={<ImageIcon />}
+            onClick={openFileDialog}
+            sx={{ mb: 2, p: 2, borderStyle: "dashed" }}
+            fullWidth
+            disabled={imageUploadStatus === 'uploading'}
+          >
+            {imageUploadStatus === 'uploading' ? 'Uploading...' : 'Upload Featured Image'}
+          </Button>
         )}
 
         <input

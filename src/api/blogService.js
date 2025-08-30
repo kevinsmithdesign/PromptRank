@@ -17,6 +17,52 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 // Collection reference
 const blogCollectionRef = collection(db, "blogPosts");
 
+// Helper function to compress images before storage
+const compressImage = (file, quality = 0.8, maxWidth = 1200) => {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      // Calculate new dimensions while maintaining aspect ratio
+      let { width, height } = img;
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+      
+      // Set canvas dimensions
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Draw and compress image
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Convert to blob with compression
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            // Create a new File object with the compressed blob
+            const compressedFile = new File([blob], file.name, {
+              type: file.type,
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          } else {
+            reject(new Error('Canvas to blob conversion failed'));
+          }
+        },
+        file.type,
+        quality
+      );
+    };
+    
+    img.onerror = () => reject(new Error('Image load failed'));
+    img.src = URL.createObjectURL(file);
+  });
+};
+
 // Get all blog posts
 export const getAllBlogPosts = async () => {
   try {
@@ -119,23 +165,28 @@ export const createBlogPost = async (blogData, imageFile) => {
   try {
     let imageUrl = null;
 
-    // If there's an image file, try to upload it to Firebase Storage
-    // But don't fail the entire operation if image upload fails
+    // If there's an image file, compress and convert it to base64
     if (imageFile) {
       try {
-        const storageRef = ref(
-          storage,
-          `blog-images/${Date.now()}-${imageFile.name}`
-        );
-        await uploadBytes(storageRef, imageFile);
-        imageUrl = await getDownloadURL(storageRef);
-        console.log("Image uploaded successfully:", imageUrl);
-      } catch (imageError) {
-        console.error(
-          "Error uploading image, continuing without image:",
-          imageError
-        );
-        // Don't rethrow - we'll continue with a default image
+        console.log("Processing image:", imageFile.name, "Size:", Math.round(imageFile.size / 1024), "KB");
+        
+        // Compress image before converting to base64
+        const compressedFile = await compressImage(imageFile, 0.8, 1200); // 80% quality, max 1200px width
+        console.log("Compressed image size:", Math.round(compressedFile.size / 1024), "KB");
+        
+        // Convert compressed image to base64 data URL
+        imageUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(compressedFile);
+        });
+        console.log("Image compressed and converted to base64 successfully");
+        
+      } catch (error) {
+        console.error("Image processing failed:", error);
+        // Fallback to default image
+        imageUrl = null;
       }
     }
 
@@ -179,22 +230,28 @@ export const updateBlogPost = async (id, blogData, imageFile) => {
       updatedAt: serverTimestamp(),
     };
 
-    // If there's a new image file, try to upload it
+    // If there's a new image file, compress and convert it to base64
     if (imageFile) {
       try {
-        const storageRef = ref(
-          storage,
-          `blog-images/${Date.now()}-${imageFile.name}`
-        );
-        await uploadBytes(storageRef, imageFile);
-        const imageUrl = await getDownloadURL(storageRef);
+        console.log("Processing image for update:", imageFile.name, "Size:", Math.round(imageFile.size / 1024), "KB");
+        
+        // Compress image before converting to base64
+        const compressedFile = await compressImage(imageFile, 0.8, 1200);
+        console.log("Compressed image size for update:", Math.round(compressedFile.size / 1024), "KB");
+        
+        // Convert compressed image to base64 data URL
+        const imageUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(compressedFile);
+        });
         updatedData.imageUrl = imageUrl;
-      } catch (imageError) {
-        console.error(
-          "Error uploading image during update, continuing with existing image:",
-          imageError
-        );
-        // Don't rethrow - we'll continue with the existing image
+        console.log("Image compressed and converted to base64 for update successfully");
+        
+      } catch (error) {
+        console.error("Image processing failed during update:", error);
+        // Don't update imageUrl - keep existing image
       }
     }
 

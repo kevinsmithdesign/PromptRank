@@ -42,7 +42,7 @@ const EditBlogPostPage = () => {
   const [category, setCategory] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
-  const [skipImageUpload, setSkipImageUpload] = useState(true); // Default to skip image upload
+  const [imageUploadStatus, setImageUploadStatus] = useState('idle'); // Track upload status: 'idle', 'uploading', 'success', 'failed'
   const fileInputRef = useRef(null);
   const [wordCount, setWordCount] = useState(0);
   const [isEditorEmpty, setIsEditorEmpty] = useState(false);
@@ -226,7 +226,7 @@ const EditBlogPostPage = () => {
       updateBlogPost({
         id,
         blogData,
-        imageFile: skipImageUpload ? null : imageFile,
+        imageFile: imageFile,
       });
     } catch (err) {
       console.error("Exception during submit:", err);
@@ -393,21 +393,20 @@ const EditBlogPostPage = () => {
             Featured Image
           </Typography>
 
-          {/* CORS Workaround Option */}
-          <FormControlLabel
-            control={
-              <Switch
-                checked={skipImageUpload}
-                onChange={(e) => setSkipImageUpload(e.target.checked)}
-                color="primary"
-              />
-            }
-            label="Keep existing image (CORS workaround)"
-            sx={{ "& .MuiTypography-root": { fontSize: "0.8rem" } }}
-          />
+          {/* Image Upload Status */}
+          {imageUploadStatus === 'uploading' && (
+            <Typography variant="body2" color="primary" sx={{ mb: 1 }}>
+              Uploading new image...
+            </Typography>
+          )}
+          {imageUploadStatus === 'failed' && (
+            <Typography variant="body2" color="warning.main" sx={{ mb: 1 }}>
+              Image upload failed. Keeping existing image.
+            </Typography>
+          )}
         </Box>
 
-        {imagePreview && !skipImageUpload ? (
+        {imagePreview ? (
           <Box sx={{ position: "relative", mb: 2 }}>
             <Box
               component="img"
@@ -448,7 +447,7 @@ const EditBlogPostPage = () => {
                 mb: 2,
               }}
             />
-            {!skipImageUpload && (
+            (
               <Button
                 variant="outlined"
                 startIcon={<ImageIcon />}
@@ -458,7 +457,7 @@ const EditBlogPostPage = () => {
               >
                 Upload New Featured Image
               </Button>
-            )}
+            )
           </>
         )}
 
