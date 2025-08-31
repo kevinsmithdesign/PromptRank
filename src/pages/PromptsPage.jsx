@@ -587,7 +587,13 @@ function PromptsPage() {
           console.log(
             `Saved prompt ${selectedPromptId} to collection ${collectionId}`
           );
-          setSaveToCollectionOpen(false);
+          // Dialog stays open for multi-select - user closes with Done button
+        }}
+        onRemove={(collectionId) => {
+          console.log(
+            `Removed prompt ${selectedPromptId} from collection ${collectionId}`
+          );
+          // Dialog stays open for multi-select - user closes with Done button
         }}
       />
 

@@ -143,11 +143,18 @@ const PromptDetailCard = ({ prompt }) => {
         open={saveToCollectionOpen}
         onClose={() => setSaveToCollectionOpen(false)}
         promptId={prompt.id}
+        promptTitle={prompt.title}
         onSave={(collectionId) => {
           console.log(
             `Saved prompt ${prompt.id} to collection ${collectionId}`
           );
-          setSaveToCollectionOpen(false);
+          // Dialog stays open for multi-select - user closes with Done button
+        }}
+        onRemove={(collectionId) => {
+          console.log(
+            `Removed prompt ${prompt.id} from collection ${collectionId}`
+          );
+          // Dialog stays open for multi-select - user closes with Done button
         }}
       />
     </>

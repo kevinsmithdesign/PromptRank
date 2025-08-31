@@ -421,6 +421,52 @@ export const useCollections = () => {
     }
   };
 
+  const removeFromCollection = async (
+    { collectionId, promptId },
+    { onSuccess, onError }
+  ) => {
+    setSaveToCollectionLoading(true);
+    try {
+      if (!auth.currentUser?.uid) {
+        throw new Error("User not authenticated");
+      }
+
+      const collectionRef = doc(
+        db,
+        `users/${auth.currentUser.uid}/collections`,
+        collectionId
+      );
+      const collection = collections.find((c) => c.id === collectionId);
+
+      if (!collection) throw new Error("Collection not found");
+
+      const updatedPrompts = (collection.prompts || []).filter(
+        (p) => p.id !== promptId
+      );
+
+      await updateDoc(collectionRef, {
+        prompts: updatedPrompts,
+      });
+
+      setCollections((prev) =>
+        prev.map((c) =>
+          c.id === collectionId
+            ? {
+                ...c,
+                prompts: updatedPrompts,
+              }
+            : c
+        )
+      );
+
+      onSuccess?.();
+    } catch (err) {
+      onError?.(err);
+    } finally {
+      setSaveToCollectionLoading(false);
+    }
+  };
+
   return {
     collections,
     isLoading,
@@ -429,6 +475,7 @@ export const useCollections = () => {
     createCollectionLoading,
     saveToCollection,
     saveToCollectionLoading,
+    removeFromCollection,
     updateCollection,
     deleteCollection,
     updateCollectionLoading,

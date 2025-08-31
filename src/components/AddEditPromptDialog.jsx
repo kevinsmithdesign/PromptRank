@@ -1,33 +1,34 @@
 import React, { useState } from "react";
 import {
-  Button,
   Dialog,
   DialogContent,
   TextField,
+  Button,
   Typography,
-  Stack,
   Box,
-  Autocomplete,
+  Stack,
   Chip,
+  Autocomplete,
+  MenuItem,
+  Divider,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import ChevronDown from "../icons/ChevronDown";
 
+// Comprehensive category options
 const categoryOptions = [
-  "Development",
-  "Design",
-  "Debugging",
-  "UI Design",
-  "Web Design",
-];
-
-const subcategoryOptions = [
-  "UI Design",
-  "UX Design",
-  "Frontend",
-  "Backend",
-  "Database",
-  "Performance",
-  "Security",
-  "Testing",
+  "Content Creation",
+  "Marketing & Sales",
+  "Business & Strategy",
+  "Development & Tech",
+  "Design & Creative",
+  "Data & Analytics",
+  "Education & Learning",
+  "Personal Productivity",
+  "Customer Support",
+  "Research & Writing",
+  "AI & Automation",
+  "Other",
 ];
 
 const AddEditPromptDialog = ({
@@ -42,44 +43,33 @@ const AddEditPromptDialog = ({
   onSubmitAddPrompt,
   loading,
 }) => {
-  const [subcategories, setSubcategories] = useState([]);
+  const theme = useTheme();
+  const [tags, setTags] = useState([]);
+  const [useCase, setUseCase] = useState("");
+  const [expectedOutput, setExpectedOutput] = useState("");
 
-  const handleCategoryChange = (event, value, reason) => {
-    // Handle both selected options and manual input
-    if (
-      reason === "createOption" ||
-      reason === "selectOption" ||
-      reason === "clear"
-    ) {
-      setNewCategory(value);
-    } else if (event?.target?.value !== undefined) {
-      // Handle manual input when user types
-      setNewCategory(event.target.value);
+  const handleTagsChange = (event, value) => {
+    if (value.length <= 5) {
+      setTags(value);
     }
   };
 
-  const handleSubcategoryChange = (event, value) => {
-    if (value.length <= 10) {
-      setSubcategories(value);
-    }
-  };
-
-  const [subCategoryError, setSubCategoryError] = useState("");
-
-  const handleBeforeSubcategoryChange = (event, value) => {
-    if (value.length > 10) {
-      setSubCategoryError(
-        "You've reached the maximum limit of 10 subcategories. Please remove one before adding another."
-      );
-      return;
-    }
-    setSubCategoryError("");
-    handleSubcategoryChange(event, value);
+  const handleSubmit = () => {
+    // Pass all the new fields to the parent component
+    const promptData = {
+      category: newCategory,
+      title: newPromptTitle,
+      description: newPromptDescription,
+      tags,
+      useCase,
+      expectedOutput,
+    };
+    onSubmitAddPrompt(promptData);
   };
 
   return (
     <Dialog
-      fullScreen
+      // fullScreen
       open={openDialog}
       onClose={handleCloseDialog}
       sx={{
@@ -109,102 +99,215 @@ const AddEditPromptDialog = ({
     >
       <Box sx={{ maxWidth: "600px", width: "100%", mx: "auto", p: 2 }}>
         <DialogContent>
-          <Typography variant="h5" fontWeight="bold" mb={3}>
+          <Typography variant="h5" fontWeight="bold" mb={1}>
             Add New Prompt
           </Typography>
-          <Stack>
-            <Stack mb={3}>
-              <Autocomplete
-                freeSolo
-                options={categoryOptions}
-                value={newCategory}
-                onChange={handleCategoryChange}
-                onInputChange={(event, value, reason) => {
-                  if (reason === "input") {
-                    setNewCategory(value);
-                  }
-                }}
-                PopperProps={{
-                  sx: {
-                    "& .MuiPaper-root": {
-                      backgroundColor: "#222",
-                    },
-                  },
-                }}
-                ListboxProps={{
-                  style: { backgroundColor: "#222" },
-                }}
-                renderInput={(params) => (
+          <Typography variant="body2" color="#aaa" mb={3}>
+            Share a useful prompt with the community. Fill out the details below
+            to help others understand and use your prompt effectively.
+          </Typography>
+
+          <Stack spacing={3}>
+            {/* Basic Information Section */}
+            <Box>
+              <Typography variant="h6" fontWeight="bold" mb={2}>
+                Basic Information
+              </Typography>
+
+              <Stack spacing={2}>
+                <Stack>
+                  <Typography fontWeight="bold" mb={0.5}>
+                    Prompt Title*
+                  </Typography>
                   <TextField
-                    {...params}
-                    placeholder="Select or Type Category"
+                    placeholder="Give your prompt a clear, descriptive title"
+                    fullWidth
                     required
+                    value={newPromptTitle}
+                    onChange={(e) => setNewPromptTitle(e.target.value)}
                     sx={{
                       backgroundColor: "#222",
                       borderRadius: 1,
                       "& .MuiOutlinedInput-root": {
                         color: "#fff",
+                        caretColor: "#fff",
                       },
                       "& .MuiOutlinedInput-notchedOutline": {
                         borderColor: "#444",
                       },
                     }}
                   />
-                )}
-              />
-            </Stack>
+                </Stack>
 
-            <Stack mb={3}>
-              {/* <Typography fontWeight="bold" mb={0.5}>
-                Title*
-              </Typography> */}
-              <Autocomplete
-                multiple
-                options={subcategoryOptions}
-                value={subcategories}
-                onChange={handleBeforeSubcategoryChange}
-                PopperProps={{
-                  sx: {
-                    "& .MuiPaper-root": {
-                      backgroundColor: "#222",
-                    },
-                  },
-                }}
-                ListboxProps={{
-                  style: { backgroundColor: "#222" },
-                }}
-                renderTags={(value, getTagProps) => (
-                  <Box
-                    sx={{
-                      width: "100%",
-                      minHeight: 45,
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: 1,
-                      overflowY: "auto",
-                      maxHeight: "120px",
-                      padding: "8px 0",
-                      "&::-webkit-scrollbar": {
-                        width: "8px",
-                      },
-                      "&::-webkit-scrollbar-track": {
-                        background: "#333",
-                      },
-                      "&::-webkit-scrollbar-thumb": {
-                        background: "#555",
-                        borderRadius: "4px",
+                <Stack>
+                  <Typography fontWeight="bold" mb={0.5}>
+                    Category*
+                  </Typography>
+                  <Autocomplete
+                    freeSolo
+                    options={categoryOptions}
+                    value={newCategory}
+                    onChange={(event, value) => {
+                      setNewCategory(value || "");
+                    }}
+                    onInputChange={(event, value) => {
+                      setNewCategory(value);
+                    }}
+                    PopperProps={{
+                      sx: {
+                        "& .MuiPaper-root": {
+                          backgroundColor: "#222",
+                        },
                       },
                     }}
-                  >
+                    ListboxProps={{
+                      style: { backgroundColor: "#222" },
+                      sx: {
+                        "& .MuiAutocomplete-option": {
+                          color: "#fff",
+                          "&:hover": {
+                            backgroundColor: "#333",
+                          },
+                        },
+                      },
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Type a category name or select from suggestions"
+                        required
+                        sx={{
+                          backgroundColor: "#222",
+                          borderRadius: 1,
+                          "& .MuiOutlinedInput-root": {
+                            color: "#fff",
+                            caretColor: "#fff",
+                          },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#444",
+                          },
+                          "& .MuiAutocomplete-clearIndicator": {
+                            color: "#ff4444",
+                            "&:hover": {
+                              color: "#ff6666",
+                              backgroundColor: "rgba(255, 68, 68, 0.1)",
+                            },
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </Stack>
+
+                <Stack spacing={1}>
+                  <Typography fontWeight="bold">Use Case & Purpose*</Typography>
+                  <TextField
+                    placeholder="What problem does this prompt solve? What's the main use case?"
+                    fullWidth
+                    required
+                    value={useCase}
+                    onChange={(e) => setUseCase(e.target.value)}
+                    sx={{
+                      backgroundColor: "#222",
+                      borderRadius: 1,
+                      "& .MuiOutlinedInput-root": {
+                        color: "#fff",
+                        caretColor: "#fff",
+                      },
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#444",
+                      },
+                    }}
+                  />
+                </Stack>
+              </Stack>
+            </Box>
+
+            <Divider sx={{ borderColor: "#444" }} />
+
+            {/* The Actual Prompt Section */}
+            <Box>
+              <Typography variant="h6" fontWeight="bold" mb={2}>
+                The Prompt
+              </Typography>
+
+              <Stack mb={2}>
+                <Typography fontWeight="bold" mb={0.5}>
+                  Prompt Content*
+                </Typography>
+                <TextField
+                  placeholder="Paste your actual prompt here. Be specific and include any variables in [brackets] like [topic] or [audience]."
+                  fullWidth
+                  required
+                  multiline
+                  rows={8}
+                  value={newPromptDescription}
+                  onChange={(e) => setNewPromptDescription(e.target.value)}
+                  sx={{
+                    backgroundColor: "#222",
+                    borderRadius: 1,
+                    "& .MuiOutlinedInput-root": {
+                      color: "#fff",
+                      caretColor: "#fff",
+                      minHeight: "200px",
+                      padding: "16px",
+                    },
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#444",
+                    },
+                    "& .MuiInputBase-inputMultiline": {
+                      padding: "0",
+                    },
+                  }}
+                />
+              </Stack>
+
+              <Stack spacing={1}>
+                <Typography fontWeight="bold">Expected Output</Typography>
+                <TextField
+                  placeholder="What should users expect to get from this prompt? Describe the typical output or result."
+                  fullWidth
+                  value={expectedOutput}
+                  onChange={(e) => setExpectedOutput(e.target.value)}
+                  sx={{
+                    backgroundColor: "#222",
+                    borderRadius: 1,
+                    "& .MuiOutlinedInput-root": {
+                      color: "#fff",
+                      caretColor: "#fff",
+                    },
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#444",
+                    },
+                  }}
+                />
+              </Stack>
+            </Box>
+
+            <Divider sx={{ borderColor: "#444" }} />
+
+            {/* Tags Section */}
+            <Box>
+              <Typography variant="h6" fontWeight="bold" mb={2}>
+                Tags (Optional)
+              </Typography>
+
+              <Autocomplete
+                multiple
+                freeSolo
+                options={[]}
+                value={tags}
+                onChange={handleTagsChange}
+                renderTags={(value, getTagProps) => (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                     {value.map((option, index) => (
                       <Chip
                         {...getTagProps({ index })}
                         key={option}
                         label={option}
                         sx={{
-                          backgroundColor: "#333",
+                          backgroundColor: theme.palette.primary.main,
                           color: "#fff",
-                          margin: "2px",
                           "& .MuiChip-deleteIcon": {
                             color: "#fff",
                             "&:hover": {
@@ -217,75 +320,33 @@ const AddEditPromptDialog = ({
                   </Box>
                 )}
                 renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder="Select Tags"
-                    required
-                    error={!!subCategoryError}
-                    helperText={subCategoryError}
-                    FormHelperTextProps={{
-                      sx: { color: "#ff4444" },
-                    }}
-                    sx={{
-                      backgroundColor: "#222",
-                      borderRadius: 1,
-                      "& .MuiOutlinedInput-root": {
-                        color: "#fff",
-                        height: "auto",
-                        minHeight: "45px",
-                        alignItems: "flex-start",
-                      },
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#444",
-                      },
-                    }}
-                  />
+                  <Stack>
+                    <Typography fontWeight="bold" mb={0.5}>
+                      Tags
+                    </Typography>
+                    <TextField
+                      {...params}
+                      placeholder="Add up to 5 tags to help people find your prompt (press Enter to add)"
+                      helperText={`${tags.length}/5 tags`}
+                      FormHelperTextProps={{
+                        sx: { color: "#aaa" },
+                      }}
+                      sx={{
+                        backgroundColor: "#222",
+                        borderRadius: 1,
+                        "& .MuiOutlinedInput-root": {
+                          color: "#fff",
+                          caretColor: "#fff",
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#444",
+                        },
+                      }}
+                    />
+                  </Stack>
                 )}
               />
-            </Stack>
-            <Stack mb={3}>
-              {/* <Typography fontWeight="bold" mb={0.5}>
-                Add Prompt Title*
-              </Typography> */}
-
-              <TextField
-                placeholder="Add Prompt Title"
-                fullWidth
-                required
-                value={newPromptTitle}
-                onChange={(e) => setNewPromptTitle(e.target.value)}
-                sx={{
-                  backgroundColor: "#222",
-                  borderRadius: 1,
-                  "& .MuiOutlinedInput-root": {
-                    color: "#fff",
-                  },
-                }}
-              />
-            </Stack>
-
-            <Stack mb={3}>
-              {/* <Typography fontWeight="bold" mb={0.5}>
-                Add Prompt Description*
-              </Typography> */}
-              <TextField
-                placeholder="Add Prompt Description"
-                fullWidth
-                required
-                multiline
-                rows={8}
-                value={newPromptDescription}
-                onChange={(e) => setNewPromptDescription(e.target.value)}
-                sx={{
-                  backgroundColor: "#222",
-                  borderRadius: 1,
-                  "& .MuiOutlinedInput-root": {
-                    color: "#fff",
-                    minHeight: "200px",
-                  },
-                }}
-              />
-            </Stack>
+            </Box>
           </Stack>
 
           <Box
@@ -295,7 +356,7 @@ const AddEditPromptDialog = ({
               Cancel
             </Button>
             <Button
-              onClick={onSubmitAddPrompt}
+              onClick={handleSubmit}
               disabled={loading}
               variant="contained"
             >
