@@ -9,6 +9,7 @@ import {
   CardContent,
   Rating,
   Tooltip,
+  Button,
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -54,7 +55,7 @@ const PromptDetailCard = ({ prompt }) => {
           </Box>
 
           <Box sx={{ mr: 1 }}>
-            <Tooltip title={copied ? "Copied!" : "Copy prompt"}>
+            {/* <Tooltip title={copied ? "Copied!" : "Copy prompt"}>
               <IconButton
                 onClick={handleCopyDescription}
                 sx={{
@@ -66,11 +67,27 @@ const PromptDetailCard = ({ prompt }) => {
               >
                 {copied ? <CheckCircleIcon fontSize="small" /> : <CopyIcon />}
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
+            <Button
+              onClick={handleCopyDescription}
+              startIcon={
+                copied ? <CheckCircleIcon fontSize="small" /> : <CopyIcon />
+              }
+              variant="contained"
+              sx={{
+                color: copied ? "success.main" : "#fff",
+                background: copied ? "#333" : "#222",
+                borderRadius: "999px",
+                fontWeight: "bold",
+                "&:hover": { background: "#333" },
+              }}
+            >
+              Copy Prompt
+            </Button>
           </Box>
 
           <Box>
-            <Tooltip title="Save to Collection">
+            {/* <Tooltip title="Save to Collection">
               <IconButton
                 sx={{
                   background: "#222",
@@ -81,7 +98,21 @@ const PromptDetailCard = ({ prompt }) => {
               >
                 <SaveIcon />
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
+
+            <Button
+              onClick={() => setSaveToCollectionOpen(true)}
+              startIcon={<SaveIcon />}
+              variant="contained"
+              sx={{
+                background: "#222",
+                borderRadius: "999px",
+                fontWeight: "bold",
+                "&:hover": { background: "#333" },
+              }}
+            >
+              Save to Collection
+            </Button>
           </Box>
         </Box>
 

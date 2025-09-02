@@ -22,22 +22,22 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, promptTitle }) => {
   const [isCreatingCollection, setIsCreatingCollection] = useState(false);
   const [collectionName, setCollectionName] = useState("");
 
-  const { 
-    collections, 
-    loading, 
-    error, 
-    createCollection, 
-    saveToCollection, 
-    removeFromCollection 
+  const {
+    collections,
+    loading,
+    error,
+    createCollection,
+    saveToCollection,
+    removeFromCollection,
   } = useCollections();
 
   // Initialize selected collections when dialog opens
   useEffect(() => {
     if (collections && promptId && open) {
-      const collectionsWithPrompt = collections.filter(collection => 
-        collection.prompts?.some(p => p.id === promptId)
+      const collectionsWithPrompt = collections.filter((collection) =>
+        collection.prompts?.some((p) => p.id === promptId)
       );
-      setSelectedCollections(new Set(collectionsWithPrompt.map(c => c.id)));
+      setSelectedCollections(new Set(collectionsWithPrompt.map((c) => c.id)));
     }
   }, [collections, promptId, open]);
 
@@ -48,11 +48,11 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, promptTitle }) => {
         { collectionId, promptId },
         {
           onSuccess: () => {
-            setSelectedCollections(prev => new Set([...prev, collectionId]));
+            setSelectedCollections((prev) => new Set([...prev, collectionId]));
           },
           onError: (error) => {
             console.error("Error adding to collection:", error);
-          }
+          },
         }
       );
     } else {
@@ -61,7 +61,7 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, promptTitle }) => {
         { collectionId, promptId },
         {
           onSuccess: () => {
-            setSelectedCollections(prev => {
+            setSelectedCollections((prev) => {
               const newSet = new Set(prev);
               newSet.delete(collectionId);
               return newSet;
@@ -69,7 +69,7 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, promptTitle }) => {
           },
           onError: (error) => {
             console.error("Error removing from collection:", error);
-          }
+          },
         }
       );
     }
@@ -84,7 +84,7 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, promptTitle }) => {
         onSuccess: () => {
           setCollectionName("");
           setIsCreatingCollection(false);
-        }
+        },
       }
     );
   };
@@ -129,13 +129,13 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, promptTitle }) => {
           </Typography>
 
           {promptTitle && (
-            <Box 
-              sx={{ 
-                backgroundColor: "#222", 
-                padding: "12px 16px", 
-                borderRadius: "8px", 
+            <Box
+              sx={{
+                backgroundColor: "#222",
+                padding: "12px 16px",
+                borderRadius: "8px",
                 mb: 3,
-                border: "1px solid #444"
+                border: "1px solid #444",
               }}
             >
               <Typography variant="body2" color="#aaa" mb={0.5}>
@@ -231,18 +231,27 @@ const SaveToCollectionDialog = ({ open, onClose, promptId, promptTitle }) => {
                       <Card
                         key={collection.id}
                         sx={{
-                          backgroundColor: "#222",
-                          border: "1px solid #444",
+                          backgroundColor: "#181818",
+                          border: "1px solid #222",
                           "&:hover": {
                             borderColor: theme.palette.primary.main,
                           },
                         }}
                       >
-                        <Box sx={{ p: 2 }}>
-                          <Stack direction="row" spacing={2} alignItems="center">
+                        <Box>
+                          <Stack
+                            direction="row"
+                            spacing={2}
+                            alignItems="center"
+                          >
                             <Checkbox
                               checked={selectedCollections.has(collection.id)}
-                              onChange={(e) => handleCollectionToggle(collection.id, e.target.checked)}
+                              onChange={(e) =>
+                                handleCollectionToggle(
+                                  collection.id,
+                                  e.target.checked
+                                )
+                              }
                               sx={{
                                 color: "#666",
                                 "&.Mui-checked": {
